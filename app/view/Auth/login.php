@@ -45,12 +45,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HiperAuto</title>
+    <title></title>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&display=swap" rel="stylesheet">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
-	<link href="../../css/login.css" rel="stylesheet">
+	<link href="./css/auth/login.css" rel="stylesheet">
 </head>
 
 <body>
@@ -66,7 +66,7 @@
 		</div>
 		<div class="login">			
 			<div class="form-container">
-			    <img src="../../assets/img/logo_hiperauto.png" alt="logo-hiperauto" class="logo">
+			    <img src="" alt="logo" class="logo">
 				<form action="" class="form-login">
 					<label for="email" class="label">Correo Electrónico</label>
 					<input type="text" id="email" placeholder="Usuario" required class="input input-username" value="<?= $_GET['email'] ?? ''?>">
@@ -113,11 +113,7 @@
 					<label for="type-document" class="form-label">Tipo de identificación</label>
 					<select class="form-select inputRegister" id="type-document"> 
 						<option value="">seleccione</option>
-						<?php
-							while($dataDocument= mysqli_fetch_array($resultDocument)){
-								echo "<option value='{$dataDocument['id']}'>{$dataDocument['nombre']}</option>";
-							}							
-						?>
+						
 					</select>
 				</div>
 				<div class="mb-3">
@@ -153,10 +149,12 @@
 		</div>
 	  </div>
 	</div>	
-	
-	<script src="../../js/jquery-3.7.1.js"></script>
-	<script src="../../js/login.js"></script>
+
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+	<script src="js/auth/auth.js"></script>
+
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
+	
 </body>
 
 </html>
