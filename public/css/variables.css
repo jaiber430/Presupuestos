@@ -1,0 +1,61 @@
+:root {
+  /* Base (conservados) */
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  --color-navbar-bg: #2C2F3A; /* Mantenido */
+  --color-text-primary: #1C1E21; /* Mantenido */
+
+  /* Fondos rediseñados para cohesión */
+  --color-bg: #F8FAFC; /* Blanco azulado ultra suave */
+  --color-bg-view: #FFFFFF;
+  --color-input-bg: #F1F5F9; /* Gris azulado claro */
+
+  /* Paleta principal ajustada para hovers fluidos */
+  --color-primary: #4361EE; /* Azul real saturado */
+  --color-secondary: #7B2CBF; /* Púrpura royal */
+  --color-accent: #00BBF9; /* Azul cielo vibrante */
+  --color-warning: #F8961E; /* Naranja miel */
+
+  /* Extensiones optimizadas para hovers */
+  --color-primary-light: #5F7AFF;
+  --color-primary-dark: #3A4FCC;
+  --color-secondary-light: #9D4EDD;
+  --color-secondary-dark: #5A189A;
+  --color-accent-light: #48CAE4;
+  --color-accent-dark: #0096C7;
+
+  /* Estados interactivos mejorados */
+  --color-hover-bg: #E9EDF7; /* Gris azulado para hovers */
+  --color-active-bg: #DBE3FF; /* Azul claro para active */
+
+  /* Mensajes con mejor contraste */
+  --color-msg-warning-bg: #FFF3E5;
+  --color-msg-warning-text: #E67700;
+  --color-msg-warning-border: #FFC069;
+  --color-msg-error-bg: #FFEBEE;
+  --color-msg-error-text: #D32F2F;
+  --color-msg-error-border: #EF9A9A;
+  --color-msg-success-bg: #E6F7EE;
+  --color-msg-success-text: #2E8B57;
+  --color-msg-success-border: #81C784;
+
+  /* Neutros rediseñados */
+  --color-text-secondary: #5A6475; /* Gris azulado */
+  --color-muted: #A3B2C3; /* Gris suave azulado */
+  --color-gray-100: #F5F7FB; /* Fondo ultra claro */
+  --color-gray-200: #E2E8F0; /* Bordes sutiles */
+  --color-gray-600: #6B7280; /* Gris medio */
+  --color-gray-900: #1F2937; /* Casi negro azulado */
+
+  /* Tipografía (conservada) */
+  --font-size-sm: 1.4rem;
+  --font-size-md: 1.6rem;
+  --font-size-lg: 1.8rem;
+  --font-size-xl: 2.4rem;
+  --font-size-xxl: 3.2rem;
+
+  /* Estados */
+  --color-success: #00B74A; /* Verde esmeralda */
+  --color-error: #FF3D57; /* Rojo coral */
+  --color-info: #3D7EFF; /* Azul puro */
+}
