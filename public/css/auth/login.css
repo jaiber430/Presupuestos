@@ -1,14 +1,16 @@
+@import url('../variables_globales.css');
+
 :root{
-  --color-white: #FFFFFF;
-  --color-black: #000000;
-  --color-bg-light: #F5F5F5;            
-  --color-input-bg: #E7E9EB;            
-  --color-primary-blue: #5A7184;        
-  --color-text-primary: #374955;        
-  --color-text-secondary: #6E7C87;      
-  --color-accent-zapote: #D67E3D;
-  --color-danger: #F8D7DA;
-  --color-success: #ACD9B2;
+  --color-white: var(--color-primary);
+  --color-black: var(--color-quinary);
+  --color-bg-light: var(--color-quaternary);            
+  --color-input-bg: var(--color-tertiary);            
+  --color-primary-blue: var(--color-secondary);        
+  --color-text-primary: var(--text-secondary);        
+  --color-text-secondary: var(--text-tertiary);      
+  --color-accent-zapote: var(--color-accent); 
+  --color-danger: var(--error-color);
+  --color-success: var(--success-color);
   --font-size-sm: 14px;
   --font-size-md: 16px;
   --font-size-lg: 18px;
@@ -41,13 +43,13 @@ body {
 
 .container-alert-success{
   background-color: var(--color-success);
-  border: 1px solid var(--color-bg-light);
+  border: 1px solid var(--border-light);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   color: var(--color-white);
 }
 .container-alert-danger{
   background-color: var(--color-danger);
-  border: 1px solid #f5c6cb;
+  border: 1px solid var(--border-light);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   color: var(--color-primary-blue);
 }
@@ -72,11 +74,40 @@ body {
   color: var(--color-text-primary);
 }
 
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding: 0 8px;
+  position: relative;
+}
+
+.logo-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+  height: 30px;
+  background-color: var(--color-tertiary);
+}
+
 .logo {
-  width: 150px;
-  margin-bottom: 48px;
-  justify-self: center;
-  display: none;
+  width: 60px;
+  height: auto;
+  display: block;
+}
+
+.title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+  text-align: right;
+  flex: 1;
+  margin-left: 20px;
 }
 
 .form-login {
@@ -115,7 +146,7 @@ body {
 .inputRegister:focus {
   outline: none;
   box-shadow: none;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-light);
 }
 
 .input:focus{
@@ -172,12 +203,18 @@ body {
 
 @media (max-width: 640px) {
   .logo {
-    display: block;
+    width: 80px;
+  }
+  
+  .title {
+    text-align: center;
+    margin-left: 0;
+    font-size: var(--font-size-md);
   }
 }
 
 .input-error{
-  border: 2px solid #F4C7C7;
+  border: 2px solid var(--error-color);
   background-color: #FFF0F0 !important;
   animation: shake 0.3s;
   outline: none;
