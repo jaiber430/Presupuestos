@@ -4,5 +4,8 @@
         "psr-4": {
             "presupuestos\\": "app/"
         }
+    },
+    "require": {
+        "symfony/mailer": "^7.3"
     }
 }
