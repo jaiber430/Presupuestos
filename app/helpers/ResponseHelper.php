@@ -1,5 +1,5 @@
 <?php
-namespace Klassroom\helpers;
+namespace presupuestos\helpers;
 
 class ResponseHelper {
     public static function defaultResponse(): array {
