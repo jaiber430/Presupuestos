@@ -1,0 +1,8 @@
+{
+    "name": "sena/presupuestos",
+    "autoload": {
+        "psr-4": {
+            "presupuestos\\": "app/"
+        }
+    }
+}
