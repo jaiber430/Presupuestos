@@ -48,7 +48,7 @@
     <title></title>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100..700&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Roboto+Mono:wght@100..700&display=swap" rel="stylesheet">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
 	<link href="<?= APP_URL ?>css/auth/login.css" rel="stylesheet">
 
@@ -92,55 +92,81 @@
 	</main>
 	
 	<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-	  <div class="modal-dialog modal-dialog-scrollable">
+	  <div class="modal-dialog modal-dialog-scrollable modal-lg">
 		<div class="modal-content">
 		  <div class="modal-header">
-			<h1 class="modal-title fs-5" id="staticBackdropLabel">Crea una cuenta</h1>
+			<h1 class="modal-title fs-5" id="staticBackdropLabel">Registro de Usuarios</h1>
 			<button type="button" class="btn-close btns-close" data-bs-dismiss="modal" aria-label="Close"></button>
 		  </div>
 		  <div class="modal-body">
-			<div class="row">
-				<div class="col-6">
-				</div>
-				<div class="col-6">
-				</div>
-			</div>
 			<form action="" class="form-registro">
-				<div class="mb-3">
-					<label for="names" class="form-label">Nombres</label>
-					<input type="text" class="form-control inputRegister" id="names">
+				<div class="row">
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="names" class="form-label">Nombres</label>
+							<input type="text" class="form-control inputRegister" id="names">
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="last-names" class="form-label">Apellidos</label>
+							<input type="text" class="form-control inputRegister" id="last-names">
+						</div>
+					</div>
 				</div>
-				<div class="mb-3">
-					<label for="last-names" class="form-label">Apellidos</label>
-					<input type="text" class="form-control inputRegister" id="last-names">
+				<div class="row">
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="id_number" class="form-label">Número de identificación</label>
+							<input type="text" class="form-control inputRegister" id="id-number">
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="email-sena" class="form-label">Correo SENA</label>
+							<input type="email" class="form-control inputRegister" id="email-sena">
+						</div>
+					</div>			
 				</div>
-				<div class="mb-3">
-					<label for="type-document" class="form-label">Tipo de identificación</label>
-					<select class="form-select inputRegister" id="type-document"> 
-						<option value="">seleccione</option>
-						
-					</select>
+				<div class="row">					
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="email-user" class="form-label">Correo Personal</label>
+							<input type="email" class="form-control inputRegister" id="email-user">
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="password-user" class="form-label">Contraseña</label>
+							<input type="password" class="form-control inputRegister" id="password-user">
+						</div>
+					</div>
 				</div>
-				<div class="mb-3">
-					<label for="id_number" class="form-label">Número de identificación</label>
-					<input type="text" class="form-control inputRegister" id="id-number">
-				</div>				
-				<div class="mb-3">
-					<label for="number-phone" class="form-label">Celular</label>
-					<input type="number" class="form-control inputRegister" id="number-phone">
- 				</div>
-				
-				<div class="mb-3">
-					<label for="email" class="form-label">Correo Eléctronico</label>
-					<input type="email" class="form-control inputRegister" id="email-user">
+				<div class="row">
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="password-user" class="form-label">Confirmar Contraseña</label>
+							<input type="password" class="form-control inputRegister" id="password-user-con">
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="departmento" class="form-label">Departamento</label>
+							<select class="form-select inputRegister" id="departmento">
+								<option selected disabled>Seleccione una opción</option>
+							</select>
+						</div>
+					</div>
 				</div>
-				<div>
-					<label for="password" class="form-label">Contraseña</label>
-					<input type="password" class="form-control inputRegister" id="password-user">
-				</div>
-				<div>
-					<label for="re-password" class="form-label">Confirmar contraseña</label>
-					<input type="password" class="form-control inputRegister" id="re-password">
+				<div class="row">
+					<div class="col-md-6">
+						<div class="mb-3">
+							<label for="centro" class="form-label">Centro de formación</label>
+							<select class="form-select inputRegister" id="centro">
+								<option selected disabled>Seleccione una opción</option>
+							</select>
+						</div>
+					</div>
 				</div>
 			</form>
 		  </div>
