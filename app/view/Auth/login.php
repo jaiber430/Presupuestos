@@ -129,10 +129,7 @@
 					<label for="number-phone" class="form-label">Celular</label>
 					<input type="number" class="form-control inputRegister" id="number-phone">
  				</div>
-				<div class="mb-3">
-					<label for="address" class="form-label">Dirección</label>
-					<input type="text" class="form-control inputRegister" id="address">
-				</div>
+				
 				<div class="mb-3">
 					<label for="email" class="form-label">Correo Eléctronico</label>
 					<input type="email" class="form-control inputRegister" id="email-user">

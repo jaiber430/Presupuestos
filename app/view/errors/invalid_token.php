@@ -1,4 +1,4 @@
-<!-- archivo: error_token_expirado.php -->
+
 <!DOCTYPE html>
 <html lang="es">
 <head>

@@ -8,8 +8,8 @@ use presupuestos\controller\Auth\AuthController;
 
 return [
     '' => fn() => (new AuthController())->showLogin(),
-    //'login' => fn() => (new AuthController())->showLogin(),
-    //'login-post' => fn() => (new AuthController())->login($_POST),
+    'login' => fn() => (new AuthController())->showLogin(),
+    'login-post' => fn() => (new AuthController())->login($_POST),
     // 'dashboard' => fn()=> (new DashboardController())->index(),
     // 'aulas'=> fn()=> (new ClassroomController())->index(),
     

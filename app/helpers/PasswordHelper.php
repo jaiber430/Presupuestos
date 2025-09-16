@@ -1,5 +1,5 @@
 <?php
-namespace Klassroom\helpers;
+namespace presupuestos\helpers;
 
 class PasswordHelper{
 	public static function encryptPass(string $password): string{

@@ -1,5 +1,5 @@
 <?php
-namespace Klassroom\helpers;
+namespace presupuestos\helpers;
 class Auth{   
     public static function check(){               
         if (!isset($_SESSION[APP_SESSION_NAME])) {

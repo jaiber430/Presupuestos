@@ -1,7 +1,7 @@
 <?php
-namespace Klassroom\helpers;
+namespace presupuestos\helpers;
 
-use Klassroom\exceptions\ValidationException;
+use presupuestos\exceptions\ValidationException;
 
 class ValidationHelper {
     public static function normalizeEmail(string $email): string {

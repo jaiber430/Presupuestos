@@ -2,11 +2,7 @@ let failedEmail = "";
 let failedPass = "";
 let messageError= "";
 
-$(function() {
-	$(document).on("contextmenu", function(e) {
-		e.preventDefault(); 
-	});
-	
+$(function() {		
 	$(".form-login").on("submit", function(event) {
 		event.preventDefault();
 		let email= $('#email').val().trim();
@@ -16,8 +12,7 @@ $(function() {
 			$(".container-alert").addClass("container-alert-danger");
 			$(".alert-text").html("Todos los campos son obligatorios");
 		}else{
-			$.post('../controller/controller_forms.php', {
-				'type-form': 'login',
+			$.post('login', {
 				email: email,
 				password: password
 			}, function(answer) {

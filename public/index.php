@@ -14,7 +14,14 @@ $key= ($method === 'POST') ? "$route-post" : $route;
 if (isset($routes[$key])) {
     $routes[$key]();
 }else {
-    http_response_code(404);
-    echo "Ruta no encontrada: /$route";
+    //http_response_code(404);
+
+    $file404 = __DIR__ . '/../app/view/errors/404.php';
+    
+    if (file_exists($file404)) {
+        require $file404;
+    } else {
+        echo "Página no encontrada: /$file404";
+    }
 }
 
