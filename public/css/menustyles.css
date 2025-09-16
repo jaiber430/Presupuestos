@@ -1,0 +1,274 @@
+/* Sidebar lateral responsive usando variables existentes (styles.css) */
+@import url('variables_globales.css');
+
+:root{
+  --sidebar-width: 250px;
+  --sidebar-bg: var(--color-primary);
+  --sidebar-border: var(--border-light);
+  --sidebar-text: var(--color-quinary);
+  --sidebar-accent: var(--color-secondary);
+  --sidebar-accent-hover: var(--verde-700, #388e3c);
+  --sidebar-radius: 14px;
+}
+
+body.sidebar-open{
+  overflow:hidden;
+}
+
+/* Header styles */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: var(--color-tertiary);
+  z-index: 1000;
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-photo img {
+  border: 2px solid var(--color-secondary);
+}
+
+.user-role span, .user-info span {
+  color: var(--color-quinary);
+  font-weight: 500;
+}
+
+.sena-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.titulo h4 {
+  margin: 0;
+  color: var(--color-quinary);
+  font-weight: 600;
+}
+
+/* Ajustar el body para el header fijo */
+body {
+  padding-top: 70px;
+}
+
+.btn-menu-toggle{
+  background-color: var(--color-secondary) !important;
+  border-color: var(--color-secondary) !important;
+  color: white !important;
+  padding:.55rem .8rem;
+  border-radius:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+.btn-menu-toggle:hover,
+.btn-menu-toggle:focus,
+.btn-menu-toggle:active {
+  background-color: var(--success-hover) !important;
+  border-color: var(--success-hover) !important;
+  color: white !important;
+}
+
+.sidebar{
+  position:fixed;
+  top:70px;
+  left:0;
+  height:calc(100vh - 70px);
+  width:var(--sidebar-width);
+  background:var(--sidebar-bg);
+  border-right:1px solid var(--border-light);
+  box-shadow:0 0 0 1px rgba(0,0,0,.02), 0 8px 24px rgba(0,0,0,.12);
+  display:flex;
+  flex-direction:column;
+  transform:translateX(-105%);
+  transition:transform .35s cubic-bezier(.65,.05,.36,1);
+  z-index:1046;
+  overflow-y:auto;
+  scrollbar-width:thin;
+}
+
+.sidebar.show{
+  transform:translateX(0);
+}
+
+.sidebar::-webkit-scrollbar{
+  width:6px;
+}
+.sidebar::-webkit-scrollbar-thumb{
+  background:rgba(0,0,0,.15);
+  border-radius:3px;
+}
+
+.sidebar-header{
+  font-size:.95rem;
+  color:var(--sidebar-text);
+  border-bottom:1px solid var(--sidebar-border);
+  margin-bottom:.25rem;
+}
+
+.accordion{
+  --bs-accordion-border-width:0;
+}
+
+.accordion-item{
+  background:transparent;
+  border:0;
+  border-bottom:1px solid var(--sidebar-border);
+}
+
+.accordion-item:last-child{
+  border-bottom:0;
+}
+
+.accordion-button{
+  background:transparent;
+  font-size:.875rem;
+  font-weight:600;
+  color:var(--color-quinary);
+  padding:.75rem 1rem;
+  transition:background .25s,color .25s;
+  border-radius:0;
+  box-shadow:none !important;
+}
+
+.accordion-button.collapsed{
+  color:var(--color-quinary);
+}
+
+.accordion-button:not(.collapsed){
+  background:linear-gradient(90deg,var(--sidebar-accent) 0%, var(--sidebar-accent-hover) 100%);
+  color:#fff;
+}
+
+.accordion-button:not(.collapsed)::after{
+  filter:invert(1) brightness(2);
+}
+
+.accordion-button:hover{
+  background:var(--color-secondary);
+  color:var(--color-primary);
+}
+
+.accordion-button:not(.collapsed):hover{
+  background:linear-gradient(90deg,var(--sidebar-accent-hover) 0%, var(--sidebar-accent) 100%);
+}
+
+.accordion-button.single-link{
+  cursor:pointer;
+}
+
+.accordion-button.single-link:hover{
+  background:var(--color-secondary);
+  color:var(--color-primary);
+}
+
+.accordion-button.single-link::after{
+  display:none;
+}
+
+.accordion-collapse{
+  background:rgba(0,0,0,.02);
+}
+
+.submenu-list .list-group-item{
+  background:transparent;
+  border:0;
+  border-top:1px dashed var(--sidebar-border);
+  padding:.5rem 1.15rem;
+  font-size:.8rem;
+}
+
+.submenu-list .list-group-item:first-child{
+  border-top:0;
+}
+
+.submenu-list a{
+  text-decoration:none;
+  color:var(--color-quinary);
+  display:block;
+  padding:.25rem 0;
+  position:relative;
+  transition:color .2s, padding-left .2s, background-color .2s;
+}
+
+.submenu-list a:hover{
+  color:var(--color-primary);
+  background-color:var(--color-secondary);
+  padding-left:.35rem;
+}
+
+.backdrop-sidebar{
+  position:fixed;
+  inset:0;
+  background:transparent;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .3s;
+  z-index:1040;
+}
+
+.backdrop-sidebar.show{
+  opacity:1;
+  visibility:visible;
+}
+
+.app-content{
+  padding-left:0;
+  transition:padding-left .35s;
+  min-height:100vh;
+  width:100%;
+}
+
+@media (min-width: 768px){
+  .sidebar{
+    transform:translateX(-105%);
+    border-right:1px solid var(--sidebar-border);
+    width:230px;
+  }
+  .app-content{
+    padding-left:0;
+  }
+  .backdrop-sidebar{ 
+    display:block;
+  }
+}
+
+@media (max-width: 767.98px){
+  .sidebar{
+    width:78%;
+    max-width:300px;
+    border-right:0;
+    border-radius:0 18px 18px 0;
+  }
+  .app-content{
+    /* Altura aproximada del botón + margen (0.75rem top + 0.55rem padding + line-height). Ajusta si cambias el botón */
+    padding-top:3.25rem;
+  }
+}
+
+
+
+/* Accesibilidad foco */
+.accordion-button:focus{
+  outline:2px solid var(--sidebar-accent);
+  outline-offset:2px;
+  box-shadow:none;
+}
+
+.submenu-list a:focus{
+  outline:2px solid var(--sidebar-accent);
+  outline-offset:2px;
+}
+
+/* Suavizar transiciones sin hover para abrir (solo click) */
+.accordion-button{
+  pointer-events: auto;
+}
