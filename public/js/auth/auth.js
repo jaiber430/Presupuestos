@@ -53,7 +53,6 @@ $(function() {
 		"#last-names", 
 		"#id-number",
 		"#email-sena",
-		"#email-user",
 		"#password-user",
 		"#re-password"
 	];
@@ -115,7 +114,6 @@ $(function() {
 			names: $("#names").val().trim(),
 			lastNames: $("#last-names").val().trim(),
 			idNumber: $("#id-number").val().trim(),
-			email: $("#email-user").val().trim(),
 			emailSena: $("#email-sena").val().trim(),
 			password: $("#password-user").val().trim(),
 			rePassword: $("#re-password").val().trim()
