@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="../../public/css/menustyles.css">
+    <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/menustyles.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
     <div class="user-section">
         <button class="btn btn-primary btn-menu-toggle me-3" id="toggleMenu" aria-label="Abrir menú"><i class="fas fa-bars"></i></button>
         <div class="user-photo">
-            <img src="#" alt="Foto de usuario" class="rounded-circle" width="45" height="45">
+            <img src="<?= APP_URL ?>assets/img/logoSena.png" alt="Foto de usuario" class="rounded-circle" width="45" height="45">
         </div>
         <div class="user-role">
             <span>Rol</span>
@@ -32,7 +32,7 @@
     <!-- Sección derecha: logo SENA y título -->
     <div class="sena-section">
         <div class="logo-sena">
-            <img src="../../public/assets/img/logoSena.png" alt="Logo SENA" height="45">
+            <img src="<?= APP_URL ?>assets/img/logoSena.png" alt="Logo SENA" height="45">
         </div>
         <div class="titulo">
             <h4>Presupuestos</h4>
@@ -64,6 +64,6 @@
 
 <div class="backdrop-sidebar" id="sidebarBackdrop"></div>
 
-<script type="text/javascript" src="../../public/js/menuctr.js"></script>
+<script type="text/javascript" src="<?= APP_URL ?>js/menuctr.js"></script>
 </body>
 </html>
