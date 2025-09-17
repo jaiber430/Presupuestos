@@ -12,7 +12,7 @@ class DashboardController{
 		
 		switch($_SESSION[APP_SESSION_NAME]['role']){
 			case 1:
-				echo "Hola Admin";
+				require __DIR__ . '/../view/layout.php';
 				break;
 			case 2:
 				echo "Hola Abogado";
