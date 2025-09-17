@@ -7,7 +7,7 @@
   --sidebar-border: var(--border-light);
   --sidebar-text: var(--color-quinary);
   --sidebar-accent: var(--color-secondary);
-  --sidebar-accent-hover: var(--verde-700, #388e3c);
+  --sidebar-accent-hover: var(--color-accent);
   --sidebar-radius: 14px;
 }
 

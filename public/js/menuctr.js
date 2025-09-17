@@ -35,3 +35,10 @@ $(document).on('click', function(e) {
 });
 
 // Cerrar si se cambia a ancho >= md
+
+// Cerrar sidebar al abrir el modal
+$(document).on('show.bs.modal', '#modalAnioFiscal', function(){
+  if($sidebar.hasClass('show')){
+    closeSidebar();
+  }
+});
