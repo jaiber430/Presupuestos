@@ -23,8 +23,8 @@ class AuthController {
         try {
 
 
-            $email = trim($credentials['email'] ?? '');
-            $password = trim($credentials['password'] ?? '');
+            $email = trim($credentials['email']);
+            $password = trim($credentials['password']);
 
             if($email === "" || $password === "") {
                 echo json_encode([
@@ -180,5 +180,22 @@ class AuthController {
                 'message' => "Error del sistema. Intenta más tarde.".$e->getMessage()
             ]);
         }
+    }
+
+    public function recoveryPassword(array $data){
+        $email = trim($data['email']);
+        $email = ValidationHelper::normalizeEmail($email);
+
+        $userModel = new UserModel();
+        $dataUser = $userModel->findByEmail($email);
+        echo json_encode([
+            'state' => 1,
+            'redirect' => APP_URL."recovery"
+        ]);
+        return;
+    }
+
+    public function showRecoveryPassword(){
+        require __DIR__ . '/../../view/Auth/login.php';
     }
 }

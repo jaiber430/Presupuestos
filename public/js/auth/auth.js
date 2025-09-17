@@ -134,6 +134,7 @@ $(function() {
 	});
 	
 	
+	//Recordar Contraseña
 	$(".remember_password").on("click", function(){		
 		
 		let email= $("#email").val().trim();
@@ -142,7 +143,6 @@ $(function() {
 			const regexCorreo = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
 			return regexCorreo.test(email);
 		}
-
 		
 		if(!contieneCorreo(email)){
 			$(".container-alert").addClass("container-alert-danger");
@@ -153,8 +153,7 @@ $(function() {
 		};
 	
 		if(email){
-			$.post("../Controller/controller_forms.php",{
-				"type-form": "recovery_password",
+			$.post("recovery",{
 				email: email
 			}, function(answer){
 				if(answer.state== 1){
