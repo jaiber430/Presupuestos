@@ -58,9 +58,9 @@
 	</header>
 	
 	<main>
-		<div class="alerts <?= !empty($message ?? '') ? 'show' : '' ?>">
-			<div class="container-alert <?= !empty($message ?? '') ? 'container-alert-danger' : '' ?>">
-				<p class="alert-text"><?= !empty($message ?? '') ? htmlspecialchars($message) : '' ?></p>
+		<div class="alerts">
+			<div class="container-alert">
+				<p class="alert-text"></p>
 			</div>
 		</div>
 		<div class="login">			
