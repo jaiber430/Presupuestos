@@ -1,7 +1,15 @@
 <?php
-session_start();      
-const APP_URL = "http://presupuestos.local/";
-const APP_NAME= "Presupuestos";
-const APP_SESSION_NAME= "presupuestos_sess";
-date_default_timezone_set("America/Bogota");
+session_start();
+
+require_once __DIR__ . '/../vendor/autoload.php';
+use Dotenv\Dotenv;
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
+
+
+define('APP_URL', $_ENV['APP_URL']);
+define('APP_NAME', $_ENV['APP_NAME']);
+define('APP_SESSION_NAME', $_ENV['APP_SESSION_NAME']);
+date_default_timezone_set($_ENV['APP_TIMEZONE'] ?? 'America/Bogota');
 

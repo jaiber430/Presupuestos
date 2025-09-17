@@ -9,6 +9,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/menustyles.css">
+  
+
     <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/yearfiscal/yearfiscal.css">
     <?php if (!empty($pageStyles)) { echo $pageStyles; } ?>
 </head>
@@ -51,6 +53,7 @@
               <a class="accordion-button single-link" href="#">Inicio</a>
             </h2>
         </div>
+
         <!-- momentaneo hasta que se haga menu inteligente -->
                 <div class="accordion-item">
                         <h2 class="accordion-header" id="headingPresupuesto">
@@ -71,6 +74,7 @@
 </div>
 
 <div class="backdrop-sidebar" id="sidebarBackdrop"></div>
+
 
 <!-- Contenedor principal para el contenido dinámico -->
 <div class="page-wrapper">

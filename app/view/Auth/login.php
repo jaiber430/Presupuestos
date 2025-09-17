@@ -46,7 +46,7 @@
     <meta charset="UTF-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>Iniciar Sessión</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
 	<link href="<?= APP_URL ?>css/auth/login.css" rel="stylesheet">
 
@@ -58,9 +58,9 @@
 	</header>
 	
 	<main>
-		<div class="alerts <?= !empty($message ?? '') ? 'show' : '' ?>">
-			<div class="container-alert <?= !empty($message ?? '') ? 'container-alert-danger' : '' ?>">
-				<p class="alert-text"><?= !empty($message ?? '') ? htmlspecialchars($message) : '' ?></p>
+		<div class="alerts">
+			<div class="container-alert">
+				<p class="alert-text"></p>
 			</div>
 		</div>
 		<div class="login">			
@@ -135,7 +135,7 @@
 					<div class="col-md-6">
 						<div class="mb-3">
 							<label for="password-user" class="form-label">Confirmar Contraseña</label>
-							<input type="password" class="form-control inputRegister" id="password-user-con">
+							<input type="password" class="form-control inputRegister" id="re-password">
 						</div>
 					</div>
 				</div>
