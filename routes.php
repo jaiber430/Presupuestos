@@ -10,6 +10,7 @@ return [
     '' => fn() => (new AuthController())->showLogin(),
     'login' => fn() => (new AuthController())->showLogin(),
     'login-post' => fn() => (new AuthController())->login($_POST),
+    'register-post' => fn() => (new AuthController())->register($_POST),
     // 'dashboard' => fn()=> (new DashboardController())->index(),
     // 'aulas'=> fn()=> (new ClassroomController())->index(),
     

@@ -146,7 +146,7 @@
 					<div class="col-md-6">
 						<div class="mb-3">
 							<label for="password-user" class="form-label">Confirmar Contraseña</label>
-							<input type="password" class="form-control inputRegister" id="password-user-con">
+							<input type="password" class="form-control inputRegister" id="re-password">
 						</div>
 					</div>
 					<div class="col-md-6">

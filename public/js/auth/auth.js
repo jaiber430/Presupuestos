@@ -3,6 +3,8 @@ let failedPass = "";
 let messageError= "";
 
 $(function() {		
+
+	//Login
 	$(".form-login").on("submit", function(event) {
 		event.preventDefault();
 		let email= $('#email').val().trim();
@@ -30,6 +32,7 @@ $(function() {
 		}
 	});
 	
+	
 	$(".input").on("input", function(){
 		let currentEmail= $("#email").val().trim();
 		let currentPass= $("#password").val().trim();		
@@ -48,10 +51,8 @@ $(function() {
 	const inputs= [
 		"#names", 
 		"#last-names", 
-		"#type-document",
 		"#id-number",
-		"#number-phone",
-		"#address",
+		"#email-sena",
 		"#email-user",
 		"#password-user",
 		"#re-password"
@@ -110,15 +111,12 @@ $(function() {
 		}		
 			
 		
-		$.post("../Controller/controller_forms.php", {
-			"type-form": "register",
+		$.post("register", {
 			names: $("#names").val().trim(),
 			lastNames: $("#last-names").val().trim(),
-			typeDocument: $("#type-document").val().trim(),
 			idNumber: $("#id-number").val().trim(),
-			numberPhone: $("#number-phone").val().trim(),
-			address: $("#address").val().trim(),
 			email: $("#email-user").val().trim(),
+			emailSena: $("#email-sena").val().trim(),
 			password: $("#password-user").val().trim(),
 			rePassword: $("#re-password").val().trim()
 		}, function(answer){
@@ -134,10 +132,6 @@ $(function() {
 			}			
 		});
 		
-		$("#staticBackdrop").hide().on('hidden.bs.modal', function () {
-        $('.modal-backdrop').remove(); 
-        $('body').removeClass('modal-open'); 
-    });
 
 	});
 	

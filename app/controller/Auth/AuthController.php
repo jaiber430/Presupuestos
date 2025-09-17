@@ -7,6 +7,7 @@ use presupuestos\model\UserModel;
 use presupuestos\helpers\ValidationHelper;
 use presupuestos\helpers\PasswordHelper;
 use presupuestos\exceptions\ValidationException;
+use presupuestos\helpers\MailerHelper;
 
 class AuthController {
 
@@ -34,8 +35,8 @@ class AuthController {
             }
 
             $email = ValidationHelper::normalizeEmail($email);
-            $userModel = new UserModel($email);
-            $dataUser = $userModel->findByEmail();
+            $userModel = new UserModel();
+            $dataUser = $userModel->findByEmail($email);
 
             if(!$dataUser){
                 echo json_encode([
@@ -45,7 +46,7 @@ class AuthController {
                 return;
             }
 
-            if($dataUser['is_verificate'] == 0){
+            if($dataUser['es_verificado'] == 0){
                 echo json_encode([
                     'state' => 0,
                     'message' => "El correo no se encuentra verificado"
@@ -96,13 +97,15 @@ class AuthController {
 
         try {
 
-            $name = trim($data['name'] ?? '');
-            $lastName = trim($data['lastName'] ?? '');
-            $email = trim($data['email'] ?? '');
+            $names= trim($data['names'] ?? '');
+            $lastNames= trim($data['lastNames'] ?? '');
+            $idNumber= trim($data['idNumber'] ?? '');
+            $email= trim($data['email'] ?? '');
+            $emailSena= trim($data['emailSena'] ?? '');
             $password = trim($data['password'] ?? '');
             $rePassword = trim($data['rePassword'] ?? '');
 
-            if(!$name || !$lastName || !$email || !$password || !$rePassword){
+            if(!$names || !$lastNames || !$emailSena || !$email || !$password || !$rePassword){
                 echo json_encode([
                     'state' => 0,
                     'message' => "Todos los campos son obligatorios"
@@ -120,8 +123,8 @@ class AuthController {
 
             $email = ValidationHelper::normalizeEmail($email);
 
-            $userModel = new UserModel($email);
-            if($userModel->findByEmail()){
+            $userModel = new UserModel();
+            if($userModel->findByEmail($email)){
                 echo json_encode([
                     'state' => 0,
                     'message' => "El correo ya está registrado"
@@ -131,24 +134,50 @@ class AuthController {
 
 
             $hashed = PasswordHelper::hashPassword($password);
-            $userModel->create([
-                'name' => $name,
-                'last_name' => $lastName,
+            $result= $userModel->create([
+                'names'=> $names,
+                'lastNames'=> $lastNames,
+                'idNumber'=> $idNumber,
                 'email' => $email,
                 'password' => $hashed,
-                'role_id' => 2,
-                'is_verificate' => 0
             ]);
 
-            echo json_encode([
-                'state' => 1,
-                'message' => "Registro exitoso, revisa tu correo para verificar la cuenta"
-            ]);
+            if($result['success']){
+                
+                // Instanciar el helper
+                $mailer = new MailerHelper();
 
+                // Generar token de verificación (puede ser un hash aleatorio o UUID)
+                $token = bin2hex(random_bytes(16)); // 32 caracteres hexadecimales
+
+                // Guardar el token en la base de datos para el usuario
+                // $userModel->saveVerificationToken($userId, $token); 
+                // (dependiendo de cómo manejes la verificación)
+
+                // Enviar correo de verificación
+                $sent = $mailer->sendVerificationEmail([
+                    'name' => $names,
+                    'email' => $email
+                ], $token);
+
+                echo json_encode([
+                    'state' => 1,
+                    'message' => $sent 
+                        ? "Registro exitoso. Verifica tu correo para activar tu cuenta." 
+                        : "Registro exitoso, pero hubo un error enviando el correo. Intenta más tarde."
+                ]);
+
+            }else{
+                echo json_encode([
+                    'state' => 0,
+                    'message' => "Error: ".$result['error']
+                ]);
+            }
+                            
         } catch (\Exception $e){
             echo json_encode([
                 'state' => 0,
-                'message' => "Error del sistema. Intenta más tarde."
+                'message' => "Error del sistema. Intenta más tarde.".$e->getMessage()
             ]);
         }
     }
