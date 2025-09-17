@@ -101,12 +101,11 @@ class AuthController {
             $names= trim($data['names'] ?? '');
             $lastNames= trim($data['lastNames'] ?? '');
             $idNumber= trim($data['idNumber'] ?? '');
-            $email= trim($data['email'] ?? '');
-            $emailSena= trim($data['emailSena'] ?? '');
+            $email= trim($data['emailSena'] ?? '');
             $password = trim($data['password'] ?? '');
             $rePassword = trim($data['rePassword'] ?? '');
 
-            if(!$names || !$lastNames || !$emailSena || !$email || !$password || !$rePassword){
+            if(!$names || !$lastNames || !$email|| !$password || !$rePassword){
                 echo json_encode([
                     'state' => 0,
                     'message' => "Todos los campos son obligatorios"
