@@ -5,8 +5,7 @@ use presupuestos\model\MainModel;
 use PDO;
 use PDOException;
 
-class UserModel extends MainModel {
-	
+class UserModel extends MainModel {	
 
     public function findByEmail(string $email) {
         $query= "SELECT * FROM user WHERE email = :email";
@@ -58,5 +57,12 @@ class UserModel extends MainModel {
         } catch (PDOException $e) {
             return false;
         }
+    }
+
+    public function verifyAccount(int $userId): bool {
+        $query = "UPDATE user SET es_verificado = 1 WHERE id = :id";
+        $params = [':id' => $userId];
+        $stmt = $this->executeQuery($query, $params);
+        return $stmt->rowCount() > 0;
     }
 }

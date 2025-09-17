@@ -14,22 +14,24 @@ class MailerHelper {
     private string $from;
 
     public function __construct() {
-        $transportType = $_ENV['MAILER_TRANSPORT'] ?? 'smtp';
-        $user = $_ENV['MAILER_USER'] ?? '';
-        $pass = $_ENV['MAILER_PASS'] ?? '';
-        $host = $_ENV['MAILER_HOST'] ?? 'localhost';
-        $port = $_ENV['MAILER_PORT'] ?? 587; // Cambiado a 587 (puerto común para TLS)
+        $transportType = $_ENV['MAILER_TRANSPORT'];
+        $user = $_ENV['MAILER_USER'];
+        $pass = $_ENV['MAILER_PASS'];
+        $host = $_ENV['MAILER_HOST'];
+        $port = $_ENV['MAILER_PORT'];
         $this->from = $user;
 
-        // Construir DSN correcto para Symfony Mailer
         $dsn = sprintf(
-            '%s://%s:%s@%s:%d',
+            '%s://%s:%s@%s:%d?encryption=%s',
             $transportType,
             urlencode($user),
             urlencode($pass),
             $host,
-            $port
+            $port,
+            $_ENV['MAILER_ENCRYPTION']
         );
+
+
 
         $transport = Transport::fromDsn($dsn);
         $this->mailer = new Mailer($transport);
@@ -41,12 +43,13 @@ class MailerHelper {
 
         $loader = new FilesystemLoader($emailsPath);
         $this->twig = new Environment($loader);
+        $this->twig->addGlobal('app_url', $_ENV['APP_URL']);
     }
 
     public function sendRecoveryEmail(array $user, string $token) {
         try {
             $body = $this->twig->render('recovery_email.html.twig', [
-                'name' => $user['name'] ?? '',
+                'name' => $user['name'],
                 'token' => $token,
             ]);
 
@@ -67,8 +70,10 @@ class MailerHelper {
     public function sendVerificationEmail(array $user, string $token) {
         try {
             $body = $this->twig->render('verification_email.html.twig', [
-                'name' => $user['name'] ?? '',
+                'name' => $user['name'],
+                'lastName'=> $user['lastName'],
                 'token' => $token,
+
             ]);
 
             $email = (new Email())

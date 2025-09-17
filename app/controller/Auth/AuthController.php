@@ -8,6 +8,8 @@ use presupuestos\helpers\ValidationHelper;
 use presupuestos\helpers\PasswordHelper;
 use presupuestos\exceptions\ValidationException;
 use presupuestos\helpers\MailerHelper;
+use presupuestos\helpers\TokenHelper;
+use presupuestos\model\TokenModel;
 
 class AuthController {
 
@@ -142,22 +144,24 @@ class AuthController {
                 'password' => $hashed,
             ]);
 
-            if($result['success']){
-                
-                // Instanciar el helper
+            if ($result['success']) {
+
                 $mailer = new MailerHelper();
+                $tokenHelper = new TokenHelper();
+                $tokenModel = new TokenModel();
 
-                // Generar token de verificación (puede ser un hash aleatorio o UUID)
-                $token = bin2hex(random_bytes(16)); // 32 caracteres hexadecimales
+                $token = $tokenHelper::generateToken(32);
+                $expiresAt = $tokenHelper::expiration(1);
 
-                // Guardar el token en la base de datos para el usuario
-                // $userModel->saveVerificationToken($userId, $token); 
-                // (dependiendo de cómo manejes la verificación)
+                $user = $userModel->findByEmail($email);
 
-                // Enviar correo de verificación
+                $tokenModel->create($user['id'], $token, 'verification', $expiresAt);
+
+
                 $sent = $mailer->sendVerificationEmail([
-                    'name' => "Francisco",
-                    'email' => "frangc6960@gmail.com"
+                    'name' => $user['nombres'] ?? $Names,
+                    'lastName' => $user['apellidos'] ?? $lastNames,
+                    'email' => $user['email'] ?? $email
                 ], $token);
 
                 echo json_encode([
@@ -167,12 +171,13 @@ class AuthController {
                         : "Registro exitoso, pero hubo un error enviando el correo: $sent"
                 ]);
 
-            }else{
+            } else {
                 echo json_encode([
                     'state' => 0,
-                    'message' => "Error: ".$result['error']
+                    'message' => "Error: " . $result['error']
                 ]);
             }
+
                             
         } catch (\Exception $e){
             echo json_encode([
@@ -198,4 +203,39 @@ class AuthController {
     public function showRecoveryPassword(){
         require __DIR__ . '/../../view/Auth/login.php';
     }
+
+    public function verify() {
+    $token = $_GET['token'] ?? null;
+        if (!$token) {
+            require __DIR__ . "/../../view/errors/invalid_token.php";
+            exit;
+        }
+
+        $tokenModel = new TokenModel();
+        $tokenData = $tokenModel->findByToken($token);
+
+        if (!$tokenData) {
+            require __DIR__ . "/../../view/errors/invalid_token.php";
+            exit;
+        }
+
+        // Verificamos que el token no esté expirado
+        if (strtotime($tokenData['expires_at']) < time()) {
+            $tokenModel->deleteByToken($token);
+            require __DIR__ . "/../../view/errors/invalid_token.php";
+            exit;
+        }
+
+        // Si el token es válido: marcar usuario como verificado
+        $userModel = new UserModel();
+        $userModel->verifyAccount((int)$tokenData['user_id']);
+
+        // eliminar token para no reutilizarlo
+        $tokenModel->deleteByToken($token);
+
+        // Redirigir al login con mensaje de éxito
+        header("Location: /login?verified=1");
+        exit;
+    }
+
 }

@@ -14,5 +14,6 @@ return [
     'recovery' => fn() => (new AuthController())->showRecoveryPassword($_POST),
     'recovery-post' => fn() => (new AuthController())->recoveryPassword($_POST),
     'dashboard' => fn()=> (new DashboardController())->index(),
+    'verify' => fn() => (new AuthController())->verify($_GET['token']),
 ];
 

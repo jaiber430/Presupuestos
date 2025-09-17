@@ -118,19 +118,19 @@
         
         <div class="content">
             <div class="welcome-text">
-                <p>Hola <strong>{{ name }}</strong>,</p>
+                <p>Hola <strong>{{ name }} {{ lastName }}</strong>,</p>
                 <p>¡Gracias por registrarte en nuestro sistema de presupuestos! Estamos emocionados de tenerte con nosotros.</p>
             </div>
 
             <div class="button-container">
-                <a href="https://tu-dominio.com/verify?token={{ token }}" class="verify-button">
+                <a href="{{ app_url }}verify?token={{ token }}" class="verify-button">
                     Verificar mi cuenta
                 </a>
             </div>
 
             <div class="token-info">
                 <p>Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:</p>
-                <p class="token-code">https://tu-dominio.com/verify?token={{ token }}</p>
+                <p class="token-code"{{ app_url }}verify?token={{ token }}</p>
             </div>
 
             <div class="instructions">
