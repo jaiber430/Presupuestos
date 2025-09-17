@@ -15,7 +15,6 @@ if (isset($routes[$key])) {
     $routes[$key]();
 }else {
     //http_response_code(404);
-
     $file404 = __DIR__ . '/../app/view/errors/404.php';
     
     if (file_exists($file404)) {

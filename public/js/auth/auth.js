@@ -19,7 +19,7 @@ $(function() {
 				password: password
 			}, function(answer) {
 				if(answer.state== 1){
-					window.location.href= 'dashboard.php';			
+					window.location.href= answer.redirect;			
 				}else{
 					failedEmail= email;
 					failedPass= password;

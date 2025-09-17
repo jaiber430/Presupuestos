@@ -14,72 +14,75 @@ class MailerHelper {
     private string $from;
 
     public function __construct() {
-        $transportType = getenv('MAILER_TRANSPORT');
-        $user = getenv('MAILER_USER');
-        $pass = getenv('MAILER_PASS');
-        $host = getenv('MAILER_HOST');
-        $port = getenv('MAILER_PORT');
-        $encryption = getenv('MAILER_ENCRYPTION');
+        $transportType = $_ENV['MAILER_TRANSPORT'] ?? 'smtp';
+        $user = $_ENV['MAILER_USER'] ?? '';
+        $pass = $_ENV['MAILER_PASS'] ?? '';
+        $host = $_ENV['MAILER_HOST'] ?? 'localhost';
+        $port = $_ENV['MAILER_PORT'] ?? 587; // Cambiado a 587 (puerto común para TLS)
         $this->from = $user;
 
-        // Construir DSN válido
+        // Construir DSN correcto para Symfony Mailer
         $dsn = sprintf(
-            '%s://%s:%s@%s:%s?encryption=%s',
+            '%s://%s:%s@%s:%d',
             $transportType,
             urlencode($user),
             urlencode($pass),
             $host,
-            $port,
-            $encryption
+            $port
         );
 
         $transport = Transport::fromDsn($dsn);
         $this->mailer = new Mailer($transport);
 
-        // Twig
-        $loader = new FilesystemLoader(__DIR__ . '/../view/emails');
+        $emailsPath = __DIR__ . '/../view/emails';
+        if (!is_dir($emailsPath)) {
+            mkdir($emailsPath, 0755, true);
+        }
+
+        $loader = new FilesystemLoader($emailsPath);
         $this->twig = new Environment($loader);
     }
 
-    public function sendRecoveryEmail(array $user, string $token): bool {
-        $body = $this->twig->render('recovery_email.html.twig', [
-            'name' => $user['name'],
-            'token' => $token,
-        ]);
-
-        $email = (new Email())
-            ->from($this->from)
-            ->to($user['email'])
-            ->subject('Recuperación de contraseña')
-            ->html($body);
-
+    public function sendRecoveryEmail(array $user, string $token) {
         try {
+            $body = $this->twig->render('recovery_email.html.twig', [
+                'name' => $user['name'] ?? '',
+                'token' => $token,
+            ]);
+
+            $email = (new Email())
+                ->from($this->from)
+                ->to($user['email'] ?? '')
+                ->subject('Recuperación de contraseña')
+                ->html($body);
+
             $this->mailer->send($email);
             return true;
         } catch (\Exception $e) {
-            error_log("Error enviando correo: ".$e->getMessage());
-            return false;
+            error_log("Error enviando correo de recuperación: " . $e->getMessage());
+            return $e->getMessage();
         }
     }
 
-    public function sendVerificationEmail(array $user, string $token): bool {
-        $body = $this->twig->render('verification_email.html.twig', [
-            'name' => $user['name'],
-            'token' => $token,
-        ]);
-
-        $email = (new Email())
-            ->from($this->from)
-            ->to($user['email'])
-            ->subject('Verifica tu cuenta')
-            ->html($body);
-
+    public function sendVerificationEmail(array $user, string $token) {
         try {
+            $body = $this->twig->render('verification_email.html.twig', [
+                'name' => $user['name'] ?? '',
+                'token' => $token,
+            ]);
+
+            $email = (new Email())
+                ->from($this->from)
+                ->to($user['email'])
+                ->subject('Verifica tu cuenta')
+                ->html($body);
+
             $this->mailer->send($email);
             return true;
         } catch (\Exception $e) {
-            error_log("Error enviando correo de verificación: ".$e->getMessage());
-            return false;
+            error_log("Error enviando correo de verificación: " . $e->getMessage());
+            return $e->getMessage();
         }
     }
+    
 }

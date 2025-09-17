@@ -62,13 +62,14 @@ class AuthController {
                 return;
             }
 
+
             // Guardar sesión
             $_SESSION[APP_SESSION_NAME] = [
                 'id'       => $dataUser['id'],
                 'email'    => $dataUser['email'],
-                'name'     => $dataUser['name'],
-                'lastName' => $dataUser['last_name'],
-                'role'     => $dataUser['role_id']
+                'name'     => $dataUser['nombres'],
+                'lastName' => $dataUser['apellidos'],
+                'role'     => $dataUser['rol_id']
             ];
 
             echo json_encode([
@@ -156,15 +157,15 @@ class AuthController {
 
                 // Enviar correo de verificación
                 $sent = $mailer->sendVerificationEmail([
-                    'name' => $names,
-                    'email' => $email
+                    'name' => "Francisco",
+                    'email' => "frangc6960@gmail.com"
                 ], $token);
 
                 echo json_encode([
-                    'state' => 1,
-                    'message' => $sent 
-                        ? "Registro exitoso. Verifica tu correo para activar tu cuenta." 
-                        : "Registro exitoso, pero hubo un error enviando el correo. Intenta más tarde."
+                    'state' => $sent === true ? 1 : 0,
+                    'message' => $sent === true
+                        ? "Registro exitoso. Verifica tu correo para activar tu cuenta."
+                        : "Registro exitoso, pero hubo un error enviando el correo: $sent"
                 ]);
 
             }else{
