@@ -4,22 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <title>Token inválido o expirado</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="<?= APP_URL ?>css/errors/invalid_token.css" rel="stylesheet">
 </head>
-<body class="bg-light d-flex justify-content-center align-items-center vh-100">
-
-    <div class="card border-danger text-center" style="max-width: 500px;">
-        <div class="card-header bg-danger text-white">
-            <h4 class="mb-0">¡Enlace inválido o expirado!</h4>
+<body>
+    <div class="error-container">
+        <div class="logo-sena">
+            <img src="<?= APP_URL ?>/assets/img/logoSena.png" alt="Logo SENA" height="45">
         </div>
-        <div class="card-body">
-            <p class="card-text">El enlace de recuperación ya no es válido o ha caducado.</p>
-            <a href="../../index.php" class="btn btn-outline-danger">
-                Solicita uno nuevo
-            </a>
+        <div class="error-message">
+            <div class="error-title">
+                <h1>¡Enlace inválido o expirado!</h1>
+            </div>
+            <div class="error-description">
+                <p>El enlace de recuperación ya no es válido o ha caducado.</p>
+                <a href="<?= APP_URL ?>">Solicita uno nuevo</a>
+            </div>
         </div>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

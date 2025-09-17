@@ -78,7 +78,6 @@
 					<input type="password"  id="password" placeholder="*********" required class="input input-password">
 					
 					<button type="submit" class="primary-button login-button">Iniciar Sesión</button>
-					
 					<a href="#" class="remember_password">Olvidé mi contraseña</a>
 				</form>
 				
