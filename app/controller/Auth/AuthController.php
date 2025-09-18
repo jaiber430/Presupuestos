@@ -201,6 +201,8 @@ class AuthController {
     }
 
     public function showRecoveryPassword(){
+        echo "Hola";
+        exit;
         require __DIR__ . '/../../view/Auth/login.php';
     }
 
@@ -240,5 +242,13 @@ class AuthController {
                 exit;
             }            
         }       
+    }
+
+    public function logout() {
+        session_start();
+        session_unset();
+        session_destroy();
+        header("Location: " . APP_URL . "login");
+        exit;
     }
 }

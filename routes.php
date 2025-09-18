@@ -2,9 +2,8 @@
 
 use presupuestos\controller\Auth\AuthController;
 use presupuestos\controller\DashboardController;
-// use Klassroom\controller\CourseController;
-// use Klassroom\controller\ClassroomController;
-// use Klassroom\controller\AssigmentController;
+use presupuestos\controller\MenuController;
+
 
 return [
     '' => fn() => (new AuthController())->showLogin(),
@@ -13,7 +12,9 @@ return [
     'register-post' => fn() => (new AuthController())->register($_POST),
     'recovery' => fn() => (new AuthController())->showRecoveryPassword($_POST),
     'recovery-post' => fn() => (new AuthController())->recoveryPassword($_POST),
-    'dashboard' => fn()=> (new DashboardController())->index(),
+    'logout-post' => fn() => (new AuthController())->logout(),
     'verify' => fn() => (new AuthController())->verify($_GET['token']),
+    'dashboard' => fn()=> (new DashboardController())->index(),
+    'dashboard/listar-post'=> fn()=> (new MenuController())->getByRole(),
 ];
 
