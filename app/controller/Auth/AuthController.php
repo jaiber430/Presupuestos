@@ -201,9 +201,8 @@ class AuthController {
     }
 
     public function showRecoveryPassword(){
-        echo "Hola";
-        exit;
-        require __DIR__ . '/../../view/Auth/login.php';
+        
+        require __DIR__ . '/../../view/Auth/recovery_password.php';
     }
 
     public function verify() {
