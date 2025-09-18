@@ -119,10 +119,23 @@ $(function() {
 			rePassword: $("#re-password").val().trim()
 		}, function(answer){
 			if(answer.state== 1){
-			
 				$(".container-alert").removeClass("container-alert-danger").addClass("container-alert-success");
 				$(".alert-text").html(answer.message);
-				$("#staticBackdrop").hide();
+				try {
+					const modalEl = document.getElementById('staticBackdrop');
+					if (modalEl) {
+						const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+						modalInstance.hide();
+					}
+				} catch(e) {
+					$("#staticBackdrop").removeClass('show').attr('aria-hidden','true').css('display','none');
+				}
+				setTimeout(function(){
+					$("body").removeClass('modal-open');
+					$(".modal-backdrop").remove();
+					$(".form-registro")[0]?.reset();
+					$(".form-control").removeClass('input-error');
+				}, 150);
 			}else{
 			
 				$(".container-alert").addClass("container-alert-danger");

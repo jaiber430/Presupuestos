@@ -6,12 +6,12 @@
     <title>Verifica tu cuenta - Presupuestos</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Calibri, 'Segoe UI', Arial, Helvetica, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: #353535;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #F5F5F5;
         }
         .container {
             max-width: 600px;
@@ -22,7 +22,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #39A900;
             padding: 30px;
             text-align: center;
             color: white;
@@ -38,7 +38,7 @@
         .welcome-text {
             font-size: 18px;
             margin-bottom: 25px;
-            color: #555;
+            color: #6E7C87;
         }
         .button-container {
             text-align: center;
@@ -46,8 +46,8 @@
         }
         .verify-button {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: #39A900;
+            color: white !important;
             text-decoration: none;
             padding: 15px 35px;
             border-radius: 50px;
@@ -57,49 +57,50 @@
         }
         .verify-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(102, 126, 234, 0.3);
+            background: #42d63d;
+            box-shadow: 0 6px 12px rgba(57, 169, 0, 0.3);
         }
         .token-info {
-            background-color: #f8f9fa;
+            background-color: #F5F5F5;
             padding: 20px;
             border-radius: 8px;
             margin: 20px 0;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #39A900;
         }
         .token-code {
             font-family: 'Courier New', monospace;
-            background-color: #e9ecef;
+            background-color: #D9D9D9;
             padding: 10px;
             border-radius: 5px;
             word-break: break-all;
             font-size: 14px;
         }
         .instructions {
-            background-color: #e8f4f8;
+            background-color: #F5F5F5;
             padding: 20px;
             border-radius: 8px;
-            border-left: 4px solid #17a2b8;
+            border-left: 4px solid #4caf50;
             margin: 20px 0;
         }
         .instructions h3 {
-            color: #17a2b8;
+            color: #4caf50;
             margin-top: 0;
         }
         .footer {
-            background-color: #f8f9fa;
+            background-color: #F5F5F5;
             padding: 25px;
             text-align: center;
-            color: #6c757d;
+            color: #6E7C87;
             font-size: 14px;
-            border-top: 1px solid #e9ecef;
+            border-top: 1px solid #e0e0e0;
         }
         .warning {
-            color: #dc3545;
+            color: #f44336;
             font-weight: 600;
         }
         .support {
             margin-top: 20px;
-            color: #6c757d;
+            color: #6E7C87;
         }
         .logo {
             font-size: 24px;
@@ -128,17 +129,11 @@
                 </a>
             </div>
 
-            <div class="token-info">
-                <p>Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:</p>
-                <p class="token-code">{{ app_url }}verify?token={{ token }}</p>
-            </div>
-
             <div class="instructions">
                 <h3>📋 Instrucciones importantes:</h3>
                 <ul>
-                    <li>Este enlace de verificación expira en <strong>24 horas</strong></li>
+                    <li>Este enlace de verificación expira en <strong>1 hora</strong></li>
                     <li>Después de verificar tu cuenta, podrás acceder a todas las funciones del sistema</li>
-                    <li>Si no completas la verificación, tu cuenta será eliminada automáticamente</li>
                 </ul>
             </div>
 
@@ -146,13 +141,9 @@
         </div>
         
         <div class="footer">
-            <p>© 2024 PresupuestosApp. Todos los derechos reservados.</p>
+            <p>© 2025 PresupuestosApp@SENA. Todos los derechos reservados.</p>
             <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
-            
-            <div class="support">
-                <p>¿Necesitas ayuda? Contáctanos en:</p>
-                <p>soporte@presupuestosapp.com</p>
-            </div>
+
         </div>
     </div>
 </body>
