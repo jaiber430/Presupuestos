@@ -205,37 +205,40 @@ class AuthController {
     }
 
     public function verify() {
-    $token = $_GET['token'] ?? null;
+        $token = $_GET['token'] ?? null;
         if (!$token) {
-            require __DIR__ . "/../../view/errors/invalid_token.php";
+            require __DIR__ . "/../../view/errors/404.php";
             exit;
         }
-
+       
         $tokenModel = new TokenModel();
         $tokenData = $tokenModel->findByToken($token);
 
         if (!$tokenData) {
-            require __DIR__ . "/../../view/errors/invalid_token.php";
+            require __DIR__ . "/../../view/errors/404.php";
             exit;
         }
 
-        // Verificamos que el token no esté expirado
-        if (strtotime($tokenData['expires_at']) < time()) {
-            $tokenModel->deleteByToken($token);
-            require __DIR__ . "/../../view/errors/invalid_token.php";
-            exit;
-        }
+        if($tokenData['type']== 'verification'){
+            if (strtotime($tokenData['expires_at']) < time()) {
+                //$tokenModel->deleteByToken($token);
+                require __DIR__ . "/../../view/errors/invalid_token.php";
+                exit;
+            }else{
+                $userModel = new UserModel();
+                $userModel->verifyAccount((int)$tokenData['user_id']);                
+                //$tokenModel->deleteByToken($token);
 
-        // Si el token es válido: marcar usuario como verificado
-        $userModel = new UserModel();
-        $userModel->verifyAccount((int)$tokenData['user_id']);
-
-        // eliminar token para no reutilizarlo
-        $tokenModel->deleteByToken($token);
-
-        // Redirigir al login con mensaje de éxito
-        header("Location: /login?verified=1");
-        exit;
+                $_SESSION["message"]= "Correo Actualizado Correctamente";
+                header("Location: /login");
+                exit;
+            }            
+        }elseif($tokenData['type']=='recovery'){
+            if (strtotime($tokenData['expires_at']) < time()) {
+                $tokenModel->deleteByToken($token);
+                require __DIR__ . "/../../view/errors/404.php";
+                exit;
+            }            
+        }       
     }
-
 }

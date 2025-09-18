@@ -1,44 +1,18 @@
 <?php
-// include "../Model/db_queries.php";
-// include "../../conexion.php";
-// include "../Model/process_forms.php";
+require_once "../config/app.php";
 
-// $link= conectar();
-// mysqli_set_charset($link, "utf8mb4");
+if(isset($_SESSION[APP_SESSION_NAME])){
+	header("Location: ".APP_URL."dashboard");
+	exit;
+}
 
-// $documents= new GetQuery("tipo_documento");
-// $resultDocument= $documents->search($link);
+$typeMessage= '';
+$contentMessage= '';
 
-// if(isset($_GET["email"]) && isset($_GET["token"])){
-// 	$dateNow= date('Y-m-d H:i:s');
-// 	$verificateUser= new ProcessRecovery($_GET, $link);
-// 	$is_verificate= $verificateUser->verificateUser();
-	
-// 	if(mysqli_num_rows($is_verificate)> 0){
-// 		$verificateToken= $verificateUser-> verificateToken($dateNow);
-// 		if(mysqli_num_rows($verificateToken)){
-// 			$updateToken = "
-// 				UPDATE tokens_recuperacion tr
-// 				JOIN user u ON tr.usuario_id = u.id
-// 				SET tr.utilizado = 1
-// 				WHERE u.email = '{$_GET['email']}' 
-// 				AND tr.token = '{$_GET['token']}'
-// 			";		
-// 			mysqli_query($link, $updateToken);
-
-// 			$updateUser= "
-// 				UPDATE user u
-// 				SET verificado= 1
-// 				WHERE u.email= '{$_GET['email']}'
-// 			";
-// 			mysqli_query($link, $updateUser);
-			
-// 			$message= "Email verificado correctamente";
-// 		}else{
-// 			header("location: page_not_found.php");
-// 		}
-// 	}
-// }
+if(isset($_SESSION['message'])){
+	//$typeMessage= 'error';
+	$contentMessage= $_SESSION['message'];	
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -60,7 +34,7 @@
 	<main>
 		<div class="alerts">
 			<div class="container-alert">
-				<p class="alert-text"></p>
+				<p class="alert-text"><?= $contentMessage ?? ""?></p>
 			</div>
 		</div>
 		<div class="login">			
