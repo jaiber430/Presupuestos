@@ -1,0 +1,203 @@
+@import url('../variables_globales.css');
+
+/* Página de reportes */
+.reports-page .subheader{
+	color: var(--color-quinary);
+}
+
+.reports-header{
+	background: var(--color-primary);
+	border: 1px solid var(--border-light);
+	border-radius: 12px;
+	box-shadow: 0 6px 18px rgba(0,0,0,.08);
+}
+
+.rp-card{
+	background: var(--color-primary);
+	border: 1px solid var(--border-light);
+	border-radius: 12px;
+	box-shadow: 0 6px 18px rgba(0,0,0,.08);
+}
+
+.reports-table thead th{
+	background: rgba(57,169,0,.08);
+	color: var(--color-quinary);
+	border-bottom: 1px solid var(--border-light);
+}
+
+.reports-table tbody tr:hover{
+	background: rgba(57,169,0,.06);
+}
+
+.reports-table .btn-primary{
+	background-color: var(--color-secondary);
+	border-color: var(--color-secondary);
+}
+.reports-table .btn-primary:hover{
+	background-color: var(--success-hover);
+	border-color: var(--success-hover);
+}
+
+.pie-chart-placeholder{
+	border: 2px dashed var(--border-light);
+	border-radius: 10px;
+	height: 260px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--text-tertiary);
+}
+
+.legend{
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: .5rem 1rem;
+}
+.legend .legend-color{
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	border-radius: 3px;
+	margin-right: .35rem;
+}
+
+/* Modal reportes */
+.reports-modal{
+	border: 1px solid var(--border-light);
+	border-radius: 14px;
+	box-shadow: 0 16px 42px rgba(0,0,0,.18);
+}
+.reports-modal .modal-header{
+	background: linear-gradient(90deg, var(--color-secondary), var(--success-hover));
+	color: #fff;
+}
+.reports-modal .modal-title{
+	font-weight: 600;
+}
+.reports-modal .modal-body{
+	background: var(--color-primary);
+}
+.reports-modal .modal-footer{
+	background: var(--color-quaternary);
+}
+.reports-modal .btn-primary{
+	background-color: var(--color-secondary);
+	border-color: var(--color-secondary);
+}
+.reports-modal .btn-primary:hover{
+	background-color: var(--success-hover);
+	border-color: var(--success-hover);
+}
+
+.reports-modal .form-label{
+	color: var(--text-secondary);
+	font-weight: 600;
+}
+.reports-modal .form-control{
+	border-color: var(--border-light);
+}
+.reports-modal .form-control:focus{
+	border-color: var(--color-secondary);
+	box-shadow: 0 0 0 .2rem rgba(57,169,0,.15);
+}
+
+@media (max-width: 991.98px){
+	.legend{ grid-template-columns: 1fr; }
+}
+
+/* ================== Modal Reportes al estilo Yearfiscal ================== */
+.modal-reports .reports-content{
+	background-color: var(--color-primary);
+	color: var(--text-secondary);
+	border: 1px solid var(--border-light);
+	border-top: 6px solid var(--rp-accent, var(--color-secondary));
+	border-radius: 10px;
+	box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+	font-family: var(--font-family-base);
+	transition: box-shadow .35s ease, transform .35s ease;
+	transform: translateY(-6px);
+}
+
+.modal-reports.show .reports-content{
+	transform: translateY(0);
+	box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+}
+
+.modal-reports .modal-header{
+	background: linear-gradient(135deg, var(--color-quaternary), #ffffff);
+	border-bottom: 1px solid var(--border-lighter);
+}
+
+.modal-reports .modal-title{
+	font-size: 1rem;
+	font-weight: 600;
+	color: var(--text-secondary);
+}
+
+.modal-reports .btn-close{ outline: none; box-shadow: none; }
+
+.modal-reports .modal-body{ padding-top: 10px; }
+
+.modal-reports .form-label{
+	font-size: 0.78rem;
+	font-weight: 600;
+	color: var(--text-secondary);
+	margin-bottom: 6px;
+	text-transform: uppercase;
+	letter-spacing: .5px;
+}
+
+.modal-reports .form-control{
+	background-color: var(--color-tertiary);
+	border: none;
+	border-radius: 10px;
+	height: 42px;
+	font-size: 0.85rem;
+	padding: 8px 14px;
+	color: var(--text-secondary);
+	transition: border .25s ease, box-shadow .25s ease, background-color .25s ease;
+}
+
+.modal-reports .form-control:focus{
+	background-color: var(--color-tertiary);
+	border: 1px solid var(--rp-accent, var(--color-accent));
+	box-shadow: 0 0 0 3px rgba(66,214,61,0.15);
+	outline: none;
+}
+
+.modal-reports .form-control:hover{ background-color: #e7e7e7; }
+
+.modal-reports .modal-footer{
+	background-color: var(--color-quaternary);
+	border-top: 1px solid var(--border-lighter);
+}
+
+.modal-reports .btn-primary{
+	background-color: var(--color-secondary);
+	border: 1px solid var(--color-secondary);
+	font-weight: 600;
+	padding: 10px 22px;
+	border-radius: 10px;
+	transition: background-color .3s ease, box-shadow .3s ease, transform .15s ease;
+}
+.modal-reports .btn-primary:hover{ background-color: var(--color-accent); border-color: var(--color-accent); }
+.modal-reports .btn-primary:active{ transform: scale(.97); }
+
+.modal-reports .btn-secondary{
+	background-color: var(--color-primary);
+	color: var(--color-accent);
+	border: 2px solid var(--color-accent);
+	font-weight: 600;
+	padding: 10px 22px;
+	border-radius: 10px;
+	transition: background-color .3s ease, color .3s ease, transform .15s ease;
+}
+.modal-reports .btn-secondary:hover{ background-color: var(--color-accent); color: var(--color-primary); }
+.modal-reports .btn-secondary:active{ transform: scale(.97); }
+
+/* Scroll personalizado cuerpo modal */
+.modal-reports .modal-body{ scrollbar-width: thin; scrollbar-color: var(--color-accent) var(--color-quaternary); }
+.modal-reports .modal-body::-webkit-scrollbar{ width: 8px; }
+.modal-reports .modal-body::-webkit-scrollbar-track{ background: var(--color-quaternary); border-radius: 10px; }
+.modal-reports .modal-body::-webkit-scrollbar-thumb{ background: var(--color-accent); border-radius: 10px; }
+.modal-reports .modal-body::-webkit-scrollbar-thumb:hover{ background: var(--color-accent); }

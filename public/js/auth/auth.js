@@ -147,7 +147,7 @@ $(function() {
 	});
 	
 	
-	//Recordar Contraseña
+	//Reestablecer Contraseña
 	$(".remember_password").on("click", function(){		
 		
 		let email= $("#email").val().trim();
@@ -164,13 +164,15 @@ $(function() {
 			$("#email").focus();
 			return;
 		};
-	
+
+		//window.location.href = "recovery?email=" + encodeURIComponent(email);
 		if(email){
-			$.post("recovery",{
+			$.post("/recovery",{
 				email: email
 			}, function(answer){
 				if(answer.state== 1){
-					window.location.href = "send_successful.php?email=" + email;				
+		//window.location.href = "recovery?email=" + encodeURIComponent(email);
+					window.location.href = "send_successful?email=" + email;				
 				}else{
 					$(".container-alert").removeClass("container-alert-success container-alert-danger");
 					$(".container-alert").addClass("container-alert-danger");

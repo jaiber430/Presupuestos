@@ -1,28 +1,3 @@
-<?php
-// include "../../conexion.php";
-// include "../Model/process_forms.php";
-
-// $link= conectar();
-// /*
-// 	**Verifica que el token sea valido. 
-// */
-
-	
-// $dataUser= [
-// 	"email"=> $_GET["email"],
-// 	"token"=> $_GET["token"]
-// ];
-
-// $dateNow= date('Y-m-d H:i:s');
-// $verificate= new ProcessRecovery($dataUser, $link);
-// $resultVerificate= $verificate->verificateToken($dateNow);
-
-// if(! mysqli_num_rows($resultVerificate)){
-// 	header("location: invalid_token.php");
-// }
-
-?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>

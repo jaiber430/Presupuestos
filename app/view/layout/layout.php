@@ -54,11 +54,23 @@
     <!-- menú -->
     <div class="accordion1 accordion-flush" id="menuAccordion">
         <div class="accordion-item">
-            <h2 class="accordion-header" id="headingInicio">
-              <a class="accordion-button single-link" href="#">Inicio</a>
+                        <h2 class="accordion-header" id="headingInicio">
+                            <a class="accordion-button single-link" href="<?= APP_URL ?>dashboard">Inicio</a>
             </h2>
         </div>
 
+                <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingPresupuesto">
+                            <a class="accordion-button single-link" href="#" data-bs-toggle="modal" data-bs-target="#modalAnioFiscal">Crear Año Fiscal</a>
+                        </h2>
+                </div>
+        <!-- momentaneo hasta que se haga menu inteligente -->
+         <!-- Reportes -->
+        <!-- <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingReportes">
+                            <a class="accordion-button single-link" href="<?= APP_URL ?>reports">Reportes</a>
+            </h2>
+        </div> -->
         <!-- momentaneo hasta que se haga menu inteligente -->
         <div class="accordion-item">
                 <h2 class="accordion-header" id="headingPresupuesto">
