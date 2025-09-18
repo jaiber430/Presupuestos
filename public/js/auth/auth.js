@@ -3,6 +3,8 @@ let failedPass = "";
 let messageError= "";
 
 $(function() {		
+
+	//Login
 	$(".form-login").on("submit", function(event) {
 		event.preventDefault();
 		let email= $('#email').val().trim();
@@ -17,7 +19,7 @@ $(function() {
 				password: password
 			}, function(answer) {
 				if(answer.state== 1){
-					window.location.href= 'dashboard.php';			
+					window.location.href= answer.redirect;			
 				}else{
 					failedEmail= email;
 					failedPass= password;
@@ -29,6 +31,7 @@ $(function() {
 			});
 		}
 	});
+	
 	
 	$(".input").on("input", function(){
 		let currentEmail= $("#email").val().trim();
@@ -48,11 +51,8 @@ $(function() {
 	const inputs= [
 		"#names", 
 		"#last-names", 
-		"#type-document",
 		"#id-number",
-		"#number-phone",
-		"#address",
-		"#email-user",
+		"#email-sena",
 		"#password-user",
 		"#re-password"
 	];
@@ -110,23 +110,32 @@ $(function() {
 		}		
 			
 		
-		$.post("../Controller/controller_forms.php", {
-			"type-form": "register",
+		$.post("register", {
 			names: $("#names").val().trim(),
 			lastNames: $("#last-names").val().trim(),
-			typeDocument: $("#type-document").val().trim(),
 			idNumber: $("#id-number").val().trim(),
-			numberPhone: $("#number-phone").val().trim(),
-			address: $("#address").val().trim(),
-			email: $("#email-user").val().trim(),
+			emailSena: $("#email-sena").val().trim(),
 			password: $("#password-user").val().trim(),
 			rePassword: $("#re-password").val().trim()
 		}, function(answer){
 			if(answer.state== 1){
-			
 				$(".container-alert").removeClass("container-alert-danger").addClass("container-alert-success");
 				$(".alert-text").html(answer.message);
-				$("#staticBackdrop").hide();
+				try {
+					const modalEl = document.getElementById('staticBackdrop');
+					if (modalEl) {
+						const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+						modalInstance.hide();
+					}
+				} catch(e) {
+					$("#staticBackdrop").removeClass('show').attr('aria-hidden','true').css('display','none');
+				}
+				setTimeout(function(){
+					$("body").removeClass('modal-open');
+					$(".modal-backdrop").remove();
+					$(".form-registro")[0]?.reset();
+					$(".form-control").removeClass('input-error');
+				}, 150);
 			}else{
 			
 				$(".container-alert").addClass("container-alert-danger");
@@ -134,14 +143,11 @@ $(function() {
 			}			
 		});
 		
-		$("#staticBackdrop").hide().on('hidden.bs.modal', function () {
-        $('.modal-backdrop').remove(); 
-        $('body').removeClass('modal-open'); 
-    });
 
 	});
 	
 	
+	//Recordar Contraseña
 	$(".remember_password").on("click", function(){		
 		
 		let email= $("#email").val().trim();
@@ -150,7 +156,6 @@ $(function() {
 			const regexCorreo = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/;
 			return regexCorreo.test(email);
 		}
-
 		
 		if(!contieneCorreo(email)){
 			$(".container-alert").addClass("container-alert-danger");
@@ -161,8 +166,7 @@ $(function() {
 		};
 	
 		if(email){
-			$.post("../Controller/controller_forms.php",{
-				"type-form": "recovery_password",
+			$.post("recovery",{
 				email: email
 			}, function(answer){
 				if(answer.state== 1){

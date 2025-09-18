@@ -1,22 +1,67 @@
 <?php
 namespace presupuestos\model;
+
 use presupuestos\model\MainModel;
 use PDO;
+use PDOException;
 
-class UserModel extends MainModel{
-	private $email;
-	
-	public function __construct($email){
-		$this->email= $email;
+class UserModel extends MainModel {	
+
+    public function findByEmail(string $email) {
+        $query= "SELECT * FROM user WHERE email = :email";
+        $params= ["email" => $email];
+        $stmt = $this->executeQuery($query, $params);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function create(array $data): array {
+		$query = "INSERT INTO user (nombres, apellidos, numero_documento, email, password)
+				VALUES (:names, :lastNames, :idNumber,  :email, :password)";
+		
+		$params = [
+				'names' => $data['names'],
+				'lastNames' => $data['lastNames'],
+				'idNumber'=> $data['idNumber'],
+				'email' => $data['email'],
+				'password'=> $data['password']
+			];
+
+		try {
+			$stmt = $this->executeQuery($query, $params);
+			if($stmt->rowCount() > 0){
+				return ['success' => true];
+			} else {
+				return ['success' => false, 'error' => 'No se insertó ningún registro'];
+			}
+		} catch (\PDOException $e) {
+			return ['success' => false, 'error' => $e->getMessage()];
+		}
 	}
-	
-	public function findByEmail() {
-		$query= "SELECT * 
-			FROM user 
-			WHERE email= :email";
-			
-		$params= ["email"=>$this->email];	
-		$stmt= $this->executeQuery($query, $params);
-		return $stmt->fetch(PDO::FETCH_ASSOC);
-	}
+
+
+    public function update(int $id, array $data): bool {
+        $fields = [];
+        $params = ['id' => $id];
+        
+        foreach ($data as $key => $value) {
+            $fields[] = "$key = :$key";
+            $params[$key] = $value;
+        }
+        
+        $query = "UPDATE user SET " . implode(', ', $fields) . " WHERE id = :id";
+        
+        try {
+            $stmt = $this->executeQuery($query, $params);
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function verifyAccount(int $userId): bool {
+        $query = "UPDATE user SET es_verificado = 1 WHERE id = :id";
+        $params = [':id' => $userId];
+        $stmt = $this->executeQuery($query, $params);
+        return $stmt->rowCount() > 0;
+    }
 }

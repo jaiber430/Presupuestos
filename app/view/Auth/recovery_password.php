@@ -1,25 +1,25 @@
 <?php
-include "../../conexion.php";
-include "../Model/process_forms.php";
+// include "../../conexion.php";
+// include "../Model/process_forms.php";
 
-$link= conectar();
-/*
-	**Verifica que el token sea valido. 
-*/
+// $link= conectar();
+// /*
+// 	**Verifica que el token sea valido. 
+// */
 
 	
-$dataUser= [
-	"email"=> $_GET["email"],
-	"token"=> $_GET["token"]
-];
+// $dataUser= [
+// 	"email"=> $_GET["email"],
+// 	"token"=> $_GET["token"]
+// ];
 
-$dateNow= date('Y-m-d H:i:s');
-$verificate= new ProcessRecovery($dataUser, $link);
-$resultVerificate= $verificate->verificateToken($dateNow);
+// $dateNow= date('Y-m-d H:i:s');
+// $verificate= new ProcessRecovery($dataUser, $link);
+// $resultVerificate= $verificate->verificateToken($dateNow);
 
-if(! mysqli_num_rows($resultVerificate)){
-	header("location: invalid_token.php");
-}
+// if(! mysqli_num_rows($resultVerificate)){
+// 	header("location: invalid_token.php");
+// }
 
 ?>
 
@@ -29,51 +29,40 @@ if(! mysqli_num_rows($resultVerificate)){
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recuperar Contraseña</title>
-	<link href="../../css/login.css" rel="stylesheet">
+	<link href="<?= APP_URL ?>css/auth/recovery.css" rel="stylesheet">
     <!--Css Bootstrap  -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-	<link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
 </head>
 <body>
 	<header>
 		
 	</header>
 	<main>
-		<div class="container mt-5">
-			<div class="row justify-content-center">			
-				<div class="col-12 col-sm-10 col-md-6 col-lg-4">
-					<div class="p-3">
-						<div class="text-center mb-5">
-							<h1 class="h2 text-sm-center">Recuperar contraseña</h1>
-							<p><em><small>Ingrese ya confirme su nueva contraseña</small></em></p>
-						</div>
+		<div class="login">
+			<div class="form-container">
+				<div class="logo-container">
+					<img src="<?= APP_URL ?>/assets/img/logoSena.png" alt="logo-hiperauto" class="logo">
+					<h1 class="title">Recuperacion de Contraseña</h1>
+				</div>
 
-						<form action="" class="form-recovery">								
-							<div class="mb-2">
-								<label for="password" class="form-label">Contraseña</label>
-								<input type="password" class="form-control"  id="password" name="password" placeholder="********" required>
-							</div>
-							<div class="mb-2">
-								<label for="re-password" class="form-label">Confirmar Contraseña</label>
-								<input type="password" class="form-control" id="re-password" name="re-password" placeholder="********" required>
-							</div>
-							<div class="mb-2">
-								<div class="alert d-none alert-warning" role="alert">
-									<p class="text"></p>
-								</div>	
-							</div>
-							
-							<div class="d-grid mb-4 mt-4">
-								<button type="submit" class="btn btn-success w-100 btn-lg">Actualizar Contraseña</button>
-							</div>
-						</form>
-						
-						<div class="mb-5 text-center">
-							<a class="link-success link-opacity-75 link-underline-light" href="/hiperAuto/index.php">Volver al inicio</a>
-						</div>
+				<div class="mb-2">
+					<div class="alert d-none alert-warning" role="alert">
+						<p class="text"></p>
 					</div>
 				</div>
-			</div>			
+
+				<form action="" class="form-login form-recovery">
+					<label for="password" class="label">Nueva Contraseña</label>
+					<input type="password" class="input" id="password" name="password" placeholder="********" required>
+
+					<label for="re-password" class="label">Confirmar Contraseña</label>
+					<input type="password" class="input" id="re-password" name="re-password" placeholder="********" required>
+
+					<button type="submit" class="primary-button login-button">Actualizar Contraseña</button>
+
+					<button type="button" class="secondary-button" onclick="window.location.href='<?= APP_URL ?>login'">Volver al inicio</button>
+				</form>
+			</div>
 		</div>
 	</main>
 	<script>		

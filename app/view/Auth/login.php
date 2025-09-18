@@ -1,54 +1,26 @@
 <?php
-// include "../Model/db_queries.php";
-// include "../../conexion.php";
-// include "../Model/process_forms.php";
+require_once "../config/app.php";
 
-// $link= conectar();
-// mysqli_set_charset($link, "utf8mb4");
+if(isset($_SESSION[APP_SESSION_NAME])){
+	header("Location: ".APP_URL."dashboard");
+	exit;
+}
 
-// $documents= new GetQuery("tipo_documento");
-// $resultDocument= $documents->search($link);
+$typeMessage= '';
+$contentMessage= '';
 
-// if(isset($_GET["email"]) && isset($_GET["token"])){
-// 	$dateNow= date('Y-m-d H:i:s');
-// 	$verificateUser= new ProcessRecovery($_GET, $link);
-// 	$is_verificate= $verificateUser->verificateUser();
-	
-// 	if(mysqli_num_rows($is_verificate)> 0){
-// 		$verificateToken= $verificateUser-> verificateToken($dateNow);
-// 		if(mysqli_num_rows($verificateToken)){
-// 			$updateToken = "
-// 				UPDATE tokens_recuperacion tr
-// 				JOIN user u ON tr.usuario_id = u.id
-// 				SET tr.utilizado = 1
-// 				WHERE u.email = '{$_GET['email']}' 
-// 				AND tr.token = '{$_GET['token']}'
-// 			";		
-// 			mysqli_query($link, $updateToken);
-
-// 			$updateUser= "
-// 				UPDATE user u
-// 				SET verificado= 1
-// 				WHERE u.email= '{$_GET['email']}'
-// 			";
-// 			mysqli_query($link, $updateUser);
-			
-// 			$message= "Email verificado correctamente";
-// 		}else{
-// 			header("location: page_not_found.php");
-// 		}
-// 	}
-// }
+if(isset($_SESSION['message'])){
+	//$typeMessage= 'error';
+	$contentMessage= $_SESSION['message'];	
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Roboto+Mono:wght@100..700&display=swap" rel="stylesheet">
+    <title>Iniciar Sessión</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
 	<link href="<?= APP_URL ?>css/auth/login.css" rel="stylesheet">
 
@@ -62,7 +34,7 @@
 	<main>
 		<div class="alerts">
 			<div class="container-alert">
-				<p class="alert-text"><?= $message ?? ""?></p>
+				<p class="alert-text"><?= $contentMessage ?? ""?></p>
 			</div>
 		</div>
 		<div class="login">			
@@ -80,7 +52,6 @@
 					<input type="password"  id="password" placeholder="*********" required class="input input-password">
 					
 					<button type="submit" class="primary-button login-button">Iniciar Sesión</button>
-					
 					<a href="#" class="remember_password">Olvidé mi contraseña</a>
 				</form>
 				
@@ -131,24 +102,18 @@
 				<div class="row">					
 					<div class="col-md-6">
 						<div class="mb-3">
-							<label for="email-user" class="form-label">Correo Personal</label>
-							<input type="email" class="form-control inputRegister" id="email-user">
-						</div>
-					</div>
-					<div class="col-md-6">
-						<div class="mb-3">
 							<label for="password-user" class="form-label">Contraseña</label>
 							<input type="password" class="form-control inputRegister" id="password-user">
 						</div>
 					</div>
-				</div>
-				<div class="row">
 					<div class="col-md-6">
 						<div class="mb-3">
 							<label for="password-user" class="form-label">Confirmar Contraseña</label>
-							<input type="password" class="form-control inputRegister" id="password-user-con">
+							<input type="password" class="form-control inputRegister" id="re-password">
 						</div>
 					</div>
+				</div>
+				<div class="row">
 					<div class="col-md-6">
 						<div class="mb-3">
 							<label for="departmento" class="form-label">Departamento</label>
@@ -157,8 +122,6 @@
 							</select>
 						</div>
 					</div>
-				</div>
-				<div class="row">
 					<div class="col-md-6">
 						<div class="mb-3">
 							<label for="centro" class="form-label">Centro de formación</label>
