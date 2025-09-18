@@ -2,6 +2,7 @@
 
 use presupuestos\controller\Auth\AuthController;
 use presupuestos\controller\DashboardController;
+// use presupuestos\controller\ReportsController;
 // use Klassroom\controller\CourseController;
 // use Klassroom\controller\ClassroomController;
 // use Klassroom\controller\AssigmentController;
@@ -14,6 +15,7 @@ return [
     'recovery' => fn() => (new AuthController())->showRecoveryPassword($_POST),
     'recovery-post' => fn() => (new AuthController())->recoveryPassword($_POST),
     'dashboard' => fn()=> (new DashboardController())->index(),
+    // 'reports' => fn()=> (new ReportsController())->index(),
     'verify' => fn() => (new AuthController())->verify($_GET['token']),
 ];
 
