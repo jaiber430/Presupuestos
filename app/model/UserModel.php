@@ -12,7 +12,6 @@ class UserModel extends MainModel {
         $params= ["email" => $email];
         $stmt = $this->executeQuery($query, $params);
         return $stmt->fetch(PDO::FETCH_ASSOC);
-
     }
 
     public function create(array $data): array {

@@ -16,8 +16,8 @@
                 <h1>¡Enlace inválido o expirado!</h1>
             </div>
             <div class="error-description">
-                <p>El enlace de recuperación ya no es válido o ha caducado.</p>
-                <a href="<?= APP_URL ?>">Solicita uno nuevo</a>
+                <p>El enlace de verificación ya no es válido o ha caducado.</p>
+                <a href="<?= APP_URL ?>resend-verification">Solicita uno nuevo</a>
             </div>
         </div>
     </div>

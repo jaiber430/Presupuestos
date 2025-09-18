@@ -3,22 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= isset($pageTitle) ? htmlspecialchars($pageTitle) : 'Menú'; ?></title>
+    <title><?= $title ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/menustyles.css">
-  
+    <?php 
+	if (!empty($styles)) {
+		foreach ($styles as $css){
+			echo "<link rel='stylesheet' href='$css'>";
+		} 
+	}	
+	?>
 
     <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/yearfiscal/yearfiscal.css">
     <?php if (!empty($pageStyles)) { echo $pageStyles; } ?>
 </head>
 <body>
 
-<!-- Header -->
 <header class="header d-flex align-items-center justify-content-between px-4 py-3">
-    <!-- Sección izquierda: botón menú, foto, rol y nombre de usuario -->
+
     <div class="user-section">
         <button class="btn btn-primary btn-menu-toggle me-3" id="toggleMenu" aria-label="Abrir menú"><i class="fas fa-bars"></i></button>
         <div class="user-photo">
@@ -47,7 +52,7 @@
 <!-- dashboard -->
 <div class="sidebar" id="sidebarMenu">
     <!-- menú -->
-    <div class="accordion accordion-flush" id="menuAccordion">
+    <div class="accordion1 accordion-flush" id="menuAccordion">
         <div class="accordion-item">
                         <h2 class="accordion-header" id="headingInicio">
                             <a class="accordion-button single-link" href="<?= APP_URL ?>dashboard">Inicio</a>
@@ -66,13 +71,26 @@
                             <a class="accordion-button single-link" href="<?= APP_URL ?>reports">Reportes</a>
             </h2>
         </div> -->
+        <!-- momentaneo hasta que se haga menu inteligente -->
+        <div class="accordion-item">
+                <h2 class="accordion-header" id="headingPresupuesto">
+                    <a class="accordion-button single-link" href="#" data-bs-toggle="modal" data-bs-target="#modalAnioFiscal">Crear Año Fiscal</a>
+                </h2>
+        </div>
         <!-- introduccir menu aqui -->
-        <?php
-        ?>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingPresupuesto">
+                <div class='permissions'></div>
+            </h2>
+        </div>
+        
+
         <!-- fin del menu por base de datos -->
         <div class="accordion-item">
-            <h2 class="accordion-header" id="headingSalir">
-              <a class="accordion-button single-link" href="#">Salir</a>
+            <h2 class="accordion-header" id="headingSalir">                
+                <form action="<?= APP_URL ?>logout" method="POST" style="display:inline;">
+                    <button type="submit" class="accordion-button single-link btn-link">Salir</button>
+                </form>
             </h2>
         </div>
     </div>
@@ -84,7 +102,15 @@
 
 <!-- Contenedor principal para el contenido dinámico -->
 <div class="page-wrapper">
-    <?= isset($content) ? $content : '' ?>
+
+    <?php 
+	require $view;
+	
+	foreach ($scripts as $script){
+		echo "<script src='{$script}'></script>";
+	}
+	?>
+
 </div>
 
 <script type="text/javascript" src="<?= APP_URL ?>js/menuctr.js"></script>
@@ -164,5 +190,57 @@
         </div>
     </div>
 </div>
+
+<!-- Listar los roles -->
+<div class="modal fade" id="rolesModal" tabindex="-1" aria-labelledby="rolesModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="rolesModalLabel">Roles disponibles</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <ul class="list-group"></ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Listar los permisos -->
+<div class="modal fade" id="modalManageRoles" tabindex="-1" aria-labelledby="modalManageRolesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-4">
+      
+      <div class="modal-header bg-primary text-white rounded-top-4">
+        <h5 class="modal-title fw-bold" id="modalManageRolesLabel">
+          <i class="fas fa-user-shield me-2"></i> Gestionar Roles
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      
+      <div class="modal-body bg-light">
+
+        <div class="accordion" id="accordionRoles">
+         
+        </div>      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i> Cerrar
+        </button>
+        <button type="button" class="btn btn-primary">
+          <i class="fas fa-save me-1"></i> Guardar cambios
+        </button>
+      </div>      
+    </div>
+  </div>
+</div>
+
+<script>
+    const BASE_URL = "<?= APP_URL ?>";
+</script>
 </body>
 </html>
