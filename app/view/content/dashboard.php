@@ -1,3 +1,3 @@
 <?php
 
-echo "Hola, welcome Administrador";
+echo "Este el dashboard";

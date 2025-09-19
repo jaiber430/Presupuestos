@@ -18,5 +18,6 @@ return [
     'dashboard' => fn()=> (new DashboardController())->index(),    
     'reports'=> fn()=> (new DashboardController())->index("reportes"),
     'dashboard/listar-post'=> fn()=> (new MenuController())->getByRole(),
+    
 ];
 
