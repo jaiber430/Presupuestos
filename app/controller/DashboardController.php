@@ -5,30 +5,33 @@ use presupuestos\helpers\Auth;
 require __DIR__ . '/../../bootstrap.php';
 
 class DashboardController{
-    public function index() {
-		
-		Auth::check();       	
-		$title= "Dashboard";
-		
-		switch($_SESSION[APP_SESSION_NAME]['role']){
-			case 1:
-				//$styles= ["css/dashboard/instructor.css"];
-				$scripts= ["./js/dashboard/dashboard.js"];
-				$view= __DIR__ . '/../view/content/dashboard.php';
-				require __DIR__ . '/../view/layout/layout.php';
-				break;
-			case 2:
-				$styles= ["css/dashboard/instructor.css"];
-				$scripts= ["./js/dashboard/welcome.js"];
-				$view= __DIR__ . '/../view/content/dashboard.php';
-				break;
-			case 3:
-				//require __DIR__ . '/../view/layout.php';
-				echo "Hola Funcionario";
-				break;
-			default:
-				//require __DIR__ . '/../view/layout.php';
-				break;
-		}
+    public function index($page = "dashboard") {
+        Auth::check();       
+        $title = ucfirst($page);
+        
+
+        $views = [
+            "dashboard" => __DIR__ . '/../view/content/dashboard.php',
+            "reportes"   => __DIR__ . '/../view/content/reports.php',
+			"page_not_found"=> __DIR__. '/../app/view/errors/404.php',
+        ];
+
+        $stylesByView = [
+            "dashboard"     => ["css/dashboard/dashboard.css"],
+            "reportes"      => ["css/reports/reports.css"],
+            //"page_not_found"=> ["css/errors/404.css"],
+        ];
+
+        $scriptsByView = [
+            "dashboard"     => ["js/dashboard/dashboard.js"],
+            //"reportes"      => ["js/dashboard/reports.js"],
+            //"page_not_found"=> ["js/errors/404.js"],
+        ];
+
+        $view = $views[$page] ?? $views["dashboard"];
+        $styles = $stylesByView[$page] ?? [];
+        $scripts = $scriptsByView[$page] ?? [];
+
+        require __DIR__ . '/../view/layout/layout.php';
     }
 }

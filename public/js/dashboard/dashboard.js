@@ -19,9 +19,9 @@ $(function() {
         } else if (permiso.nombre_permiso === "Gestionar usuarios") {
             clase= "manage_user";
         }            
-
+        console.log(userRolePermissions);
         $('.permissions').append(
-          `<a class="${clase} accordion-button single-link" href="#">${escapeHtml(permiso.nombre_permiso)}</a>`
+          `<a class="${clase} accordion-button single-link" href="${BASE_URL}${permiso.url}">${escapeHtml(permiso.nombre_permiso)}</a>`
         );
       });
 

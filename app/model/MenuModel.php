@@ -9,7 +9,8 @@ class MenuModel extends MainModel{
         // Traer los permisos del usuario logueado
         $queryById = "
             SELECT 
-                p.icon, 
+                p.icon,
+                p.url, 
                 r.nombre AS nombre_rol, 
                 p.nombre AS nombre_permiso
             FROM permisorol pr

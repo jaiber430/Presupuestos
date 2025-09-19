@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/menustyles.css">
+
     <?php 
 	if (!empty($styles)) {
 		foreach ($styles as $css){
@@ -101,10 +102,12 @@
 
     <?php 
 	require $view;
-	
-	foreach ($scripts as $script){
+	if(!empty($scripts)){
+        foreach ($scripts as $script){
 		echo "<script src='{$script}'></script>";
-	}
+	    }
+    }
+	
 	?>
 
 </div>
@@ -238,5 +241,7 @@
 <script>
     const BASE_URL = "<?= APP_URL ?>";
 </script>
+
+<script src="./js/dashboard/dashboard.js"></script>
 </body>
 </html>
