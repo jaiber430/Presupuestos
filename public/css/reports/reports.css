@@ -8,8 +8,64 @@
 .reports-header{
 	background: var(--color-primary);
 	border: 1px solid var(--border-light);
-	border-radius: 12px;
-	box-shadow: 0 6px 18px rgba(0,0,0,.08);
+	border-radius: 0;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	height: 50px;
+	display: flex;
+	align-items: center;
+	margin-bottom: 0;
+}
+
+/* Hacer que los subheaders estén pegados */
+.reports-header + .row .reports-header{
+	border-top: 0;
+}
+
+/* Eliminar espacios entre rows de subheaders */
+.container-fluid .row + .row{
+	margin-top: 0;
+}
+
+.container-fluid .row .col-12{
+	padding: 0;
+}
+
+.reports-title{
+	color: var(--color-quinary);
+	font-size: 1.25rem;
+	font-weight: 600;
+}
+
+.reports-controls .form-label{
+	color: var(--color-quinary);
+	font-weight: 500;
+	font-size: 0.9rem;
+}
+
+.reports-controls .form-control,
+.reports-controls .form-select{
+	background: var(--color-primary);
+	border: 1px solid var(--border-light);
+	color: var(--text-secondary);
+}
+
+.reports-controls .form-control:focus,
+.reports-controls .form-select:focus{
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25);
+}
+
+.reports-header .btn-success{
+	background-color: var(--color-secondary);
+	border-color: var(--color-secondary);
+	color: var(--color-primary);
+	font-weight: 600;
+}
+
+.reports-header .btn-success:hover{
+	background-color: var(--success-hover);
+	border-color: var(--success-hover);
+	color: var(--color-primary);
 }
 
 .rp-card{
@@ -46,6 +102,43 @@
 	align-items: center;
 	justify-content: center;
 	color: var(--text-tertiary);
+	font-weight: 500;
+}
+
+/* Estilos específicos para el gráfico de presupuesto */
+.budget-chart{
+	height: 200px !important;
+	font-size: 0.9rem;
+}
+
+/* Header de presupuesto */
+.budget-header{
+	border-bottom: 1px solid var(--border-light);
+	padding-bottom: 15px;
+}
+
+.total-budget{
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.budget-label{
+	font-size: 0.95rem;
+	color: var(--text-secondary);
+	font-weight: 500;
+}
+
+.budget-amount{
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: var(--color-secondary);
+}
+
+.budget-chart-container{
+	margin-top: 15px;
 }
 
 .legend{
@@ -53,56 +146,154 @@
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: .5rem 1rem;
 }
+
+.legend div{
+	display: flex;
+	align-items: center;
+	font-size: 0.85rem;
+	color: var(--text-secondary);
+	line-height: 1.4;
+}
+
 .legend .legend-color{
 	display: inline-block;
-	width: 12px;
-	height: 12px;
+	width: 14px;
+	height: 14px;
 	border-radius: 3px;
-	margin-right: .35rem;
+	margin-right: .5rem;
+	flex-shrink: 0;
 }
 
-/* Modal reportes */
-.reports-modal{
-	border: 1px solid var(--border-light);
-	border-radius: 14px;
-	box-shadow: 0 16px 42px rgba(0,0,0,.18);
-}
-.reports-modal .modal-header{
-	background: linear-gradient(90deg, var(--color-secondary), var(--success-hover));
-	color: #fff;
-}
-.reports-modal .modal-title{
-	font-weight: 600;
-}
-.reports-modal .modal-body{
-	background: var(--color-primary);
-}
-.reports-modal .modal-footer{
-	background: var(--color-quaternary);
-}
-.reports-modal .btn-primary{
-	background-color: var(--color-secondary);
-	border-color: var(--color-secondary);
-}
-.reports-modal .btn-primary:hover{
-	background-color: var(--success-hover);
-	border-color: var(--success-hover);
+/* Leyenda específica para presupuesto */
+.budget-legend{
+	grid-template-columns: 1fr;
+	gap: .75rem;
 }
 
-.reports-modal .form-label{
-	color: var(--text-secondary);
-	font-weight: 600;
+.budget-legend div{
+	font-size: 0.8rem;
 }
-.reports-modal .form-control{
-	border-color: var(--border-light);
+
+/* Espaciado entre cards */
+.col-lg-5 .rp-card + .rp-card{
+	margin-top: 20px;
 }
-.reports-modal .form-control:focus{
-	border-color: var(--color-secondary);
-	box-shadow: 0 0 0 .2rem rgba(57,169,0,.15);
+
+/* Estilos para las secciones dentro de una card */
+.card-section{
+	position: relative;
 }
+
+.card-section + .card-section{
+	margin-top: 25px;
+}
+
+/* Línea separadora punteada */
+.dotted-separator{
+	border-top: 2px dotted var(--border-light);
+	margin: 25px 0;
+	position: relative;
+}
+
+.dotted-separator::before{
+	content: '';
+	position: absolute;
+	top: -1px;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: linear-gradient(90deg, transparent 0%, var(--border-light) 20%, var(--border-light) 80%, transparent 100%);
+	opacity: 0.3;
+}
+
+
 
 @media (max-width: 991.98px){
-	.legend{ grid-template-columns: 1fr; }
+	.legend{ 
+		grid-template-columns: 1fr; 
+	}
+	
+	/* Ajustes para móviles */
+	.total-budget{
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	
+	.budget-amount{
+		font-size: 1.1rem;
+	}
+	
+	.pie-chart-placeholder{
+		height: 200px;
+		font-size: 0.85rem;
+	}
+	
+	.budget-chart{
+		height: 160px !important;
+	}
+	
+	/* Ajustar separador en móvil */
+	.dotted-separator{
+		margin: 20px 0;
+	}
+	
+	.card-section + .card-section{
+		margin-top: 20px;
+	}
+}
+
+@media (max-width: 767.98px){
+	.reports-header{
+		height: auto;
+		min-height: 50px;
+		padding: 10px 15px !important;
+	}
+	
+	.reports-header .d-flex{
+		flex-direction: column;
+		gap: 15px !important;
+	}
+	
+	.reports-controls{
+		width: 100%;
+		justify-content: flex-start;
+		flex-wrap: wrap;
+		gap: 10px;
+	}
+	
+	.reports-title{
+		font-size: 1.1rem;
+		margin-left: 0 !important;
+	}
+	
+	.reports-controls .form-label{
+		font-size: 0.85rem;
+		margin-left: 0 !important;
+	}
+	
+	.reports-header .d-flex > div{
+		width: 100%;
+		justify-content: flex-start;
+		flex-wrap: wrap;
+		gap: 10px;
+	}
+	
+	.pie-chart-placeholder{
+		height: 180px;
+	}
+	
+	.budget-chart{
+		height: 140px !important;
+	}
+	
+	/* Ajustar separador y secciones en pantallas muy pequeñas */
+	.dotted-separator{
+		margin: 15px 0;
+	}
+	
+	.card-section + .card-section{
+		margin-top: 15px;
+	}
 }
 
 /* ================== Modal Reportes al estilo Yearfiscal ================== */
