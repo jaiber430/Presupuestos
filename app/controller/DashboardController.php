@@ -19,13 +19,10 @@ class DashboardController{
         $stylesByView = [
             "dashboard"     => ["css/dashboard/dashboard.css"],
             "reportes"      => ["css/reports/reports.css"],
-            //"page_not_found"=> ["css/errors/404.css"],
         ];
 
         $scriptsByView = [
             "dashboard"     => ["js/dashboard/dashboard.js"],
-            //"reportes"      => ["js/dashboard/reports.js"],
-            //"page_not_found"=> ["js/errors/404.js"],
         ];
 
         $view = $views[$page] ?? $views["dashboard"];

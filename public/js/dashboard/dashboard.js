@@ -8,8 +8,9 @@ $(function() {
     if (answer.state == 1) {
       let userRolePermissions = answer.data.userRolePermissions;
       let allRolePermissions  = answer.data.allRolePermissions;
+      $('.permissions').empty(); 
+      $('.accordion').empty();
 
-      // Mejor fuera del loop
       let userRolePermissionsNames = userRolePermissions.map(p => p.nombre_permiso);
 
       userRolePermissions.forEach((permiso) => {
