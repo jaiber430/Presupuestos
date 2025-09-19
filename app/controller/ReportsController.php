@@ -20,9 +20,9 @@ class ReportsController {
 
         // Capturar contenido de la vista reports
         ob_start();
-        require __DIR__ . '/../view/reports/reports.php';
+        $view= '/../view/reports/reports.php';
         $content = ob_get_clean();
 
-        require __DIR__ . '/../view/layout.php';
+        require __DIR__ . '/../view/layout/layout.php';
     }
 }

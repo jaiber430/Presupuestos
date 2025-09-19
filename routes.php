@@ -3,7 +3,7 @@
 use presupuestos\controller\Auth\AuthController;
 use presupuestos\controller\DashboardController;
 use presupuestos\controller\MenuController;
-use presupuestos\controller\ReportsControll;
+use presupuestos\controller\ReportsController;
 
 return [
     '' => fn() => (new AuthController())->showLogin(),
@@ -15,8 +15,8 @@ return [
     'recovery' => fn() => (new AuthController())->showRecoveryPassword($_POST),
     'logout-post' => fn() => (new AuthController())->logout(),
     'verify' => fn() => (new AuthController())->verify($_GET['token']),
-    'dashboard' => fn()=> (new DashboardController())->index(),
+    'dashboard' => fn()=> (new DashboardController())->index(),    
+    'reports'=> fn()=> (new DashboardController())->index("reportes"),
     'dashboard/listar-post'=> fn()=> (new MenuController())->getByRole(),
-
 ];
 
