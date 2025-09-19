@@ -72,11 +72,7 @@
             </h2>
         </div> -->
         <!-- momentaneo hasta que se haga menu inteligente -->
-        <div class="accordion-item">
-                <h2 class="accordion-header" id="headingPresupuesto">
-                    <a class="accordion-button single-link" href="#" data-bs-toggle="modal" data-bs-target="#modalAnioFiscal">Crear Año Fiscal</a>
-                </h2>
-        </div>
+        
         <!-- introduccir menu aqui -->
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingPresupuesto">

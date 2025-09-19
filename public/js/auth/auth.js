@@ -171,8 +171,8 @@ $(function() {
 				email: email
 			}, function(answer){
 				if(answer.state== 1){
-		//window.location.href = "recovery?email=" + encodeURIComponent(email);
-					window.location.href = "send_successful?email=" + email;				
+					//window.location.href = "recovery?email=" + encodeURIComponent(email);
+					window.location.href = answer.redirect;				
 				}else{
 					$(".container-alert").removeClass("container-alert-success container-alert-danger");
 					$(".container-alert").addClass("container-alert-danger");

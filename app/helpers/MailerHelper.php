@@ -54,7 +54,7 @@ class MailerHelper {
             ]);
 
             $email = (new Email())
-                ->from($this->from)
+                ->from($_ENV['MAIL_FROM_ADDRESS'])
                 ->to($user['email'] ?? '')
                 ->subject('Recuperación de contraseña')
                 ->html($body);

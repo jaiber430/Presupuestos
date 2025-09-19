@@ -150,8 +150,8 @@ class AuthController {
                 $tokenHelper = new TokenHelper();
                 $tokenModel = new TokenModel();
 
-                $token = $tokenHelper::generateToken(32);
-                $expiresAt = $tokenHelper::expiration(1);
+                $token = $tokenHelper::generateToken();
+                $expiresAt = $tokenHelper::expiration();
 
                 $user = $userModel->findByEmail($email);
 
@@ -188,16 +188,49 @@ class AuthController {
     }
 
     public function recoveryPassword(array $data){
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, must-revalidate');
+
         $email = trim($data['email']);
         $email = ValidationHelper::normalizeEmail($email);
 
         $userModel = new UserModel();
         $dataUser = $userModel->findByEmail($email);
+
+        if(!$dataUser){
+            echo json_encode([
+                'state' => 0,
+                'message' => "Correo no registrado"
+            ]);
+            return;
+        }
+
+        $mailer= new MailerHelper();
+        $tokenHelper= New TokenHelper();
+        $tokenModel= new TokenModel();
+
+        $token= $tokenHelper::generateToken();
+        $expiresAt= tokenHelper::expiration();
+
+        $tokenModel->create($dataUser['id'], $token, 'recovery', $expiresAt);
+
+        $sent = $mailer->sendRecoveryEmail([
+            'name' => $dataUser['nombres'] ?? $Names,
+            'lastName' => $dataUser['apellidos'] ?? $lastNames,
+            'email' => $dataUser['email'] ?? $email
+        ], $token);
+
         echo json_encode([
             'state' => 1,
-            'redirect' => APP_URL."recovery"
-        ]);
+            'redirect' => APP_URL."recovery?email={$dataUser['email']}"
+        ]);        
         return;
+    }
+
+    public function showSendSuccessful(){
+        $email= $_GET['email'] ?? '';
+        require __DIR__ . '/../../view/Auth/send_successful.php';
+        exit;
     }
 
     public function showRecoveryPassword(){
