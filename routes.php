@@ -17,6 +17,7 @@ return [
     'verify' => fn() => (new AuthController())->verify($_GET['token']),
     'dashboard' => fn()=> (new DashboardController())->index(),    
     'reports'=> fn()=> (new DashboardController())->index("reportes"),
+    'reports-post'=> fn()=> (new ReportsController())->index("reportes"),
     'dashboard/listar-post'=> fn()=> (new MenuController())->getByRole(),
     
 ];

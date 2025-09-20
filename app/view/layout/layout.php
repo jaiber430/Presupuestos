@@ -239,7 +239,8 @@
 <script>
     const BASE_URL = "<?= APP_URL ?>";
 </script>
-
+<script src="./js/alerts.js"></script>
 <script src="./js/dashboard/dashboard.js"></script>
+<script src="./js/sweetalert2.all.min.js"></script>
 </body>
 </html>
