@@ -1,8 +1,7 @@
 <?php
 namespace presupuestos\helpers;
 
-class ResponseHelper
-{
+class ResponseHelper{
     public static function success(string $message = "Operación exitosa", array $data = []): void
     {
         echo json_encode([

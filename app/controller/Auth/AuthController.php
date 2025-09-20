@@ -71,9 +71,10 @@ class AuthController {
                 'email'    => $dataUser['email'],
                 'name'     => $dataUser['nombres'],
                 'lastName' => $dataUser['apellidos'],
-                'role'     => $dataUser['rol_id']
+                'rolNombre'     => $dataUser['nombre_rol'],
+                "idROl"=> $dataUser['rol_id']
             ];
-
+          
             echo json_encode([
                 'state' => 1,
                 'message' => "Login exitoso",

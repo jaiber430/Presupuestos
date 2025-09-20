@@ -31,10 +31,15 @@
             <img src="<?= APP_URL ?>assets/img/logoSena.png" alt="Foto de usuario" class="rounded-circle" width="45" height="45">
         </div>
         <div class="user-role">
-            <span>Rol</span>
+            <span><?=$_SESSION[APP_SESSION_NAME]['rolNombre']?></span>
         </div>    
         <div class="user-info d-flex align-items-center">
-            <span class="me-2">Usuario</span>
+            <span class="me-2">
+                <?= 
+                    $_SESSION[APP_SESSION_NAME]['name']. " ".           
+                    $_SESSION[APP_SESSION_NAME]['lastName']
+                ?>
+            </span>
             <i class="fas fa-user-circle fa-lg"></i>
         </div>
     </div>
@@ -65,14 +70,7 @@
                             <a class="accordion-button single-link" href="#" data-bs-toggle="modal" data-bs-target="#modalAnioFiscal">Crear Año Fiscal</a>
                         </h2>
                 </div>
-        <!-- momentaneo hasta que se haga menu inteligente -->
-         <!-- Reportes -->
-        <!-- <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingReportes">
-                            <a class="accordion-button single-link" href="<?= APP_URL ?>reports">Reportes</a>
-            </h2>
-        </div> -->
-        <!-- momentaneo hasta que se haga menu inteligente -->
+   
         
         <!-- introduccir menu aqui -->
         <div class="accordion-item">

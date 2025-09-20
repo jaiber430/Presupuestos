@@ -12,7 +12,7 @@ class MenuController
 {
     public function getByRole()
     {
-        $userRol = $_SESSION[APP_SESSION_NAME]['role'];
+        $userRol = $_SESSION[APP_SESSION_NAME]['idROl'];
         if (!$userRol) {
             ResponseHelper::error("No se recibió el rol del usuario");
         }
@@ -21,6 +21,5 @@ class MenuController
         $data = $menuModel->list($userRol);
         ResponseHelper::success("Permisos cargados", $data);
 
-       
     }
 }
