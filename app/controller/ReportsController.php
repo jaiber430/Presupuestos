@@ -14,8 +14,8 @@ class ReportsController {
         if(empty($_POST['cdp']) || empty($_POST['rp']) || empty($_POST['pagos']) || empty($_POST['week'])) {
             $alerta = [
                 "tipo"   => "simple",
-                "titulo" => "Ocurrió un error inesperado",
-                "texto"  => "Debes seleccionar todos los archivos antes de guardar",
+                "titulo" => "Ocurrió un error inesperado, Joven",
+                "texto"  => "Debes seleccionarasdfasdf todos los archivos antes de guardar",
                 "icono"  => "error"
             ];
 
