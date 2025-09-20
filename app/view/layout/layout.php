@@ -18,6 +18,9 @@
 	}	
 	?>
 
+    <!-- Estilos específicos para modales de Roles y Permisos -->
+    <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/roles/roles.css">
+    <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/permissions/permissions.css">
     <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/yearfiscal/yearfiscal.css">
     <?php if (!empty($pageStyles)) { echo $pageStyles; } ?>
 </head>
@@ -189,46 +192,46 @@
 </div>
 
 <!-- Listar los roles -->
-<div class="modal fade" id="rolesModal" tabindex="-1" aria-labelledby="rolesModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
+<div class="modal fade modal-roles" id="rolesModal" tabindex="-1" aria-labelledby="rolesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content roles-content">
+            <div class="modal-header roles-header">
         <h5 class="modal-title" id="rolesModalLabel">Roles disponibles</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
-      <div class="modal-body">
-        <ul class="list-group"></ul>
+            <div class="modal-body roles-body">
+                <ul class="list-group roles-list"></ul>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-primary">Guardar cambios</button>
+            <div class="modal-footer roles-footer">
+                <button type="button" class="btn btn-secondary roles-btn-cancel" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary roles-btn-save">Guardar cambios</button>
       </div>
     </div>
   </div>
 </div>
 
 <!-- Listar los permisos -->
-<div class="modal fade" id="modalManageRoles" tabindex="-1" aria-labelledby="modalManageRolesLabel" aria-hidden="true">
+<div class="modal fade modal-permissions" id="modalManageRoles" tabindex="-1" aria-labelledby="modalManageRolesLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content shadow-lg border-0 rounded-4">
+        <div class="modal-content permissions-content shadow-lg border-0 rounded-4">
       
-      <div class="modal-header bg-primary text-white rounded-top-4">
+            <div class="modal-header permissions-header bg-primary text-white rounded-top-4">
         <h5 class="modal-title fw-bold" id="modalManageRolesLabel">
           <i class="fas fa-user-shield me-2"></i> Gestionar Roles
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       
-      <div class="modal-body bg-light">
+            <div class="modal-body permissions-body bg-light">
 
-        <div class="accordion" id="accordionRoles">
+                <div class="accordion permissions-accordion" id="accordionRoles">
          
         </div>      
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            <div class="modal-footer permissions-footer">
+                <button type="button" class="btn btn-outline-secondary permissions-btn-cancel" data-bs-dismiss="modal">
           <i class="fas fa-times me-1"></i> Cerrar
         </button>
-        <button type="button" class="btn btn-primary">
+                <button type="button" class="btn btn-primary permissions-btn-save">
           <i class="fas fa-save me-1"></i> Guardar cambios
         </button>
       </div>      
