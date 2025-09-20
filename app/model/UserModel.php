@@ -6,9 +6,13 @@ use PDO;
 use PDOException;
 
 class UserModel extends MainModel {	
-
+    
     public function findByEmail(string $email) {
-        $query= "SELECT * FROM user WHERE email = :email";
+        $query= "SELECT r.nombre AS nombre_rol, u.*
+            FROM user u
+            JOIN rol r on u.rol_id=r.id 
+            WHERE email = :email";
+
         $params= ["email" => $email];
         $stmt = $this->executeQuery($query, $params);
         return $stmt->fetch(PDO::FETCH_ASSOC);
