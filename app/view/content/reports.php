@@ -110,7 +110,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="formReporte" class="FormularioAjax" action="<?= APP_URL . "reports-post"?>" method="POST" enctype="multipart/form-data">
+                    <form id="formReporte" class="FormularioAjax" action="<?= APP_URL . "reports"?>" method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="week" id="input-week">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
@@ -163,7 +163,7 @@
                                             <label for="modal-cdp-select" class="form-label m-0">CDP:</label>
                                             <input type="text" id="modal-cdp-input" class="form-control form-control-sm" placeholder="Número de CDP">
                                         </div>
-                                        <button id="btn-buscar-detalles" class="btn btn-success btn-sm" type="button">
+                                        <button class="btn btn-success btn-sm">
                                             <i class="fas fa-search me-1"></i>Buscar
                                         </button>
                                     </div>
@@ -209,7 +209,6 @@
 <script>
     // Script para manejar la apertura del modal y actualizar el título dinámicamente
 document.addEventListener('DOMContentLoaded', function(){
-    const APP_URL = "<?= APP_URL ?>";
     // Modal Subir Reporte
     const modal = document.getElementById('modalReporte');
     const weekLabel = document.getElementById('modal-week-label');
@@ -228,104 +227,21 @@ document.addEventListener('DOMContentLoaded', function(){
     const modalDetalles = document.getElementById('modalDetalles');
     const weekLabelDetalles = document.getElementById('modal-detalles-week-label');
     const triggersDetalles = document.querySelectorAll('.btn-ver-detalles');
-    const dependencySelect = document.getElementById('modal-dependency-select');
-    const cdpInput = document.getElementById('modal-cdp-input');
-    const btnBuscarDetalles = document.getElementById('btn-buscar-detalles');
-    const tableBody = modalDetalles.querySelector('tbody');
 
     triggersDetalles.forEach(btn => {
         btn.addEventListener('click', () => {
             const w = btn.getAttribute('data-week');
             weekLabelDetalles.textContent = w;
-            // cargar dependencias al abrir
-            fetch(APP_URL + 'reports-dependencies')
-                .then(r => r.json())
-                .then(j => {
-                    if (j.state === 1 && j.data.items) {
-                        // limpiar excepto 'Todas'
-                        dependencySelect.querySelectorAll('option:not([value="all"])').forEach(o => o.remove());
-                        j.data.items.forEach(item => {
-                            const opt = document.createElement('option');
-                            opt.value = item.codigo;
-                            opt.textContent = `${item.nombre} (${item.codigo})`;
-                            dependencySelect.appendChild(opt);
-                        });
-                    }
-                })
-                .catch(() => {});
-            // limpiar tabla
-            tableBody.innerHTML = '';
+            
+            // Aquí puedes agregar lógica adicional para cargar datos específicos de la semana
+            // Por ejemplo, hacer una petición AJAX para obtener los datos de la tabla
+            console.log('Cargando detalles para: ' + w);
         });
     });
-
-    function limpiarNumero(valor){
-        if (!valor) return 0;
-        return parseFloat(valor.toString().replace(/[^0-9.-]+/g, "")) || 0;
-    }
-    function formatoMoneda(valor){
-        try{
-            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
-        }catch(e){
-            return valor;
-        }
-    }
-
-    function buscarDetalles(){
-        const dependencia = dependencySelect.value;
-        const codigo_cdp = cdpInput.value.trim();
-        const params = new URLSearchParams();
-        if (dependencia && dependencia !== 'all') params.append('dependencia', dependencia);
-        if (codigo_cdp) params.append('codigo_cdp', codigo_cdp);
-        fetch(APP_URL + 'reports-details' + (params.toString() ? ('?' + params.toString()) : ''))
-            .then(r => r.json())
-            .then(j => {
-                tableBody.innerHTML = '';
-                const items = (j.state === 1 && j.data.items) ? j.data.items : [];
-                if (items.length === 0) return;
-                items.forEach((row, idx) => {
-                    const inicial = limpiarNumero(row.valor_inicial);
-                    const saldo = limpiarNumero(row.saldo_por_comprometer);
-                    const comprometido = Math.max(0, inicial - saldo);
-                    const actual = limpiarNumero(row.valor_actual);
-                    const operaciones = limpiarNumero(row.valor_operaciones);
-                    const porcentaje = inicial > 0 ? ((comprometido / inicial) * 100).toFixed(2) : 0;
-                    let clase = 'rojo';
-                    if (comprometido === inicial && saldo === 0) clase = 'verde'; else if (comprometido > 0) clase = 'naranja';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${idx + 1}</td>
-                        <td>${row.numero_cdp ?? ''}</td>
-                        <td>${row.fecha_registro ?? ''}</td>
-                        <td>${row.dependencia ?? ''}</td>
-                        <td>${row.dependencia_descripcion ?? ''}</td>
-                        <td>${row.concepto_interno ?? ''}</td>
-                        <td>${row.rubro ?? ''}</td>
-                        <td>${row.descripcion ?? ''}</td>
-                        <td>${row.fuente ?? ''}</td>
-                        <td>${formatoMoneda(inicial)}</td>
-                        <td>${formatoMoneda(operaciones)}</td>
-                        <td>${formatoMoneda(actual)}</td>
-                        <td>${formatoMoneda(saldo)}</td>
-                        <td>${formatoMoneda(comprometido)}</td>
-                        <td class="${clase}">${porcentaje}%</td>
-                        <td>${row.objeto ?? ''}</td>
-                    `;
-                    tableBody.appendChild(tr);
-                });
-            })
-            .catch(() => {});
-    }
-
-    btnBuscarDetalles.addEventListener('click', buscarDetalles);
 
     // Selector de Gráficas
     const chartSelect = document.getElementById('chart-select');
     const chartContainers = document.querySelectorAll('.chart-container');
-    const chartGastos = document.getElementById('chart-gastos');
-    const chartPresupuesto = document.getElementById('chart-presupuesto');
-    const chartDependencias = document.getElementById('chart-dependencias');
-    const budgetAmountEl = chartPresupuesto?.querySelector('.budget-amount');
-    const depLegendEl = chartDependencias?.querySelector('.legend');
 
     chartSelect.addEventListener('change', function() {
         const selectedChart = this.value;
@@ -342,42 +258,6 @@ document.addEventListener('DOMContentLoaded', function(){
         }
         
         console.log('Gráfica seleccionada: ' + selectedChart);
-        if (selectedChart === 'gastos' || selectedChart === 'presupuesto' || selectedChart === 'dependencias') {
-            cargarGraficas();
-        }
     });
-
-    function formatearCOP(v){
-        try { return new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', minimumFractionDigits: 0}).format(v || 0); } catch(e){ return v; }
-    }
-
-    function cargarGraficas(){
-        fetch(APP_URL + 'reports-graphs')
-            .then(r => r.json())
-            .then(j => {
-                if (j.state !== 1) return;
-                const data = j.data || {};
-                const presupuesto = data.presupuesto || {};
-                const deps = data.dependencias || [];
-
-                if (budgetAmountEl) {
-                    budgetAmountEl.textContent = 'S/ ' + new Intl.NumberFormat('es-PE').format(presupuesto.total_presupuesto || 0);
-                }
-
-                if (depLegendEl) {
-                    depLegendEl.innerHTML = '';
-                    deps.slice(0,5).forEach((d, i) => {
-                        const colorPalette = ['#2ca02c', '#1f77b4', '#ff7f0e', '#d62728', '#9467bd'];
-                        const li = document.createElement('div');
-                        li.innerHTML = `<span class="legend-color" style="background-color: ${colorPalette[i % colorPalette.length]};"></span> ${d.dependencia} - ${formatearCOP(d.comprometido)}`;
-                        depLegendEl.appendChild(li);
-                    });
-                }
-            })
-            .catch(() => {});
-    }
-
-    // inicial
-    cargarGraficas();
 });
 </script>
