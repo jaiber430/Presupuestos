@@ -2,39 +2,79 @@
 namespace presupuestos\controller;
 
 use presupuestos\helpers\Auth;
-
+use presupuestos\helpers\ResponseHelper;
+use presupuestos\model\ReportsModel;
 
 require __DIR__ . '/../../bootstrap.php';
-header('Content-Type: application/json');
+
 class ReportsController {
+    /**
+     * POST /reports -> subir CSVs semana 1 (cdp, rp, pagos)
+     */
     public function index() {
         Auth::check();
-        //HtmlResponse::toast("Hubo un error cargando los datos", "danger", 7000);
 
-        if(empty($_POST['cdp']) || empty($_POST['rp']) || empty($_POST['pagos']) || empty($_POST['week'])) {
-            $alerta = [
-                "tipo"   => "simple",
-                "titulo" => "Ocurrió un error inesperado, Joven",
-                "texto"  => "Debes seleccionarasdfasdf todos los archivos antes de guardar",
-                "icono"  => "error"
-            ];
+        try {
+            if (empty($_POST['week'])) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode([
+                    'tipo'   => 'simple',
+                    'titulo' => 'Datos incompletos',
+                    'texto'  => 'Debes indicar la semana.',
+                    'icono'  => 'warning',
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
 
-            header('Content-Type: application/json');
-            echo json_encode($alerta);
+            // Nota: FormularioAjax envía archivos en $_FILES
+            $files = $_FILES ?? [];
+
+            $results = ReportsModel::processWeek1CSVs($files);
+
+            // Estructura compatible con alerts.js -> tipo simple/recargar/limpiar
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'tipo'   => 'simple',
+                'titulo' => '¡Éxito!',
+                'texto'  => implode("\n", $results),
+                'icono'  => 'success',
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        } catch (\Throwable $e) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'tipo'   => 'simple',
+                'titulo' => 'Error al subir',
+                'texto'  => $e->getMessage(),
+                'icono'  => 'error',
+            ], JSON_UNESCAPED_UNICODE);
             exit;
         }
+    }
 
-        $alerta = [
-            "tipo"   => "simple",
-            "titulo" => "¡Éxito!",
-            "texto"  => "El reporte de la semana fue subido correctamente",
-            "icono"  => "success"
-        ];
-
-        
-        echo json_encode($alerta);
+    /**
+     * GET /reports/dependencias -> lista dependencias
+     */
+    public function dependencias() {
+        Auth::check();
+        header('Content-Type: application/json; charset=utf-8');
+        $deps = ReportsModel::getDependencias();
+        echo json_encode($deps, JSON_UNESCAPED_UNICODE);
         exit;
+    }
 
-
+    /**
+     * GET /reports/consulta?dependencia=...&codigo_cdp=...
+     */
+    public function consulta() {
+        Auth::check();
+        header('Content-Type: application/json; charset=utf-8');
+        $filters = [
+            'dependencia' => $_GET['dependencia'] ?? '',
+            'codigo_cdp'  => $_GET['codigo_cdp'] ?? '',
+        ];
+        $rows = ReportsModel::consultarCDP($filters);
+        echo json_encode($rows, JSON_UNESCAPED_UNICODE);
+        exit;
     }
 }

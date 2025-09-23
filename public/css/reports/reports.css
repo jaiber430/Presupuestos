@@ -59,6 +59,11 @@
 	gap: 8px;
 }
 
+/* Indicadores de porcentaje en detalles */
+td.verde { background-color: #c8e6c9 !important; }
+td.naranja { background-color: #ffe0b2 !important; }
+td.rojo { background-color: #ffcdd2 !important; }
+
 .budget-label{
 	font-size: 0.95rem;
 	color: var(--text-secondary);

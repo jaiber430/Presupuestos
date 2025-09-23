@@ -1,5 +1,3 @@
-  
-
 <div class="container mt-4 reports-page">
     <!-- Contenido en dos columnas: izquierda (tabla) | derecha (gráfico) -->
     <div class="row mt-4">
@@ -55,14 +53,7 @@
                 <!-- Gráfica 1: Distribución de Gastos -->
                 <div id="chart-gastos" class="chart-container">
                     <h3 class="subheader">Distribución de Gastos</h3>
-                    <div class="pie-chart-placeholder mt-3">Gráfico de pastel - Distribución de Gastos</div>
-                    <div class="legend mt-3">
-                        <div><span class="legend-color" style="background-color: #4e79a7;"></span> Material de Oficina</div>
-                        <div><span class="legend-color" style="background-color: #f28e2b;"></span> Equipos Tecnológicos</div>
-                        <div><span class="legend-color" style="background-color: #e15759;"></span> Servicios Públicos</div>
-                        <div><span class="legend-color" style="background-color: #76b7b2;"></span> Mantenimiento</div>
-                        <div><span class="legend-color" style="background-color: #59a14f;"></span> Capacitación</div>
-                    </div>
+                    <canvas id="canvas-gastos" class="mt-3" height="260"></canvas>
                 </div>
 
                 <!-- Gráfica 2: Estado del Presupuesto -->
@@ -71,32 +62,18 @@
                         <h3 class="subheader mb-2">Presupuesto General</h3>
                         <div class="total-budget">
                             <span class="budget-label">Total Presupuesto Asignado:</span>
-                            <span class="budget-amount">S/ 100,000</span>
+                            <span class="budget-amount" id="total-presupuesto">S/ 0</span>
                         </div>
                     </div>
-                    
                     <div class="budget-chart-container">
-                        <div class="pie-chart-placeholder budget-chart">Estado del Presupuesto</div>
-                        <div class="legend mt-3 budget-legend">
-                            <div><span class="legend-color" style="background-color: #4e79a7;"></span> Presupuesto Comprometido</div>
-                            <div><span class="legend-color" style="background-color: #f28e2b;"></span> Por Comprometer</div>
-                            <div><span class="legend-color" style="background-color: #e15759;"></span> Apropiación Disponible</div>
-                            <div><span class="legend-color" style="background-color: #76b7b2;"></span> Presupuesto Pagado</div>
-                        </div>
+                        <canvas id="canvas-presupuesto" class="budget-chart"></canvas>
                     </div>
                 </div>
 
                 <!-- Gráfica 3: Gastos por Dependencia -->
                 <div id="chart-dependencias" class="chart-container" style="display: none;">
                     <h3 class="subheader">Gastos por Dependencia</h3>
-                    <div class="pie-chart-placeholder mt-3">Gráfico de pastel - Gastos por Dependencia</div>
-                    <div class="legend mt-3">
-                        <div><span class="legend-color" style="background-color: #2ca02c;"></span> Dirección Administrativa (45%)</div>
-                        <div><span class="legend-color" style="background-color: #1f77b4;"></span> Dirección Técnica (30%)</div>
-                        <div><span class="legend-color" style="background-color: #ff7f0e;"></span> Dirección Académica (15%)</div>
-                        <div><span class="legend-color" style="background-color: #d62728;"></span> Dirección de Calidad (6%)</div>
-                        <div><span class="legend-color" style="background-color: #9467bd;"></span> Rectoría (4%)</div>
-                    </div>
+                    <canvas id="canvas-dependencias" class="mt-3" height="260"></canvas>
                 </div>
             </div>
         </div>
@@ -163,7 +140,7 @@
                                             <label for="modal-cdp-select" class="form-label m-0">CDP:</label>
                                             <input type="text" id="modal-cdp-input" class="form-control form-control-sm" placeholder="Número de CDP">
                                         </div>
-                                        <button class="btn btn-success btn-sm">
+                                        <button class="btn btn-success btn-sm" id="btn-modal-buscar">
                                             <i class="fas fa-search me-1"></i>Buscar
                                         </button>
                                     </div>
@@ -195,8 +172,8 @@
                                     <th>Objeto</th>
                                 </tr>
                             </thead>
-                            <tbody>
-
+                            <tbody id="tabla-detalles-body">
+                            
                             </tbody>
                         </table>
                     </div>
@@ -206,58 +183,5 @@
     </div>
     <!-- Fin Modal Ver Detalles -->
 </div>
-<script>
-    // Script para manejar la apertura del modal y actualizar el título dinámicamente
-document.addEventListener('DOMContentLoaded', function(){
-    // Modal Subir Reporte
-    const modal = document.getElementById('modalReporte');
-    const weekLabel = document.getElementById('modal-week-label');
-    const inputWeek = document.getElementById('input-week');
-    const triggers = document.querySelectorAll('.btn-open-modal');
-
-    triggers.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const w = btn.getAttribute('data-week');
-            weekLabel.textContent = '- ' + w;
-            inputWeek.value = w;
-        });
-    });
-
-    // Modal Ver Detalles
-    const modalDetalles = document.getElementById('modalDetalles');
-    const weekLabelDetalles = document.getElementById('modal-detalles-week-label');
-    const triggersDetalles = document.querySelectorAll('.btn-ver-detalles');
-
-    triggersDetalles.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const w = btn.getAttribute('data-week');
-            weekLabelDetalles.textContent = w;
-            
-            // Aquí puedes agregar lógica adicional para cargar datos específicos de la semana
-            // Por ejemplo, hacer una petición AJAX para obtener los datos de la tabla
-            console.log('Cargando detalles para: ' + w);
-        });
-    });
-
-    // Selector de Gráficas
-    const chartSelect = document.getElementById('chart-select');
-    const chartContainers = document.querySelectorAll('.chart-container');
-
-    chartSelect.addEventListener('change', function() {
-        const selectedChart = this.value;
-        
-        // Ocultar todas las gráficas
-        chartContainers.forEach(container => {
-            container.style.display = 'none';
-        });
-        
-        // Mostrar la gráfica seleccionada
-        const selectedContainer = document.getElementById('chart-' + selectedChart);
-        if (selectedContainer) {
-            selectedContainer.style.display = 'block';
-        }
-        
-        console.log('Gráfica seleccionada: ' + selectedChart);
-    });
-});
-</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="<?= APP_URL ?>js/reports/reports.js"></script>
