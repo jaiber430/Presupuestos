@@ -59,6 +59,23 @@ body.sidebar-open{
 body {
   padding-top: 70px;
   font-family: var(--font-family-base);
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+html {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.container-fluid,
+.row {
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .btn-menu-toggle{
@@ -272,4 +289,143 @@ body {
 /* Suavizar transiciones sin hover para abrir (solo click) */
 .accordion-button{
   pointer-events: auto;
+}
+
+/* Página de reportes */
+.reports-page .subheader{
+	color: var(--color-quinary);
+}
+
+/* Contenedor del subheader para que vaya de extremo a extremo */
+.subheader-container{
+	position: relative;
+	width: 100vw;
+	margin-left: calc(-50vw + 50%);
+	padding: 0;
+	margin-bottom: 0;
+}
+
+.reports-header{
+	background: var(--color-primary);
+	border: 1px solid var(--border-light);
+	border-radius: 0;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	height: auto;
+	min-height: 50px;
+	display: flex;
+	align-items: center;
+	margin-bottom: 0;
+	width: 100%;
+	max-width: 100%;
+	margin-left: 0;
+	margin-right: 0;
+	padding-left: 1rem;
+	padding-right: 1rem;
+	overflow-x: hidden;
+	box-sizing: border-box;
+}
+
+.reports-title{
+	color: var(--color-quinary);
+	font-size: 1.25rem;
+	font-weight: 600;
+	flex-shrink: 0;
+	min-width: 0;
+}
+
+.reports-controls{
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 1rem 2rem;
+	width: 100%;
+	padding: 0.75rem 0;
+	align-items: start;
+}
+
+.rc-field{
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 0.5rem;
+	align-items: center;
+	min-width: 0;
+}
+
+.reports-controls .form-label{
+	color: var(--color-quinary);
+	font-weight: 500;
+	font-size: 0.9rem;
+	white-space: nowrap;
+	margin: 0;
+	justify-self: start;
+}
+
+.reports-controls .form-control,
+.reports-controls .form-select{
+	background: var(--color-primary);
+	border: 1px solid var(--border-light);
+	color: var(--text-secondary);
+	min-width: 0;
+	box-sizing: border-box;
+	justify-self: stretch;
+}
+
+.reports-controls .form-control:focus,
+.reports-controls .form-select:focus{
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25);
+}
+
+.reports-header .btn-success{
+	background-color: var(--color-secondary);
+	border-color: var(--color-secondary);
+	color: var(--color-primary);
+	font-weight: 600;
+}
+
+.reports-header .btn-success:hover{
+	background-color: var(--success-hover);
+	border-color: var(--success-hover);
+	color: var(--color-primary);
+}
+
+/* Media queries para subheader de reportes */
+@media (max-width: 767.98px){
+	.subheader-container{
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
+		padding: 0;
+	}
+	
+	.reports-header{
+		height: auto;
+		min-height: 50px;
+		padding: 15px 20px;
+		width: 100%;
+		max-width: 100%;
+		overflow-x: hidden;
+	}
+	
+	.reports-controls{
+		grid-template-columns: 1fr;
+		gap: 1rem;
+		width: 100%;
+		max-width: 100%;
+		overflow-x: hidden;
+	}
+	
+	.rc-field{
+		grid-template-columns: auto 1fr;
+		gap: 0.75rem;
+		align-items: center;
+	}
+	
+	.reports-controls .form-control,
+	.reports-controls .form-select{
+		min-width: 120px;
+	}
+	
+	.reports-controls .form-label{
+		font-size: 0.85rem;
+		white-space: nowrap;
+	}
 }

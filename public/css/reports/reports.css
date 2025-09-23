@@ -1,72 +1,6 @@
 @import url('../variables_globales.css');
 
-/* Página de reportes */
-.reports-page .subheader{
-	color: var(--color-quinary);
-}
 
-.reports-header{
-	background: var(--color-primary);
-	border: 1px solid var(--border-light);
-	border-radius: 0;
-	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-	height: 50px;
-	display: flex;
-	align-items: center;
-	margin-bottom: 0;
-}
-
-/* Hacer que los subheaders estén pegados */
-.reports-header + .row .reports-header{
-	border-top: 0;
-}
-
-/* Eliminar espacios entre rows de subheaders */
-.container-fluid .row + .row{
-	margin-top: 0;
-}
-
-.container-fluid .row .col-12{
-	padding: 0;
-}
-
-.reports-title{
-	color: var(--color-quinary);
-	font-size: 1.25rem;
-	font-weight: 600;
-}
-
-.reports-controls .form-label{
-	color: var(--color-quinary);
-	font-weight: 500;
-	font-size: 0.9rem;
-}
-
-.reports-controls .form-control,
-.reports-controls .form-select{
-	background: var(--color-primary);
-	border: 1px solid var(--border-light);
-	color: var(--text-secondary);
-}
-
-.reports-controls .form-control:focus,
-.reports-controls .form-select:focus{
-	border-color: var(--color-primary);
-	box-shadow: 0 0 0 0.2rem rgba(255,255,255,0.25);
-}
-
-.reports-header .btn-success{
-	background-color: var(--color-secondary);
-	border-color: var(--color-secondary);
-	color: var(--color-primary);
-	font-weight: 600;
-}
-
-.reports-header .btn-success:hover{
-	background-color: var(--success-hover);
-	border-color: var(--success-hover);
-	color: var(--color-primary);
-}
 
 .rp-card{
 	background: var(--color-primary);
@@ -243,41 +177,6 @@
 }
 
 @media (max-width: 767.98px){
-	.reports-header{
-		height: auto;
-		min-height: 50px;
-		padding: 10px 15px !important;
-	}
-	
-	.reports-header .d-flex{
-		flex-direction: column;
-		gap: 15px !important;
-	}
-	
-	.reports-controls{
-		width: 100%;
-		justify-content: flex-start;
-		flex-wrap: wrap;
-		gap: 10px;
-	}
-	
-	.reports-title{
-		font-size: 1.1rem;
-		margin-left: 0 !important;
-	}
-	
-	.reports-controls .form-label{
-		font-size: 0.85rem;
-		margin-left: 0 !important;
-	}
-	
-	.reports-header .d-flex > div{
-		width: 100%;
-		justify-content: flex-start;
-		flex-wrap: wrap;
-		gap: 10px;
-	}
-	
 	.pie-chart-placeholder{
 		height: 180px;
 	}

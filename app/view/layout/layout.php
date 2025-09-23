@@ -58,6 +58,33 @@
     </div>
 </header>
 
+<div class="subheader-container">
+    <div class="reports-header">
+        <div class="reports-controls">
+            <div class="rc-field">
+                <label for="subdirector" class="form-label">Subdirector:</label>
+                <input type="text" id="subdirector" class="form-control form-control-sm" readonly/>
+            </div>
+            <div class="rc-field">
+                <label for="year-fiscal" class="form-label">Año Fiscal:</label>
+                <input type="number" id="year-fiscal" class="form-control form-control-sm" readonly/>
+            </div>
+            <div class="rc-field">
+                <label for="date-start" class="form-label">Inicio:</label>
+                <input type="date" id="date-start" class="form-control form-control-sm" readonly/>
+            </div>
+            <div class="rc-field">
+                <label for="date-end" class="form-label">Fin:</label>
+                <input type="date" id="date-end" class="form-control form-control-sm" readonly/>
+            </div>
+            <div class="rc-field">
+                <label for="status-filter" class="form-label">Estado:</label>
+                <input type="text" id="status-filter" class="form-control form-control-sm" readonly/>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- dashboard -->
 <div class="sidebar" id="sidebarMenu">
     <!-- menú -->
