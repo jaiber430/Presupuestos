@@ -3,7 +3,60 @@ function escapeHtml(text) {
   return $('<div>').text(text).html();
 }
 
-$(function() {	
+$(document).ready(function() {	
+    console.log("hayAnioFiscal:", hayAnioFiscal);
+
+    // Abrir modal solo si NO hay año fiscal activo
+    if(!hayAnioFiscal){
+        console.log('Intentando abrir modal...');
+        
+        // Usar setTimeout para asegurar que el DOM esté listo
+        setTimeout(function() {
+            console.log('Abriendo modal ahora...');
+            
+            // Método 1: Usar Bootstrap nativo
+            if (typeof bootstrap !== 'undefined') {
+                var modalElement = document.getElementById('modalAnioFiscal');
+                if (modalElement) {
+                    var modal = new bootstrap.Modal(modalElement, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                    modal.show();
+                    console.log('Modal abierto con Bootstrap nativo');
+                }
+            } 
+            // Método 2: Usar jQuery como fallback
+            else if ($.fn.modal) {
+                $('#modalAnioFiscal').modal({
+                    backdrop: 'static',
+                    keyboard: false,
+                    show: true
+                });
+                console.log('Modal abierto con jQuery');
+            }
+            
+            // Verificar si se abrió
+            setTimeout(function() {
+                if ($('#modalAnioFiscal').is(':visible')) {
+                    console.log('Modal visible correctamente');
+                } else {
+                    console.log('Modal no visible, intentando forzar...');
+                    $('#modalAnioFiscal').addClass('show');
+                    $('#modalAnioFiscal').css('display', 'block');
+                }
+            }, 500);
+        }, 100);
+        
+        // Bloquear cierre
+        $(document).on('hide.bs.modal', '#modalAnioFiscal', function (e) {
+            e.preventDefault();
+            return false;
+        });
+    }
+
+
+
   $.post(BASE_URL + 'dashboard/listar', function(answer) {
     if (answer.state == 1) {
       let userRolePermissions = answer.data.userRolePermissions;
@@ -120,4 +173,12 @@ $(function() {
     
   });
 
+  
+
+
+
 });
+
+
+
+

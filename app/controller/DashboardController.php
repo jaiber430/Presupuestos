@@ -3,6 +3,8 @@ namespace presupuestos\controller;
 
 use presupuestos\helpers\Auth;
 use presupuestos\helpers\HtmlResponse;
+use presupuestos\model\UserModel; 
+use presupuestos\model\AnioFiscalModel;
 
 require __DIR__ . '/../../bootstrap.php';
 
@@ -10,6 +12,9 @@ class DashboardController {
     public function index($page = "dashboard") {
         Auth::check();       
         $title = ucfirst($page);
+
+        $subdirector= UserModel::getSubdirector($_SESSION[APP_SESSION_NAME]['centro_id']);
+        $hayAnioFiscal = AnioFiscalModel::existePresupuestoActivo();
 
         if ($page === "reportes") {
             HtmlResponse::toast("Bienvenido al módulo de reportes 📊", "info", 5000);
@@ -22,7 +27,7 @@ class DashboardController {
         ];
 
         $stylesByView = [
-            "dashboard" => ["css/dashboard/dashboard.css"],
+            //"dashboard" => ["css/dashboard/dashboard.css"],
             "reportes"  => ["css/reports/reports.css"],
         ];
 

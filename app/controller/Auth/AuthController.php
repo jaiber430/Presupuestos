@@ -72,6 +72,7 @@ class AuthController {
                 'name'     => $dataUser['nombres'],
                 'lastName' => $dataUser['apellidos'],
                 'rolNombre'     => $dataUser['nombre_rol'],
+                'centro_id'     => $dataUser['centro_id'],
                 "idROl"=> $dataUser['rol_id']
             ];
           
