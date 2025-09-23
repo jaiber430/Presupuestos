@@ -11,7 +11,6 @@ $route= trim($uri, '/');
 $method= $_SERVER['REQUEST_METHOD'];
 $key= ($method === 'POST') ? "$route-post" : $route;
 
-
 if (isset($routes[$key])) {
     $routes[$key]();
 }else {

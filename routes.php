@@ -4,6 +4,7 @@ use presupuestos\controller\Auth\AuthController;
 use presupuestos\controller\DashboardController;
 use presupuestos\controller\MenuController;
 use presupuestos\controller\ReportsController;
+use presupuestos\controller\AnioFiscalController;
 
 return [
     '' => fn() => (new AuthController())->showLogin(),
@@ -21,6 +22,6 @@ return [
     'reports/dependencias'=> fn()=> (new ReportsController())->dependencias(),
     'reports/consulta'=> fn()=> (new ReportsController())->consulta(),
     'dashboard/listar-post'=> fn()=> (new MenuController())->getByRole(),
-    
+    'crear_anio_fiscal-post'=> fn() => AnioFiscalController::crear(),
 ];
 

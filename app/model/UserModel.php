@@ -68,4 +68,21 @@ class UserModel extends MainModel {
         $stmt = $this->executeQuery($query, $params);
         return $stmt->rowCount() > 0;
     }
+
+    public static function getSubdirector($centroId) {
+        try {
+            $query = "SELECT id, nombres, apellidos
+                    FROM user 
+                    WHERE rol_id = 2
+                    AND centro_id = ?
+                    LIMIT 1";
+            $stmt = self::executeQuery($query, [$centroId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            return $result ?: null; 
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+
 }

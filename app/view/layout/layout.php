@@ -10,6 +10,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/menustyles.css">
 
+
     <?php 
 	if (!empty($styles)) {
 		foreach ($styles as $css){
@@ -21,8 +22,7 @@
     <!-- Estilos específicos para modales de Roles y Permisos -->
     <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/roles/roles.css">
     <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/permissions/permissions.css">
-    <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/yearfiscal/yearfiscal.css">
-    <?php if (!empty($pageStyles)) { echo $pageStyles; } ?>
+    
 </head>
 <body>
 
@@ -63,11 +63,19 @@
         <div class="reports-controls">
             <div class="rc-field">
                 <label for="subdirector" class="form-label">Subdirector:</label>
-                <input type="text" id="subdirector" class="form-control form-control-sm" readonly/>
+                <?php if ($subdirector): ?>
+                    <p id="subdirector" class="form-control-plaintext">
+                        <?= htmlspecialchars($subdirector['nombres'] . ' ' . $subdirector['apellidos']) ?>
+                    </p>
+                <?php else: ?>
+                    <p id="subdirector" class="form-control-plaintext text-muted">
+                        No hay subdirector asignado actualmente
+                    </p>
+                <?php endif; ?>
             </div>
             <div class="rc-field">
                 <label for="year-fiscal" class="form-label">Año Fiscal:</label>
-                <input type="number" id="year-fiscal" class="form-control form-control-sm" readonly/>
+                <input type="number" id="year-fiscal" class="form-control form-control-sm" readonly />
             </div>
             <div class="rc-field">
                 <label for="date-start" class="form-label">Inicio:</label>
@@ -145,7 +153,7 @@
 
 
 <!-- Modal Crear Año Fiscal (contenido integrado desde presupuesto.php) -->
-<div class="modal fade modal-yearfiscal" id="modalAnioFiscal" tabindex="-1" aria-labelledby="modalAnioFiscalLabel" aria-hidden="true">
+<div class="modal fade modal-yearfiscal" data-keyboard="false" id="modalAnioFiscal" data-backdrop="static" tabindex="-1" aria-labelledby="modalAnioFiscalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content yearfiscal-content">
             <div class="modal-header yearfiscal-header">
@@ -157,20 +165,34 @@
                 <div class="yf-alerts" id="yf-alerts" role="alert" aria-live="polite" aria-atomic="true">
                     
                 </div>
-                <form action="" class="form-Fiscal yearfiscal-form">
+                
+                <form action="<?= APP_URL ?>crear_anio_fiscal" class="form-Fiscal yearfiscal-form FormularioAjax" method="post">
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="subdirector" class="form-label">Subdirector</label>
-                                <select class="form-select inputFiscal" id="subdirector">
-                                    <option selected disabled>Seleccione una opción</option>
-                                </select>
+                            <div class="mb-3">                            
+                                <?php if ($subdirector): ?>
+                                    <label for="subdirector" class="form-label">Subdirector</label>
+                                    <input type="text" 
+                                        id="subdirector" 
+                                        name="subdirector" 
+                                        class="form-control" 
+                                        value="<?= htmlspecialchars($subdirector['nombres'] . ' ' . $subdirector['apellidos']) ?>" 
+                                        readonly
+                                    >
+                                    <input type="hidden" 
+                                    name="subdirector_id" 
+                                    value="<?= $subdirector['id'] ?>">
+                                <?php else: ?>
+                                    <div class="alert alert-warning">
+                                        No hay un subdirector asignado actualmente.
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="valor_presupuesto" class="form-label">Valor Presupuesto</label>
-                                <input type="number" step="0.01" class="form-control inputFiscal" id="valor_presupuesto">
+                                <input type="number" step="0.01" name="valor_presupuesto" class="form-control inputFiscal" id="valor_presupuesto">
                             </div>
                         </div>
                     </div>
@@ -178,15 +200,18 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="year_fiscal" class="form-label">Año Fiscal</label>
-                                <select class="form-select inputFiscal" id="year_fiscal">
-                                    <option selected disabled>Seleccione una opción</option>
-                                </select>
+                                <input type="number" 
+                                    id="year-fiscal" 
+                                    class="form-control form-control-sm" 
+                                    value="<?= date('Y') ?>" 
+                                    name="year_fiscal"
+                                />
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="estado" class="form-label">Estado</label>
-                                <select class="form-select inputFiscal" id="estado">
+                                <select class="form-select inputFiscal" id="estado" name="estado">
                                     <option selected disabled>Seleccione una opción</option>
                                     <option value="activo">Activo</option>
                                     <option value="inactivo">Inactivo</option>
@@ -198,22 +223,23 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
-                                <input type="date" class="form-control inputFiscal" id="fecha_inicio">
+                                <input type="date" class="form-control inputFiscal" name="fecha_inicio" id="fecha_inicio">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="fecha_cierre" class="form-label">Fecha Cierre</label>
-                                <input type="date" class="form-control inputFiscal" id="fecha_cierre">
+                                <input type="date" class="form-control inputFiscal" name="fecha_cierre" id="fecha_cierre">
                             </div>
                         </div>
                     </div>
+                    <div class="modal-footer yearfiscal-footer">
+                        <button type="button" name="cancel" class="btn btn-secondary yf-btn-cancel" id="cancel-button" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" name="create" class="btn btn-primary yf-btn-create" id="create-button">Crear</button>
+                    </div>
                 </form>
             </div>
-            <div class="modal-footer yearfiscal-footer">
-                <button type="button" name="cancel" class="btn btn-secondary yf-btn-cancel" id="cancel-button" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" name="create" class="btn btn-primary yf-btn-create" id="create-button">Crear</button>
-            </div>
+            
         </div>
     </div>
 </div>
@@ -268,9 +294,11 @@
 
 <script>
     const BASE_URL = "<?= APP_URL ?>";
+    const hayAnioFiscal = <?= $hayAnioFiscal ? 'true' : 'false' ?>;
 </script>
-<script src="./js/alerts.js"></script>
+
 <script src="./js/dashboard/dashboard.js"></script>
 <script src="./js/sweetalert2.all.min.js"></script>
+<script src="./js/alerts.js"></script>
 </body>
 </html>
