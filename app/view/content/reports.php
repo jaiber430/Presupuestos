@@ -1,10 +1,13 @@
-<div class="container mt-4 reports-page">
+<div class="container-fluid mt-4 reports-page">
     <!-- Contenido en dos columnas: izquierda (tabla) | derecha (gráfico) -->
-    <div class="row mt-4">
-        <div class="col-lg-7">
-            <div class="rp-card p-3 h-100">
-                <h3 class="subheader">Gastos por Semana</h3>
-                <table class="table reports-table mt-3">
+    <div class="row mt-4 g-4 reports-layout">
+        <!-- Columna Tabla -->
+        <div class="col-12 col-xl-6 order-2 order-lg-1">
+            <div class="rp-card p-3 h-100 rp-card-table">
+                <h3 class="subheader mb-1">Gastos por Semana</h3>
+                <p class="text-muted small mb-3">Listado de semanas cargadas. Desde aquí puedes ver detalles o subir nuevos reportes semanales.</p>
+                <div class="table-responsive">
+                <table class="table reports-table mb-0">
                 <thead>
                     <tr>
                         <th>Semana</th>
@@ -36,44 +39,48 @@
                     </tr>
                 </tbody>
                 </table>
+                </div>
             </div>
         </div>
-        <div class="col-lg-5 mt-4 mt-lg-0">
-            <div class="rp-card p-3 h-100">
-                <!-- Selector de Gráficas -->
-                <div class="chart-selector mb-3">
-                    <label for="chart-select" class="form-label fw-bold">Ver Gráfica:</label>
-                    <select id="chart-select" class="form-select form-select-sm w-auto">
-                        <option value="gastos" selected>Distribución de Gastos</option>
-                        <option value="presupuesto">Estado del Presupuesto</option>
-                        <option value="dependencias">Gastos por Dependencia</option>
-                    </select>
-                </div>
-
-                <!-- Gráfica 1: Distribución de Gastos -->
-                <div id="chart-gastos" class="chart-container">
-                    <h3 class="subheader">Distribución de Gastos</h3>
-                    <canvas id="canvas-gastos" class="mt-3" height="260"></canvas>
-                </div>
-
-                <!-- Gráfica 2: Estado del Presupuesto -->
-                <div id="chart-presupuesto" class="chart-container" style="display: none;">
-                    <div class="budget-header mb-3">
-                        <h3 class="subheader mb-2">Presupuesto General</h3>
-                        <div class="total-budget">
-                            <span class="budget-label">Total Presupuesto Asignado:</span>
-                            <span class="budget-amount" id="total-presupuesto">S/ 0</span>
-                        </div>
+        <!-- Columna Gráficas -->
+        <div class="col-12 col-xl-6 order-1 order-lg-2">
+            <div class="rp-card p-3 h-100 charts-wrapper">
+                <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 gap-2">
+                    <div>
+                        <h3 class="subheader mb-0">Panel Analítico</h3>
+                        <small class="text-muted">Visualización detallada de estado presupuestal y compromisos.</small>
                     </div>
-                    <div class="budget-chart-container">
-                        <canvas id="canvas-presupuesto" class="budget-chart"></canvas>
+                    <div class="chart-selector">
+                        <label for="chart-select" class="form-label fw-bold small mb-1">Ver:</label>
+                        <select id="chart-select" class="form-select form-select-sm w-auto">
+                            <option value="presupuesto" selected>Estado del Presupuesto</option>
+                            <option value="gastos">Distribución (Comprometido vs Saldo)</option>
+                            <option value="dependencias">Comprometido por Dependencia</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Gráfica 3: Gastos por Dependencia -->
-                <div id="chart-dependencias" class="chart-container" style="display: none;">
-                    <h3 class="subheader">Gastos por Dependencia</h3>
-                    <canvas id="canvas-dependencias" class="mt-3" height="260"></canvas>
+                <div id="chart-presupuesto" class="chart-container">
+                    <h5 class="chart-title mb-1">Estado del Presupuesto</h5>
+                    <p class="chart-desc small text-muted mb-2">Comparación de valores Inicial, Operaciones (ajustes), Actual, Comprometido y Saldo.</p>
+                    <div class="total-budget mb-2">
+                        <span class="budget-label">Total Presupuesto Asignado:</span>
+                        <span class="budget-amount" id="total-presupuesto">S/ 0</span>
+                    </div>
+                    <canvas id="canvas-presupuesto" class="budget-chart main-chart" height="320"></canvas>
+                </div>
+
+                <div id="chart-gastos" class="chart-container" style="display:none;">
+                    <h5 class="chart-title">Distribución de Gastos</h5>
+                    <p class="chart-desc small text-muted mb-1">Relación entre valores comprometidos y saldo por comprometer del conjunto consultado.</p>
+                    <canvas id="canvas-gastos" class="mt-2 main-chart" height="320"></canvas>
+                </div>
+
+
+                <div id="chart-dependencias" class="chart-container" style="display:none;">
+                    <h5 class="chart-title">Comprometido por Dependencia</h5>
+                    <p class="chart-desc small text-muted mb-1">Top dependencias según valor comprometido (agrupando el resto en "Otros").</p>
+                    <canvas id="canvas-dependencias" class="mt-2 main-chart" height="320"></canvas>
                 </div>
             </div>
         </div>
@@ -124,33 +131,37 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Filtros movidos desde el segundo subheader -->
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <div class="reports-header p-2">
-                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 w-100">
-                                    <div class="reports-controls d-flex align-items-center gap-3">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <label for="modal-dependency-select" class="form-label m-0">Dependencia:</label>
-                                            <select id="modal-dependency-select" class="form-select form-select-sm w-auto">
-                                                <option value="all" selected>Todas</option>
-                                            </select>
-                                        </div>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <label for="modal-cdp-select" class="form-label m-0">CDP:</label>
-                                            <input type="text" id="modal-cdp-input" class="form-control form-control-sm" placeholder="Número de CDP">
-                                        </div>
-                                        <button class="btn btn-success btn-sm" id="btn-modal-buscar">
-                                            <i class="fas fa-search me-1"></i>Buscar
-                                        </button>
+                    <!-- Filtros + Mini gráfica -->
+                    <div class="row mb-3 g-3 align-items-stretch">
+                        <div class="col-lg-8 col-md-7 col-12">
+                            <div class="reports-header p-2 h-100">
+                                <div class="d-flex align-items-center flex-wrap gap-3 w-100">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label for="modal-dependency-select" class="form-label m-0">Dependencia:</label>
+                                        <select id="modal-dependency-select" class="form-select form-select-sm w-auto">
+                                            <option value="all" selected>Todas</option>
+                                        </select>
                                     </div>
+                                    <button class="btn btn-success btn-sm" id="btn-modal-buscar">
+                                        <i class="fas fa-search me-1"></i>Buscar
+                                    </button>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-5 col-12 d-flex">
+                            <div id="mini-presupuesto-container" class="mini-presupuesto-box w-100" style="display:none;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="text-muted fw-semibold">Estado Dependencia</small>
+                                    <button type="button" class="btn btn-link p-0 small text-decoration-none" id="mini-hide-btn" title="Ocultar" style="line-height:1;">&times;</button>
+                                </div>
+                                <canvas id="mini-presupuesto-chart" height="190"></canvas>
+                                <small class="text-muted d-block mt-1" id="mini-presupuesto-label"></small>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Tabla de detalles -->
-                    <div class="table-responsive">
+                    <div class="table-scroll-wrapper">
                         <table class="table table-striped table-hover reports-table">
                             <thead class="table-dark">
                                 <tr>
@@ -163,8 +174,6 @@
                                     <th>Rubro</th>
                                     <th>Descripción</th>
                                     <th>Fuente</th>
-                                    <th>Valor Inicial</th>
-                                    <th>Valor Operaciones</th>
                                     <th>Valor Actual</th>
                                     <th>Saldo por Comprometer</th>
                                     <th>Valor Comprometido</th>
