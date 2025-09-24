@@ -13,8 +13,11 @@ class DashboardController {
         Auth::check();       
         $title = ucfirst($page);
 
-        $subdirector= UserModel::getSubdirector($_SESSION[APP_SESSION_NAME]['centro_id']);
-        $hayAnioFiscal = AnioFiscalModel::existePresupuestoActivo();
+        $centroId = $_SESSION[APP_SESSION_NAME]['centro_id'];
+        $subdirector = UserModel::getSubdirector($centroId);
+        $anioFiscalActivo = AnioFiscalModel::getPresupuestoActivo($centroId);
+        $hayAnioFiscal = !empty($anioFiscalActivo);
+
 
         if ($page === "reportes") {
             HtmlResponse::toast("Bienvenido al módulo de reportes 📊", "info", 5000);

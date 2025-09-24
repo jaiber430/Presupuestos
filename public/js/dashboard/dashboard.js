@@ -5,15 +5,11 @@ function escapeHtml(text) {
 
 $(document).ready(function() {	
     console.log("hayAnioFiscal:", hayAnioFiscal);
-
     // Abrir modal solo si NO hay año fiscal activo
     if(!hayAnioFiscal){
-        console.log('Intentando abrir modal...');
         
         // Usar setTimeout para asegurar que el DOM esté listo
-        setTimeout(function() {
-            console.log('Abriendo modal ahora...');
-            
+        setTimeout(function() {           
             // Método 1: Usar Bootstrap nativo
             if (typeof bootstrap !== 'undefined') {
                 var modalElement = document.getElementById('modalAnioFiscal');
@@ -23,7 +19,6 @@ $(document).ready(function() {
                         keyboard: false
                     });
                     modal.show();
-                    console.log('Modal abierto con Bootstrap nativo');
                 }
             } 
             // Método 2: Usar jQuery como fallback
@@ -33,13 +28,13 @@ $(document).ready(function() {
                     keyboard: false,
                     show: true
                 });
-                console.log('Modal abierto con jQuery');
+
             }
             
             // Verificar si se abrió
             setTimeout(function() {
                 if ($('#modalAnioFiscal').is(':visible')) {
-                    console.log('Modal visible correctamente');
+
                 } else {
                     console.log('Modal no visible, intentando forzar...');
                     $('#modalAnioFiscal').addClass('show');
@@ -73,7 +68,6 @@ $(document).ready(function() {
         } else if (permiso.nombre_permiso === "Gestionar usuarios") {
             clase= "manage_user";
         }            
-        console.log(userRolePermissions);
         $('.permissions').append(
           `<a class="${clase} accordion-button single-link" href="${BASE_URL}${permiso.url}">${escapeHtml(permiso.nombre_permiso)}</a>`
         );
@@ -153,27 +147,57 @@ $(document).ready(function() {
     $("#modalManageRoles").modal("show");
   });
 
-
+  $(document).off("change", ".form-check-input");
   $(document).on("change", ".form-check-input", function() {
     let permisoNombre = $(this).closest('li').find('span').text();
     let rolNombre = $(this).closest('.accordion-item').find('.accordion-button').data('rol');
     let estado = $(this).is(':checked') ? 1 : 0;
 
-    $.post('/actualizar-permiso', {
+    $.post(BASE_URL + 'dashboard/actualizar-permiso', {
       rol: rolNombre,
       permiso: permisoNombre,
       estado: estado
     }, function(response) {
-      if(response.success){
-        console.log('Permiso actualizado correctamente');
+    if (response.state === 1) {
+          showToast(response.message, 'success'); 
       } else {
-        console.error('Error al actualizar permiso');
+          showToast(response.message, 'error');
       }
-    }, 'json');
-    
+  }, 'json');
+      
   });
 
-  
+function showToast(message, type = 'info') {
+    const bg = {
+        success: 'bg-success text-white',
+        error: 'bg-danger text-white',
+        warning: 'bg-warning text-dark',
+        info: 'bg-info text-white'
+    }[type] || 'bg-info text-white';
+
+    const container = document.querySelector('#toast-container');
+
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast align-items-center ${bg} border-0`;
+    toastEl.role = 'alert';
+    toastEl.ariaLive = 'assertive';
+    toastEl.ariaAtomic = 'true';
+    toastEl.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+
+    container.appendChild(toastEl);
+
+    const bsToast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    bsToast.show();
+
+    // Quitar del DOM cuando desaparezca
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+}
+
 
 
 
