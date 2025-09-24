@@ -80,6 +80,38 @@ td.rojo { background-color: #ffcdd2 !important; }
 	margin-top: 15px;
 }
 
+.reports-layout .charts-wrapper{ min-height: 560px; display: flex; flex-direction: column; }
+.rp-card-table{ min-height: 560px; display:flex; flex-direction: column; }
+.rp-card-table .table-responsive{ flex:1 1 auto; }
+.rp-card-table table thead th{ position: sticky; top:0; z-index:2; background: rgba(57,169,0,.08); }
+@media (max-width: 1199.98px){
+	.rp-card-table, .reports-layout .charts-wrapper{ min-height: unset; }
+}
+
+@media (min-width:1400px){
+	.reports-layout .rp-card{ padding:1.5rem 1.75rem; }
+	#canvas-gastos,#canvas-presupuesto,#canvas-dependencias{ max-height:360px; }
+}
+.chart-container{ animation: fadeIn .35s ease; }
+@keyframes fadeIn{ from{opacity:0; transform: translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+.chart-title{ font-size: .95rem; font-weight:600; color: var(--text-secondary); }
+.chart-desc{ line-height:1.2; }
+.main-chart{ width:100%; }
+.charts-wrapper .chart-container{ min-height: 420px; display:flex; flex-direction:column; }
+.charts-wrapper .chart-container canvas{ flex:1 1 auto; }
+
+.chart-container + .chart-container{ margin-top: 10px; }
+
+@media (min-width: 1200px){
+	.reports-layout .charts-wrapper{ padding-bottom: 10px; }
+	#canvas-gastos,#canvas-presupuesto,#canvas-dependencias{ max-height: 340px; }
+}
+
+@media (max-width: 991.98px){
+	.reports-layout .charts-wrapper{ min-height: auto; }
+}
+
 .legend{
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -200,7 +232,7 @@ td.rojo { background-color: #ffcdd2 !important; }
 	}
 }
 
-/* ================== Modal Reportes al estilo Yearfiscal ================== */
+/* ================== Modal Reportes ================== */
 .modal-reports .reports-content{
 	background-color: var(--color-primary);
 	color: var(--text-secondary);
@@ -296,3 +328,58 @@ td.rojo { background-color: #ffcdd2 !important; }
 .modal-reports .modal-body::-webkit-scrollbar-track{ background: var(--color-quaternary); border-radius: 10px; }
 .modal-reports .modal-body::-webkit-scrollbar-thumb{ background: var(--color-accent); border-radius: 10px; }
 .modal-reports .modal-body::-webkit-scrollbar-thumb:hover{ background: var(--color-accent); }
+
+.table-scroll-wrapper{
+	width: 100%;
+	max-height: 60vh; 
+	overflow: auto; 
+	overflow-x: scroll;
+	overflow-y: scroll;
+	border: 1px solid var(--border-light);
+	border-radius: 8px;
+	background: var(--color-primary);
+	position: relative;
+}
+/* Forzar que las barras aparezcan (en navegadores que las ocultan) */
+.table-scroll-wrapper::-webkit-scrollbar{ height: 12px; width: 12px; }
+.table-scroll-wrapper::-webkit-scrollbar-track{ background: var(--color-quaternary); }
+.table-scroll-wrapper::-webkit-scrollbar-thumb{ background: var(--color-accent); border-radius: 6px; }
+.table-scroll-wrapper::-webkit-scrollbar-thumb:hover{ background: var(--success-hover); }
+
+td.cell-textarea{ min-width: 240px; }
+td.cell-textarea textarea{
+	width: 100%;
+	resize: vertical; 
+	max-height: 110px;
+	min-height: 48px;
+	background: var(--color-tertiary);
+	border: 1px solid var(--border-light);
+	border-radius: 6px;
+	font-size: 0.7rem;
+	line-height: 1.1rem;
+	padding: 4px 6px;
+	color: var(--text-secondary);
+	overflow: auto;
+	cursor: default;
+}
+td.cell-textarea textarea:focus{ outline: none; box-shadow: 0 0 0 2px rgba(66,214,61,0.25); }
+td.cell-textarea textarea::-webkit-scrollbar{ width: 8px; }
+td.cell-textarea textarea::-webkit-scrollbar-thumb{ background: var(--color-accent); border-radius: 4px; }
+
+.reports-table{ table-layout: auto; white-space: nowrap; }
+.reports-table th, .reports-table td{ vertical-align: top; }
+
+/* Mini gráfica en modal detalles */
+.mini-presupuesto-box{
+	background: var(--color-primary);
+	border: 1px solid var(--border-light);
+	border-radius: 8px;
+	padding: 8px 10px 6px;
+	position: relative;
+	box-shadow: 0 4px 10px rgba(0,0,0,.06);
+	animation: fadeIn .35s ease;
+}
+.mini-presupuesto-box canvas{ max-height: 180px !important; }
+.mini-presupuesto-box{ padding:10px 12px 8px; }
+.mini-presupuesto-box button{ color: var(--text-secondary); }
+.mini-presupuesto-box button:hover{ color: var(--color-accent); }

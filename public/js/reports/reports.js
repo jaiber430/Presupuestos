@@ -34,7 +34,8 @@ document.addEventListener('DOMContentLoaded', function(){
                 data.forEach(dep => {
                     const opt = document.createElement('option');
                     opt.value = dep.codigo;
-                    opt.textContent = `${dep.nombre}`;
+                    // Mostrar código y nombre
+                    opt.textContent = `${dep.codigo} - ${dep.nombre}`;
                     dependenciaSelect.appendChild(opt);
                 });
                 depsCargadas = true;
@@ -51,70 +52,150 @@ document.addEventListener('DOMContentLoaded', function(){
     const formatoMoneda = (valor) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
 
     // Gestión de gráficas
-    let chartGastos = null;
-    let chartPresupuesto = null;
-    let chartDependencias = null;
+    let chartGastos = null;        // Barra apilada (Comprometido vs Saldo)
+    let chartPresupuesto = null;   // Barras múltiples
+    let chartDependencias = null;  // Barra horizontal dependencias
 
-    const renderPie = (canvasId, labels, data, colors) => {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return null;
-        const ctx = canvas.getContext('2d');
-        return new Chart(ctx, {
-            type: 'pie',
-            data: { labels, datasets: [{ data, backgroundColor: colors }] },
-            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-        });
+    const disposeChart = (chartRef) => {
+        if (chartRef && typeof chartRef.destroy === 'function') {
+            chartRef.destroy();
+        }
+        return null;
     };
 
     const palette = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ab'];
 
-    const updateCharts = (rows) => {
-        let totalInicial = 0, totalSaldo = 0, totalComprometido = 0;
-        const porDependencia = new Map();
+    // Agregación de filas en un solo lugar para reutilizar en charts y mini chart
+    const aggregateRows = (rows) => {
+        const acc = {
+            totalInicial: 0,
+            totalSaldo: 0,
+            totalComprometido: 0,
+            totalOperaciones: 0,
+            totalActual: 0,
+            porDependencia: new Map()
+        };
         rows.forEach(r => {
             const inicial = limpiarNumero(r.valor_inicial);
             const saldo = limpiarNumero(r.saldo_por_comprometer);
+            const operaciones = limpiarNumero(r.valor_operaciones);
+            const actual = limpiarNumero(r.valor_actual);
             const comprometido = Math.max(inicial - saldo, 0);
-            totalInicial += inicial;
-            totalSaldo += saldo;
-            totalComprometido += comprometido;
+            acc.totalInicial += inicial;
+            acc.totalSaldo += saldo;
+            acc.totalComprometido += comprometido;
+            acc.totalOperaciones += operaciones;
+            acc.totalActual += actual;
             const depName = r.dependencia_descripcion || r.dependencia || 'Sin dependencia';
-            porDependencia.set(depName, (porDependencia.get(depName) || 0) + comprometido);
+            acc.porDependencia.set(depName, (acc.porDependencia.get(depName) || 0) + comprometido);
         });
+        return acc;
+    };
+
+    const updateCharts = (rows) => {
+        const { totalInicial, totalSaldo, totalComprometido, totalOperaciones, totalActual, porDependencia } = aggregateRows(rows);
 
         const totalPresEl = document.getElementById('total-presupuesto');
         if (totalPresEl) totalPresEl.textContent = formatoMoneda(totalInicial);
 
-        if (chartGastos) chartGastos.destroy();
-        chartGastos = renderPie('canvas-gastos', ['Comprometido', 'Saldo por Comprometer'], [totalComprometido, totalSaldo], ['#ef5350', '#ffcc80']);
+        // Chart 1: Distribución (barra apilada)
+        chartGastos = disposeChart(chartGastos);
+        const canvasGastos = document.getElementById('canvas-gastos');
+        if (canvasGastos) {
+            chartGastos = new Chart(canvasGastos.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Total Global'],
+                    datasets: [
+                        { label: 'Comprometido', data: [totalComprometido], backgroundColor: '#ef5350' },
+                        { label: 'Saldo por Comprometer', data: [totalSaldo], backgroundColor: '#ffcc80' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' }, tooltip: { mode: 'index', intersect: false } },
+                    interaction: { mode: 'index', intersect: false },
+                    scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
+                }
+            });
+        }
 
-        if (chartPresupuesto) chartPresupuesto.destroy();
-        chartPresupuesto = renderPie('canvas-presupuesto', ['Comprometido', 'Saldo por Comprometer'], [totalComprometido, totalSaldo], ['#4e79a7', '#f28e2b']);
+        // Chart 2: Estado Presupuesto (multi barras)
+        chartPresupuesto = disposeChart(chartPresupuesto);
+        const canvasPres = document.getElementById('canvas-presupuesto');
+        if (canvasPres) {
+            chartPresupuesto = new Chart(canvasPres.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Presupuesto'],
+                    datasets: [
+                        { label: 'Inicial', data: [totalInicial], backgroundColor: '#4e79a7' },
+                        { label: 'Operaciones', data: [totalOperaciones], backgroundColor: '#f28e2b' },
+                        { label: 'Actual', data: [totalActual], backgroundColor: '#59a14f' },
+                        { label: 'Comprometido', data: [totalComprometido], backgroundColor: '#e15759' },
+                        { label: 'Saldo', data: [totalSaldo], backgroundColor: '#b07aa1' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' }, tooltip: { mode: 'index', intersect: false } },
+                    interaction: { mode: 'index', intersect: false },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
 
+        // Chart 3: Dependencias (horizontal)
+        chartDependencias = disposeChart(chartDependencias);
         const entries = Array.from(porDependencia.entries()).sort((a,b)=>b[1]-a[1]);
-        const top = entries.slice(0,6);
-        if (entries.length > 6) {
-            const otros = entries.slice(6).reduce((acc,cur)=>acc+cur[1],0);
+        const top = entries.slice(0,10);
+        if (entries.length > 10) {
+            const otros = entries.slice(10).reduce((acc,cur)=>acc+cur[1],0);
             top.push(['Otros', otros]);
         }
         const depLabels = top.map(x=>x[0]);
         const depValues = top.map(x=>x[1]);
-        const depColors = depLabels.map((_,i)=> palette[i % palette.length]);
-        if (chartDependencias) chartDependencias.destroy();
-        chartDependencias = renderPie('canvas-dependencias', depLabels, depValues, depColors);
+        const canvasDeps = document.getElementById('canvas-dependencias');
+        if (canvasDeps) {
+            chartDependencias = new Chart(canvasDeps.getContext('2d'), {
+                type: 'bar',
+                data: { labels: depLabels, datasets: [{ label: 'Comprometido', data: depValues, backgroundColor: depLabels.map((_,i)=> palette[i % palette.length]) }] },
+                options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false }, tooltip: { mode: 'nearest', intersect: true } }, scales: { x: { beginAtZero: true } } }
+            });
+        }
     };
 
-    const buscarYRender = async (depValue, codigoValue) => {
+    // Mini gráfica dependencia específica
+    let miniChart = null;
+    const miniContainer = () => document.getElementById('mini-presupuesto-container');
+    const miniCanvas = () => document.getElementById('mini-presupuesto-chart');
+    const miniLabel = () => document.getElementById('mini-presupuesto-label');
+    const hideMiniBtn = () => document.getElementById('mini-hide-btn');
+
+    const renderMiniChart = (rows, dependenciaTxt) => {
+        if (!miniCanvas()) return;
+        if (miniChart) { miniChart.destroy(); miniChart = null; }
+        if (!rows || rows.length === 0) { if (miniContainer()) miniContainer().style.display = 'none'; return; }
+        const { totalInicial, totalSaldo, totalComprometido, totalActual } = aggregateRows(rows);
+        if (miniContainer()) miniContainer().style.display = 'block';
+        if (miniLabel()) miniLabel().textContent = dependenciaTxt || '';
+        miniChart = new Chart(miniCanvas().getContext('2d'), {
+            type: 'bar',
+            data: { labels: ['Inicial','Actual','Comprometido','Saldo'], datasets: [{ label: 'Valores', data: [totalInicial, totalActual, totalComprometido, totalSaldo], backgroundColor: ['#4e79a7','#59a14f','#e15759','#b07aa1'] }] },
+            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+        if (hideMiniBtn()) hideMiniBtn().onclick = () => { if (miniContainer()) miniContainer().style.display = 'none'; };
+    };
+
+    const buscarYRender = async (depValue) => {
         const params = new URLSearchParams();
         if (depValue) params.set('dependencia', depValue);
-        if (codigoValue) params.set('codigo_cdp', codigoValue);
         try {
             const resp = await fetch(`${BASE_URL}reports/consulta?${params.toString()}`);
             const data = await resp.json();
             tbodyDetalles.innerHTML = '';
             if (!Array.isArray(data) || data.length === 0) {
-                tbodyDetalles.innerHTML = `<tr><td colspan="16" class="text-center text-muted">Sin resultados</td></tr>`;
-                updateCharts([]);
+                tbodyDetalles.innerHTML = `<tr><td colspan="14" class="text-center text-muted">Sin resultados</td></tr>`;
                 return [];
             }
             data.forEach((row, index) => {
@@ -125,27 +206,26 @@ document.addEventListener('DOMContentLoaded', function(){
                 let clase = 'rojo';
                 if (comprometido === inicial && saldo === 0) clase = 'verde'; else if (comprometido > 0) clase = 'naranja';
                 const tr = document.createElement('tr');
+                // Sanitizar texto para evitar inyección simple (reemplazar < y >)
+                const safe = (txt) => (txt ?? '').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;');
                 tr.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${row.numero_cdp ?? ''}</td>
-                    <td>${row.fecha_registro ?? ''}</td>
-                    <td>${row.dependencia ?? ''}</td>
-                    <td>${row.dependencia_descripcion ?? ''}</td>
-                    <td>${row.concepto_interno ?? ''}</td>
-                    <td>${row.rubro ?? ''}</td>
-                    <td>${row.descripcion ?? ''}</td>
-                    <td>${row.fuente ?? ''}</td>
-                    <td>${formatoMoneda(limpiarNumero(row.valor_inicial))}</td>
-                    <td>${formatoMoneda(limpiarNumero(row.valor_operaciones))}</td>
+                    <td>${safe(row.numero_cdp)}</td>
+                    <td>${safe(row.fecha_registro)}</td>
+                    <td>${safe(row.dependencia)}</td>
+                    <td>${safe(row.dependencia_descripcion)}</td>
+                    <td>${safe(row.concepto_interno)}</td>
+                    <td>${safe(row.rubro)}</td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.descripcion)}</textarea></td>
+                    <td>${safe(row.fuente)}</td>
                     <td>${formatoMoneda(limpiarNumero(row.valor_actual))}</td>
                     <td>${formatoMoneda(limpiarNumero(row.saldo_por_comprometer))}</td>
                     <td>${formatoMoneda(comprometido)}</td>
                     <td class="${clase}">${porcentaje}%</td>
-                    <td>${row.objeto ?? ''}</td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.objeto)}</textarea></td>
                 `;
                 tbodyDetalles.appendChild(tr);
             });
-            updateCharts(data);
             return data;
         } catch (err) {
             console.error('Error cargando detalles:', err);
@@ -154,24 +234,37 @@ document.addEventListener('DOMContentLoaded', function(){
         }
     };
 
+    // Cargar siempre datos globales para panel principal al abrir la página (Todas)
+    // Se hace una consulta inicial sin parámetros solo si aún no se ha hecho.
+    let globalLoaded = false;
+    const loadGlobalCharts = async () => {
+        if (globalLoaded) return; // evitar recarga innecesaria
+        globalLoaded = true;
+        try {
+            const resp = await fetch(`${BASE_URL}reports/consulta`);
+            const data = await resp.json();
+            if (Array.isArray(data)) updateCharts(data);
+        } catch (e) { console.error('No se pudo cargar datos globales', e); }
+    };
+    loadGlobalCharts();
+
     triggersDetalles.forEach(btn => {
         btn.addEventListener('click', async () => {
             const w = btn.getAttribute('data-week');
             weekLabelDetalles.textContent = w;
             await cargarDependencias();
             tbodyDetalles.innerHTML = '';
-            // cargar datos por defecto (sin filtros) para mostrar algo al abrir
             const depValue = (dependenciaSelect.value === 'all') ? '' : dependenciaSelect.value;
-            const codigoValue = cdpInput.value.trim();
-            await buscarYRender(depValue, codigoValue);
+            const data = await buscarYRender(depValue);
+            if (depValue) renderMiniChart(data, depValue); else renderMiniChart([], '');
         });
     });
 
     btnBuscar.addEventListener('click', async (e) => {
         e.preventDefault();
         const depValue = (dependenciaSelect.value === 'all') ? '' : dependenciaSelect.value;
-        const codigoValue = cdpInput.value.trim();
-        await buscarYRender(depValue, codigoValue);
+        const data = await buscarYRender(depValue);
+        if (depValue) renderMiniChart(data, depValue); else renderMiniChart([], '');
     });
 
     // Selector de Gráficas
@@ -195,46 +288,10 @@ document.addEventListener('DOMContentLoaded', function(){
         console.log('Gráfica seleccionada: ' + selectedChart);
     });
 
-    // Botones Eliminar Semana
-    const deleteButtons = document.querySelectorAll('.btn-delete-week');
-    deleteButtons.forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const week = btn.getAttribute('data-week');
-
-            const proceed = await (async () => {
-                if (window.Swal && typeof window.Swal.fire === 'function') {
-                    const res = await window.Swal.fire({
-                        title: '¿Eliminar?',
-                        text: `¿Seguro que deseas eliminar los datos de ${week}? Esta acción no se puede deshacer.`,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Sí, eliminar',
-                        cancelButtonText: 'Cancelar'
-                    });
-                    return res.isConfirmed;
-                }
-                return window.confirm(`¿Eliminar los datos de ${week}?`);
-            })();
-
-            if (!proceed) return;
-
-            // TODO: Reemplazar por petición real al backend
-            // Ejemplo con fetch a una ruta de eliminación
-            // const resp = await fetch(`${APP_URL}reports/delete`, { method: 'POST', body: new URLSearchParams({ week }) });
-            // const json = await resp.json();
-
-            // Mientras tanto, remover la fila de la tabla como feedback
-            const row = btn.closest('tr');
-            if (row) {
-                row.remove();
-            }
-
-            if (window.Swal && typeof window.Swal.fire === 'function') {
-                window.Swal.fire('Eliminado', `Se eliminaron los datos de ${week}.`, 'success');
-            } else {
-                alert(`Se eliminaron los datos de ${week}.`);
-            }
-        });
-    });
+    // Forzar estado inicial (presupuesto visible)
+    (()=>{
+        const preset = 'presupuesto';
+        chartContainers.forEach(c=>{ c.style.display = (c.id === 'chart-' + preset) ? 'block' : 'none'; });
+        chartSelect.value = preset;
+    })();
 });
