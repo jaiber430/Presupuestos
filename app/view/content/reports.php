@@ -165,11 +165,11 @@
                         <table class="table table-striped table-hover reports-table">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>#</th>
+                                    <!-- <th>#</th> -->
                                     <th>Número CDP</th>
                                     <th>Fecha de Registro</th>
-                                    <th>Dependencia</th>
-                                    <th>Dependencia Descripción</th>
+                                    <!-- <th>Dependencia</th>
+                                    <th>Dependencia Descripción</th> -->
                                     <th>Concepto Interno</th>
                                     <th>Rubro</th>
                                     <th>Descripción</th>
