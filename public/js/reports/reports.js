@@ -209,13 +209,10 @@ document.addEventListener('DOMContentLoaded', function(){
                 // Sanitizar texto para evitar inyección simple (reemplazar < y >)
                 const safe = (txt) => (txt ?? '').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;');
                 tr.innerHTML = `
-                    <td>${index + 1}</td>
                     <td>${safe(row.numero_cdp)}</td>
                     <td>${safe(row.fecha_registro)}</td>
-                    <td>${safe(row.dependencia)}</td>
-                    <td>${safe(row.dependencia_descripcion)}</td>
-                    <td>${safe(row.concepto_interno)}</td>
-                    <td>${safe(row.rubro)}</td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.concepto_interno)}</textarea></td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.rubro)}</textarea></td>
                     <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.descripcion)}</textarea></td>
                     <td>${safe(row.fuente)}</td>
                     <td>${formatoMoneda(limpiarNumero(row.valor_actual))}</td>
