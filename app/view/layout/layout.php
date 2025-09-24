@@ -61,6 +61,7 @@
 <div class="subheader-container">
     <div class="reports-header">
         <div class="reports-controls">
+            <!-- Subdirector -->
             <div class="rc-field">
                 <label for="subdirector" class="form-label">Subdirector:</label>
                 <?php if ($subdirector): ?>
@@ -73,41 +74,55 @@
                     </p>
                 <?php endif; ?>
             </div>
+
+            <!-- Año Fiscal -->
             <div class="rc-field">
                 <label for="year-fiscal" class="form-label">Año Fiscal:</label>
-                <input type="number" id="year-fiscal" class="form-control form-control-sm" readonly />
+                <input type="number" id="year-fiscal" class="form-control form-control-sm" 
+                       value="<?= $anioFiscalActivo['anio_fiscal'] ?? '' ?>" readonly />
             </div>
+
+            <!-- Fecha Inicio -->
             <div class="rc-field">
                 <label for="date-start" class="form-label">Inicio:</label>
-                <input type="date" id="date-start" class="form-control form-control-sm" readonly/>
+                <input type="date" id="date-start" class="form-control form-control-sm" 
+                       value="<?= $anioFiscalActivo['fecha_inicio'] ?? '' ?>" readonly/>
             </div>
+
+            <!-- Fecha Fin -->
             <div class="rc-field">
                 <label for="date-end" class="form-label">Fin:</label>
-                <input type="date" id="date-end" class="form-control form-control-sm" readonly/>
+                <input type="date" id="date-end" class="form-control form-control-sm" 
+                       value="<?= $anioFiscalActivo['fecha_cierre'] ?? '' ?>" readonly/>
             </div>
+
+            <!-- Estado -->
             <div class="rc-field">
                 <label for="status-filter" class="form-label">Estado:</label>
-                <input type="text" id="status-filter" class="form-control form-control-sm" readonly/>
+                <input type="text" id="status-filter" class="form-control form-control-sm" 
+                    value="<?= (!empty($anioFiscalActivo) && $anioFiscalActivo['estado'] == 1) ? 'Activo' : 'Inactivo' ?>" 
+                    readonly/>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- dashboard -->
 <div class="sidebar" id="sidebarMenu">
     <!-- menú -->
     <div class="accordion1 accordion-flush" id="menuAccordion">
         <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingInicio">
-                            <a class="accordion-button single-link" href="<?= APP_URL ?>dashboard">Inicio</a>
+            <h2 class="accordion-header" id="headingInicio">
+                <a class="accordion-button single-link" href="<?= APP_URL ?>dashboard">Inicio</a>
             </h2>
         </div>
 
-                <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingPresupuesto">
-                            <a class="accordion-button single-link" href="#" data-bs-toggle="modal" data-bs-target="#modalAnioFiscal">Crear Año Fiscal</a>
-                        </h2>
-                </div>
+        <div class="accordion-item">
+                <h2 class="accordion-header" id="headingPresupuesto">
+                    <a class="accordion-button single-link" href="#" data-bs-toggle="modal" data-bs-target="#modalAnioFiscal">Crear Año Fiscal</a>
+                </h2>
+        </div>
    
         
         <!-- introduccir menu aqui -->
@@ -265,14 +280,15 @@
 
 <!-- Listar los permisos -->
 <div class="modal fade modal-permissions" id="modalManageRoles" tabindex="-1" aria-labelledby="modalManageRolesLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog">
         <div class="modal-content permissions-content shadow-lg border-0 rounded-4">
       
             <div class="modal-header permissions-header bg-primary text-white rounded-top-4">
         <h5 class="modal-title fw-bold" id="modalManageRolesLabel">
           <i class="fas fa-user-shield me-2"></i> Gestionar Roles
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
       </div>
       
             <div class="modal-body permissions-body bg-light">
@@ -283,10 +299,6 @@
             <div class="modal-footer permissions-footer">
                 <button type="button" class="btn btn-outline-secondary permissions-btn-cancel" data-bs-dismiss="modal">
           <i class="fas fa-times me-1"></i> Cerrar
-        </button>
-                <button type="button" class="btn btn-primary permissions-btn-save">
-          <i class="fas fa-save me-1"></i> Guardar cambios
-        </button>
       </div>      
     </div>
   </div>

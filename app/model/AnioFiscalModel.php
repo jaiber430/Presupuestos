@@ -47,11 +47,13 @@ class AnioFiscalModel extends MainModel {
         return self::getConnection()->lastInsertId();
     }
 
-    public static function existePresupuestoActivo() {
-        $query = "SELECT COUNT(*) as total FROM anios_fiscales WHERE estado = 1";
-        $stmt  = self::executeQuery($query);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result['total'] > 0;
+    public static function getPresupuestoActivo($id_centro) {
+        $query = "SELECT * FROM anios_fiscales WHERE estado = 1 AND id_centro = ? LIMIT 1";
+        $stmt  = self::executeQuery($query, [$id_centro]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $result ?: null;
     }
+
+
 
 }

@@ -32,6 +32,7 @@ class MenuController{
         $permisoNombre = $_POST['permiso'] ?? null;
         $estado = isset($_POST['estado']) ? intval($_POST['estado']) : 0;
 
+
         if (!$rolNombre || !$permisoNombre) {
             ResponseHelper::error('Datos incompletos');
         }
