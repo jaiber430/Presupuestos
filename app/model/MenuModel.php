@@ -47,4 +47,44 @@ class MenuModel extends MainModel{
             'allRolePermissions' => $permissionsPerRol
         ];
     }
+
+    public function updatePermisses(string $rolNombre, string $permisoNombre, int $estado): array {
+        try {
+            // 1. Obtener ID del rol
+            $rolQuery = "SELECT id FROM rol WHERE nombre = :rolNombre";
+            $rolStmt = $this->executeQuery($rolQuery, ['rolNombre' => $rolNombre]);
+            $rol = $rolStmt->fetch(\PDO::FETCH_ASSOC);
+            if (!$rol) {
+                return ['success' => false, 'message' => 'Rol no encontrado'];
+            }
+            $rolId = $rol['id'];
+
+            // 2. Obtener ID del permiso
+            $permisoQuery = "SELECT id FROM permiso WHERE nombre = :permisoNombre";
+            $permisoStmt = $this->executeQuery($permisoQuery, ['permisoNombre' => $permisoNombre]);
+            $permiso = $permisoStmt->fetch(\PDO::FETCH_ASSOC);
+            if (!$permiso) {
+                return ['success' => false, 'message' => 'Permiso no encontrado'];
+            }
+            $permisoId = $permiso['id'];
+
+            // 3. Insertar o actualizar en permisorol
+            $insertQuery = "
+                INSERT INTO permisorol (rol_id, permiso_id, estado)
+                VALUES (:rolId, :permisoId, :estado)
+                ON DUPLICATE KEY UPDATE estado = :estado
+            ";
+            $this->executeQuery($insertQuery, [
+                'rolId' => $rolId,
+                'permisoId' => $permisoId,
+                'estado' => $estado
+            ]);
+
+            return ['success' => true];
+
+        } catch (\PDOException $e) {
+            return ['success' => false, 'message' => 'Error al actualizar permiso: ' . $e->getMessage()];
+        }
+    }
+
 }

@@ -291,6 +291,8 @@
     </div>
   </div>
 </div>
+<!-- Contenedor global para toasts -->
+<div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1050;"></div>
 
 <script>
     const BASE_URL = "<?= APP_URL ?>";

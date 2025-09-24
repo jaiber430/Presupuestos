@@ -159,21 +159,45 @@ $(document).ready(function() {
     let rolNombre = $(this).closest('.accordion-item').find('.accordion-button').data('rol');
     let estado = $(this).is(':checked') ? 1 : 0;
 
-    $.post('/actualizar-permiso', {
+    $.post(BASE_URL + 'dashboard/actualizar-permiso', {
       rol: rolNombre,
       permiso: permisoNombre,
       estado: estado
     }, function(response) {
-      if(response.success){
-        console.log('Permiso actualizado correctamente');
+    if (response.state === 1) {
+          showToast(response.message, 'success'); 
+          console.log(response.message);
       } else {
-        console.error('Error al actualizar permiso');
+          showToast(response.message, 'error');
+          console.error(response.message);
       }
-    }, 'json');
-    
+  }, 'json');
+      
   });
 
-  
+  function showToast(message, type = 'info') {
+      const bg = {
+          success: 'bg-success text-white',
+          error: 'bg-danger text-white',
+          warning: 'bg-warning text-dark',
+          info: 'bg-info text-white'
+      }[type] || 'bg-info text-white';
+
+      const container = document.querySelector('#toast-container');
+      const toastEl = document.createElement('div');
+      toastEl.className = `toast align-items-center ${bg} border-0`;
+      toastEl.role = 'alert';
+      toastEl.ariaLive = 'assertive';
+      toastEl.ariaAtomic = 'true';
+      toastEl.innerHTML = `
+          <div class="d-flex">
+              <div class="toast-body">${message}</div>
+              <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+      `;
+      container.appendChild(toastEl);
+      new bootstrap.Toast(toastEl, { delay: 3000 }).show();
+  }
 
 
 

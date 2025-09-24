@@ -22,6 +22,7 @@ return [
     'reports/dependencias'=> fn()=> (new ReportsController())->dependencias(),
     'reports/consulta'=> fn()=> (new ReportsController())->consulta(),
     'dashboard/listar-post'=> fn()=> (new MenuController())->getByRole(),
+    'dashboard/actualizar-permiso-post'=> fn()=> (new MenuController())->updatePermisses(),
     'crear_anio_fiscal-post'=> fn() => AnioFiscalController::crear(),
 ];
 
