@@ -49,7 +49,6 @@ formularios_ajax.forEach(formularios => {
 
 function alertas_ajax(alerta){
     if(alerta.tipo=="simple"){
-
         Swal.fire({
             icon: alerta.icono,
             title: alerta.titulo,
@@ -58,7 +57,6 @@ function alertas_ajax(alerta){
         });
 
     }else if(alerta.tipo=="recargar"){
-
         Swal.fire({
             icon: alerta.icono,
             title: alerta.titulo,
@@ -71,7 +69,6 @@ function alertas_ajax(alerta){
         });
 
     }else if(alerta.tipo=="limpiar"){
-
         Swal.fire({
             icon: alerta.icono,
             title: alerta.titulo,
@@ -84,7 +81,15 @@ function alertas_ajax(alerta){
         });
 
     }else if(alerta.tipo=="redireccionar"){
-        window.location.href=alerta.url;
+        // Mostrar SweetAlert antes de redireccionar
+        Swal.fire({
+            icon: alerta.icono,
+            title: alerta.titulo,
+            text: alerta.texto,
+            confirmButtonText: 'Aceptar'
+        }).then(() => {
+            window.location.href = alerta.url;
+        });
     }
 }
 

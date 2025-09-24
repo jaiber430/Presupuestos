@@ -8,7 +8,7 @@ class AnioFiscalModel extends MainModel {
 
     public static function insert($params) {
         $query = "INSERT INTO anios_fiscales 
-                 (subdirector_id, user_id, anio_fiscal, valor_anio_fiscal, presupuesto_actual, fecha_inicio, fecha_cierre, estado, id_centro) 
+                 (subdirector_id, creado_por, anio_fiscal, valor_anio_fiscal, presupuesto_actual, fecha_inicio, fecha_cierre, estado, id_centro) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         return self::executeQuery($query, $params);
     }
