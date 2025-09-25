@@ -167,9 +167,11 @@ $(function() {
 
 		//window.location.href = "recovery?email=" + encodeURIComponent(email);
 		if(email){
-			$.post("/recovery",{
-				email: email
-			}, function(answer){
+			$.post("/recovery",
+				{
+					email: email
+				}, 
+			function(answer){
 				if(answer.state== 1){
 					//window.location.href = "recovery?email=" + encodeURIComponent(email);
 					window.location.href = answer.redirect;				
@@ -185,5 +187,29 @@ $(function() {
 		}		
 	});
 	
+	//Scripts cargar departamento
+	$("#departamento").on("change", function(){
+		let idDepartamento= $(this).val();
+		console.log(idDepartamento);
+		
+		$.ajax({
+			url: 'getCentro',
+			type: "GET",
+			data: { departamento: idDepartamento },
+			dataType: "json",
+			success: function(data) {
+                let $centro = $("#centro");
+                $centro.empty();                 
+                
+                $.each(data, function(index, centro) {
+                    $centro.append('<option value="'+ centro.id +'">'+ centro.centro +'</option>');
+                });
+
+            },error: function() {            
+            	console.log("Error cargando centros");
+            }
+		});
+
+	});
 	
 });

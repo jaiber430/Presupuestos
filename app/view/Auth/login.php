@@ -117,8 +117,16 @@ if(isset($_SESSION['message'])){
 					<div class="col-md-6">
 						<div class="mb-3">
 							<label for="departmento" class="form-label">Departamento</label>
-							<select class="form-select inputRegister" id="departmento">
+							<select class="form-select inputRegister" id="departamento">
 								<option selected disabled>Seleccione una opción</option>
+								<?php															
+									foreach($departamentos as $departamento){
+										echo "
+											<option value='{$departamento['id']}'>{$departamento['departamento']}</option>
+										
+										";
+									}	
+								?>
 							</select>
 						</div>
 					</div>
