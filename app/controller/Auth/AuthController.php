@@ -10,11 +10,34 @@ use presupuestos\exceptions\ValidationException;
 use presupuestos\helpers\MailerHelper;
 use presupuestos\helpers\TokenHelper;
 use presupuestos\model\TokenModel;
+use presupuestos\model\MainModel;
+use PDO;
 
 class AuthController {
 
     public function showLogin(){
+        $getDepartaments= new MainModel();
+        $queryDepartaments= "SELECT * FROM departamentos ";
+        $stmt= $getDepartaments::executeQuery($queryDepartaments);
+        $departamentos= $stmt->fetchAll(PDO::FETCH_ASSOC);  
+
         require __DIR__ . '/../../view/Auth/login.php';
+    }
+
+    public function getCentros() {
+        if (isset($_GET['departamento'])) {
+            $getCentro = new MainModel();
+            $queryCentro = "SELECT * FROM centros WHERE id_departamento = :departamento";
+            
+            $stmt = $getCentro::executeQuery($queryCentro, [
+                'departamento' => (int) $_GET['departamento']
+            ]);
+            $centros = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($centros);
+            exit;
+        }
     }
 
     public function login(array $credentials){

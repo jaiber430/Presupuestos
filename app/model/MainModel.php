@@ -23,7 +23,7 @@ class MainModel{
         }
     }
 	
-	protected static function executeQuery($query, array $params= []){
+	public static function executeQuery($query, array $params= []){
 		$pdo= self::getConnection();
 		//instruction SQL prepared
 		$stmt= $pdo->prepare($query);
