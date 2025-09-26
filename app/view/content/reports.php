@@ -137,10 +137,11 @@
                             <div class="reports-header p-2 h-100">
                                 <div class="d-flex align-items-center flex-wrap gap-3 w-100">
                                     <div class="d-flex align-items-center gap-2">
-                                        <label for="modal-dependency-select" class="form-label m-0">Dependencia:</label>
-                                        <select id="modal-dependency-select" class="form-select form-select-sm w-auto">
-                                            <option value="all" selected>Todas</option>
-                                        </select>
+                                        <label for="modal-dependency-input" class="form-label m-0">Dependencia:</label>
+                                        <input id="modal-dependency-input" list="dependencias-list" class="form-control form-control-sm w-auto" placeholder="Todas (dejar vacío)" autocomplete="off" />
+                                        <datalist id="dependencias-list">
+                                            <!-- Opciones dinámicas cargadas por JS -->
+                                        </datalist>
                                     </div>
                                     <button class="btn btn-success btn-sm" id="btn-modal-buscar">
                                         <i class="fas fa-search me-1"></i>Buscar

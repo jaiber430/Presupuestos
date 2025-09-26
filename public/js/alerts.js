@@ -1,6 +1,30 @@
 
 const formularios_ajax=document.querySelectorAll(".FormularioAjax");
 
+// Overlay Global de Carga 
+function crearOverlayCarga(){
+    let overlay=document.getElementById('global-upload-overlay');
+    if(!overlay){
+        overlay=document.createElement('div');
+        overlay.id='global-upload-overlay';
+        overlay.innerHTML=`<div class="loader-box">
+            <div class="loader-ring" aria-hidden="true"></div>
+            <p class="loader-text">Subiendo reporte...<br><small>No cierres esta ventana</small></p>
+        </div>`;
+        document.body.appendChild(overlay);
+    }
+    document.body.classList.add('global-loading');
+    overlay.style.display='flex';
+}
+
+function ocultarOverlayCarga(){
+    const overlay=document.getElementById('global-upload-overlay');
+    if(overlay){
+        overlay.style.display='none';
+    }
+    document.body.classList.remove('global-loading');
+}
+
 formularios_ajax.forEach(formularios => {
 
     formularios.addEventListener("submit",function(e){
@@ -33,10 +57,21 @@ formularios_ajax.forEach(formularios => {
                     body: data
                 };
 
+                const esReporte = this.id === 'formReporte';
+                if(esReporte){ crearOverlayCarga(); }
+
                 fetch(action,config)
                 .then(respuesta => respuesta.json())
                 .then(respuesta =>{ 
+                    if(esReporte){ ocultarOverlayCarga(); }
                     return alertas_ajax(respuesta);
+                })
+                .catch(err => {
+                    if(esReporte){ ocultarOverlayCarga(); }
+                    console.error('Error en la subida:', err);
+                    if(window.Swal){
+                        Swal.fire('Error','Ocurrió un problema al enviar el formulario.','error');
+                    }
                 });
             }
         });

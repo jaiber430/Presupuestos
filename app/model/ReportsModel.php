@@ -224,5 +224,23 @@ class ReportsModel extends MainModel
 		$stmt = self::executeQuery($sql, $params);
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
+
+	/**
+	 * De momento sólo se manejan las mismas tablas independientemente de la semana
+	 */
+	public static function clearWeekData(string $week): void
+	{
+		$tables = ['cdp', 'pagos', 'reporte_presupuestal'];
+		$pdo = self::getConnection();
+		try {
+			$pdo->exec('SET FOREIGN_KEY_CHECKS=0');
+			foreach ($tables as $t) {
+				$pdo->exec("TRUNCATE TABLE `{$t}`");
+			}
+			$pdo->exec('SET FOREIGN_KEY_CHECKS=1');
+		} catch (\Throwable $e) {
+			throw new Exception('No se pudieron eliminar los datos: ' . $e->getMessage());
+		}
+	}
 }
 
