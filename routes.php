@@ -5,6 +5,7 @@ use presupuestos\controller\DashboardController;
 use presupuestos\controller\MenuController;
 use presupuestos\controller\ReportsController;
 use presupuestos\controller\AnioFiscalController;
+use presupuestos\controller\role\RoleController;
 
 return [
     '' => fn() => (new AuthController())->showLogin(),
@@ -27,5 +28,18 @@ return [
     'dashboard/listar-post'=> fn()=> (new MenuController())->getByRole(),
     'dashboard/actualizar-permiso-post'=> fn()=> (new MenuController())->updatePermisses(),
     'crear_anio_fiscal-post'=> fn() => AnioFiscalController::crear(),
+    //Gestión de Roles
+    'gestionar/usuarios'=> fn()=> (new RoleController())-> showManage(),
+    /*
+    
+    'gestionar-usuarios'=> fn()=> (RoleController()->listar()),
+    'roles/list' (new RoleController())->list(),
+    'roles/create' (new RoleController())->create(),
+    'permisos/list' (new PermisoController())->list(),
+    'permisoRol/assign' (new PermisoRolController())->assign(),
+    'permisoRol/revoke' (new PermisoRolController())->revoke(),
+    'permisoRol/listByRole' (new PermisoRolController())->listByRole(),
+    */
+    
 ];
 
