@@ -20,6 +20,8 @@ return [
     'reports-post'=> fn()=> (new ReportsController())->index(),
     'reports/dependencias'=> fn()=> (new ReportsController())->dependencias(),
     'reports/consulta'=> fn()=> (new ReportsController())->consulta(),
+    // Eliminación de datos de reportes (sólo POST)
+    'reports/delete-post'=> fn()=> (new ReportsController())->delete(),
     'dashboard/listar-post'=> fn()=> (new MenuController())->getByRole(),
     
 ];

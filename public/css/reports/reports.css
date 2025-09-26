@@ -383,3 +383,28 @@ td.cell-textarea textarea::-webkit-scrollbar-thumb{ background: var(--color-acce
 .mini-presupuesto-box{ padding:10px 12px 8px; }
 .mini-presupuesto-box button{ color: var(--text-secondary); }
 .mini-presupuesto-box button:hover{ color: var(--color-accent); }
+
+#global-upload-overlay{
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.45);
+	backdrop-filter: blur(2px);
+	-webkit-backdrop-filter: blur(2px);
+	z-index: 20000;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	pointer-events: all;
+}
+body.global-loading{ overflow: hidden; }
+#global-upload-overlay .loader-box{ text-align:center; color:#fff; font-family: var(--font-family-base); }
+#global-upload-overlay .loader-text{ margin-top:12px; font-weight:600; letter-spacing:.5px; }
+.loader-ring{
+	width:72px; height:72px;
+	border:6px solid rgba(255,255,255,.25);
+	border-top-color: var(--color-accent);
+	border-radius:50%;
+	animation: girar 1s linear infinite;
+}
+@keyframes girar{ to{ transform: rotate(360deg); } }

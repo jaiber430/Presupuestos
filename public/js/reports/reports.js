@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', function(){
     const modalDetalles = document.getElementById('modalDetalles');
     const weekLabelDetalles = document.getElementById('modal-detalles-week-label');
     const triggersDetalles = document.querySelectorAll('.btn-ver-detalles');
-    const dependenciaSelect = document.getElementById('modal-dependency-select');
+    const dependenciaInput = document.getElementById('modal-dependency-input');
+    const dependenciaDataList = document.getElementById('dependencias-list');
     const cdpInput = document.getElementById('modal-cdp-input');
     const btnBuscar = document.getElementById('btn-modal-buscar');
     const tbodyDetalles = document.getElementById('tabla-detalles-body');
@@ -31,12 +32,14 @@ document.addEventListener('DOMContentLoaded', function(){
             const resp = await fetch(`${BASE_URL}reports/dependencias`);
             const data = await resp.json();
             if (Array.isArray(data)) {
+                // Limpiar datalist primero
+                if (dependenciaDataList) dependenciaDataList.innerHTML = '';
                 data.forEach(dep => {
                     const opt = document.createElement('option');
-                    opt.value = dep.codigo;
-                    // Mostrar código y nombre
+                    opt.value = dep.codigo; // valor que se enviará
+                    opt.label = `${dep.codigo} - ${dep.nombre}`; // algunos navegadores muestran label
                     opt.textContent = `${dep.codigo} - ${dep.nombre}`;
-                    dependenciaSelect.appendChild(opt);
+                    dependenciaDataList.appendChild(opt);
                 });
                 depsCargadas = true;
             }
@@ -251,7 +254,8 @@ document.addEventListener('DOMContentLoaded', function(){
             weekLabelDetalles.textContent = w;
             await cargarDependencias();
             tbodyDetalles.innerHTML = '';
-            const depValue = (dependenciaSelect.value === 'all') ? '' : dependenciaSelect.value;
+            const raw = dependenciaInput.value.trim();
+            const depValue = raw === '' ? '' : raw; // si vacío => todas
             const data = await buscarYRender(depValue);
             if (depValue) renderMiniChart(data, depValue); else renderMiniChart([], '');
         });
@@ -259,7 +263,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
     btnBuscar.addEventListener('click', async (e) => {
         e.preventDefault();
-        const depValue = (dependenciaSelect.value === 'all') ? '' : dependenciaSelect.value;
+        const raw = dependenciaInput.value.trim();
+        const depValue = raw === '' ? '' : raw;
         const data = await buscarYRender(depValue);
         if (depValue) renderMiniChart(data, depValue); else renderMiniChart([], '');
     });
@@ -291,4 +296,44 @@ document.addEventListener('DOMContentLoaded', function(){
         chartContainers.forEach(c=>{ c.style.display = (c.id === 'chart-' + preset) ? 'block' : 'none'; });
         chartSelect.value = preset;
     })();
+
+    // Botones Eliminar Semana
+    const deleteButtons = document.querySelectorAll('.btn-delete-week');
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const week = btn.getAttribute('data-week') || '';
+            if (!window.Swal) { console.warn('SweetAlert no disponible'); return; }
+            Swal.fire({
+                title: '¿Eliminar datos?',
+                text: `Se eliminarán los datos cargados (CDP, RP, Pagos). Esta acción no se puede deshacer.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then(async (res) => {
+                if (!res.isConfirmed) return;
+                try {
+                    const formData = new FormData();
+                    formData.append('week', week);
+                    const resp = await fetch(`${BASE_URL}reports/delete`, { method: 'POST', body: formData }); // index.php añadirá -post
+                    const data = await resp.json();
+                    Swal.fire(data.titulo || 'Resultado', data.texto || '', data.icono || 'info');
+                    // Limpiar tablas y gráficas si éxito
+                    if (data.icono === 'success') {
+                        // Vaciar cuerpo detalles si existe
+                        if (tbodyDetalles) tbodyDetalles.innerHTML = '';
+                        // Destruir charts y reiniciar totales
+                        if (chartPresupuesto) { chartPresupuesto.destroy(); chartPresupuesto=null; }
+                        if (chartGastos) { chartGastos.destroy(); chartGastos=null; }
+                        if (chartDependencias) { chartDependencias.destroy(); chartDependencias=null; }
+                        if (document.getElementById('total-presupuesto')) {
+                            document.getElementById('total-presupuesto').textContent = 'S/ 0';
+                        }
+                    }
+                } catch (e) {
+                    Swal.fire('Error', 'No se pudo eliminar los datos.', 'error');
+                }
+            });
+        });
+    });
 });

@@ -77,4 +77,40 @@ class ReportsController {
         echo json_encode($rows, JSON_UNESCAPED_UNICODE);
         exit;
     }
+
+    /**
+     * POST /reports/delete -> limpia datos cargados (TRUNCATE) para la semana indicada.
+     */
+    public function delete() {
+        Auth::check();
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $week = $_POST['week'] ?? '';
+            if ($week === '') {
+                echo json_encode([
+                    'tipo' => 'simple',
+                    'titulo' => 'Semana requerida',
+                    'texto' => 'No se recibió la semana a eliminar.',
+                    'icono' => 'warning'
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+            ReportsModel::clearWeekData($week);
+            echo json_encode([
+                'tipo' => 'simple',
+                'titulo' => 'Datos eliminados',
+                'texto' => 'Se eliminaron los datos asociados a la semana seleccionada.',
+                'icono' => 'success'
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        } catch (\Throwable $e) {
+            echo json_encode([
+                'tipo' => 'simple',
+                'titulo' => 'Error al eliminar',
+                'texto' => $e->getMessage(),
+                'icono' => 'error'
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
 }
