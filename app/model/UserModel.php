@@ -14,30 +14,38 @@ class UserModel extends MainModel {
             WHERE email = :email";
 
         $params= ["email" => $email];
-        $stmt = $this->executeQuery($query, $params);
+        $stmt = parent::executeQuery($query, $params);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function create(array $data): array {
-		$query = "INSERT INTO user (nombres, apellidos, numero_documento, email, password)
-				VALUES (:names, :lastNames, :idNumber,  :email, :password)";
+		$query = "INSERT INTO user (nombres, apellidos, numero_documento, email, password, centro_id)
+				VALUES (:names, :lastNames, :idNumber,  :email, :password, :centro_id)";
 		
 		$params = [
 				'names' => $data['names'],
 				'lastNames' => $data['lastNames'],
 				'idNumber'=> $data['idNumber'],
 				'email' => $data['email'],
-				'password'=> $data['password']
+				'password'=> $data['password'],
+                'centro_id'=> $data['centroId']
 			];
 
 		try {
-			$stmt = $this->executeQuery($query, $params);
+			$stmt = parent::executeQuery($query, $params);
 			if($stmt->rowCount() > 0){
 				return ['success' => true];
 			} else {
 				return ['success' => false, 'error' => 'No se insertó ningún registro'];
 			}
 		} catch (\PDOException $e) {
+            if ($e->errorInfo[1] == 1062) {
+                return [
+                    'success' => false,
+                    'error'   => 'El número de documento ya está registrado'
+                ];
+            }
+
 			return ['success' => false, 'error' => $e->getMessage()];
 		}
 	}
@@ -55,7 +63,7 @@ class UserModel extends MainModel {
         $query = "UPDATE user SET " . implode(', ', $fields) . " WHERE id = :id";
         
         try {
-            $stmt = $this->executeQuery($query, $params);
+            $stmt = parent::executeQuery($query, $params);
             return $stmt->rowCount() > 0;
         } catch (PDOException $e) {
             return false;
@@ -65,7 +73,7 @@ class UserModel extends MainModel {
     public function verifyAccount(int $userId): bool {
         $query = "UPDATE user SET es_verificado = 1 WHERE id = :id";
         $params = [':id' => $userId];
-        $stmt = $this->executeQuery($query, $params);
+        $stmt = parent::executeQuery($query, $params);
         return $stmt->rowCount() > 0;
     }
 
@@ -76,7 +84,7 @@ class UserModel extends MainModel {
                     WHERE rol_id = 2
                     AND centro_id = ?
                     LIMIT 1";
-            $stmt = self::executeQuery($query, [$centroId]);
+            $stmt = parent::executeQuery($query, [$centroId]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
             return $result ?: null; 

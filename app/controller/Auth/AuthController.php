@@ -128,11 +128,12 @@ class AuthController {
             $names= trim($data['names'] ?? '');
             $lastNames= trim($data['lastNames'] ?? '');
             $idNumber= trim($data['idNumber'] ?? '');
-            $email= trim($data['emailSena'] ?? '');
-            $password = trim($data['password'] ?? '');
-            $rePassword = trim($data['rePassword'] ?? '');
+            $email= trim($data['emailSena']);
+            $password = trim($data['password']);
+            $rePassword = trim($data['rePassword']);            
+            $idCentro= trim($data['idCentro']);          
 
-            if(!$names || !$lastNames || !$email|| !$password || !$rePassword){
+            if(!$names || !$lastNames || !$email|| !$password || !$rePassword || !$idCentro){
                 echo json_encode([
                     'state' => 0,
                     'message' => "Todos los campos son obligatorios"
@@ -159,7 +160,7 @@ class AuthController {
                 return;
             }
 
-
+            #Ingresar la validación del Rol Por defecto está como 4. 
             $hashed = PasswordHelper::hashPassword($password);
             $result= $userModel->create([
                 'names'=> $names,
@@ -167,6 +168,7 @@ class AuthController {
                 'idNumber'=> $idNumber,
                 'email' => $email,
                 'password' => $hashed,
+                'centroId'=> $idCentro
             ]);
 
             if ($result['success']) {

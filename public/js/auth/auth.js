@@ -108,7 +108,8 @@ $(function() {
 			$(".container-alert").removeClass("container-alert-danger").addClass("container-alert-success");
 			$(".alert-text").html("");
 		}		
-			
+		
+		console.log($("#centro").val().trim());
 		
 		$.post("register", {
 			names: $("#names").val().trim(),
@@ -116,7 +117,8 @@ $(function() {
 			idNumber: $("#id-number").val().trim(),
 			emailSena: $("#email-sena").val().trim(),
 			password: $("#password-user").val().trim(),
-			rePassword: $("#re-password").val().trim()
+			rePassword: $("#re-password").val().trim(),
+			idCentro: $("#centro").val().trim()
 		}, function(answer){
 			if(answer.state== 1){
 				$(".container-alert").removeClass("container-alert-danger").addClass("container-alert-success");
@@ -190,7 +192,6 @@ $(function() {
 	//Scripts cargar departamento
 	$("#departamento").on("change", function(){
 		let idDepartamento= $(this).val();
-		console.log(idDepartamento);
 		
 		$.ajax({
 			url: 'getCentro',
