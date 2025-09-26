@@ -9,7 +9,7 @@ use presupuestos\controller\AnioFiscalController;
 return [
     '' => fn() => (new AuthController())->showLogin(),
     'login' => fn() => (new AuthController())->showLogin(),
-    'login-post' => fn() => (new AuthController())->showLogin($_POST),
+    'login-post' => fn() => (new AuthController())->login($_POST),
     'getCentro' => fn() => (new AuthController())->getCentros(),
     'register-post' => fn() => (new AuthController())->register($_POST),
     'recovery-post' => fn() => (new AuthController())->recoveryPassword($_POST),
