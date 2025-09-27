@@ -6,6 +6,7 @@ use presupuestos\controller\MenuController;
 use presupuestos\controller\ReportsController;
 use presupuestos\controller\AnioFiscalController;
 use presupuestos\controller\role\RoleController;
+use presupuestos\controller\UserController;
 
 return [
     '' => fn() => (new AuthController())->showLogin(),
@@ -30,6 +31,7 @@ return [
     'crear_anio_fiscal-post'=> fn() => AnioFiscalController::crear(),
     //Gestión de Roles
     'gestionar/usuarios'=> fn()=> (new DashboardController())-> index('usuarios'),
+    'usuarios/update'=> fn()=> (new UserController())-> update($user_id= $_POST['id'], $_POST),
     /*
     
     'gestionar-usuarios'=> fn()=> (RoleController()->listar()),

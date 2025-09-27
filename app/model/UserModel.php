@@ -88,7 +88,7 @@ class UserModel extends MainModel {
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
             return $result ?: null; 
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
             return null;
         }
     }
@@ -103,7 +103,7 @@ class UserModel extends MainModel {
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             return $result ?: [];
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
             return [];
         }
     }

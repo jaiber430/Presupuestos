@@ -23,7 +23,7 @@
           </td>
           <td><?= htmlspecialchars($user['nombre_rol'] ?? '') ?></td>
           <td>
-            <form method="post" action="usuarios/update.php">
+            <form method="post" action="usuarios/update">
               <input type="hidden" name="id" value="<?= $user['id'] ?>">
               <input type="email" name="email" value="<?= htmlspecialchars($user['email']) ?>">
               <label>
