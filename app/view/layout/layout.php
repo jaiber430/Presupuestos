@@ -117,21 +117,19 @@
                 <a class="accordion-button single-link" href="<?= APP_URL ?>dashboard">Inicio</a>
             </h2>
         </div>
-
+        <!--
         <div class="accordion-item">
-                <h2 class="accordion-header" id="headingPresupuesto">
-                    <a class="accordion-button single-link" href="#" data-bs-toggle="modal" data-bs-target="#modalAnioFiscal">Crear Año Fiscal</a>
-                </h2>
+            <h2 class="accordion-header" id="headingPresupuesto">
+                <a class="accordion-button single-link" href="#" data-bs-toggle="modal" data-bs-target="#modalAnioFiscal">Crear Año Fiscal</a>
+            </h2>
         </div>
-   
-        
+        -->        
         <!-- introduccir menu aqui -->
         <div class="accordion-item">
             <h2 class="accordion-header" id="headingPresupuesto">
                 <div class='permissions'></div>
             </h2>
-        </div>
-        
+        </div>   
 
         <!-- fin del menu por base de datos -->
         <div class="accordion-item">

@@ -1,14 +1,15 @@
 <?php
-// app/controller/PermisoController.php
+namespace presupuestos\controller\role;
+use presupuestos\model\role\PermisoModel;
 
-class PermisoController
-{
+class PermisoController{
     public function list() {
         $permisoModel = new PermisoModel();
         $permisos = $permisoModel->getAll();
 
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['state' => 1, 'data' => $permisos]);
+        //header('Content-Type: application/json; charset=utf-8');
+        //echo json_encode(['state' => 1, 'data' => $permisos]);
+        return $permisos;
         exit;
     }
 
