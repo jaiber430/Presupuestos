@@ -1,7 +1,7 @@
 <?php
 namespace presupuestos\controller;
-
 use presupuestos\model\UserModel;
+use presupuestos\helpers\HtmlResponse;
 
 class UserController {
 
@@ -23,9 +23,15 @@ class UserController {
     }
 
     /** Actualizar un usuario */
-    public static function update(int $id, array $data): bool {
-        $userModel = new UserModel();
-        return $userModel->update($id, $data);
+    public static function update(int $id, array $data){
+        $userModel= new UserModel();
+        $respuesta= $userModel->update($id, $data);
+        if($respuesta){
+            header("Location: http://presupuestos.local/gestionar/usuarios");
+        }else{
+            header("Location: http://presupuestos.local/gestionar/usuarios");
+        }
+        exit;
     }
 
     /** Verificar una cuenta de usuario */

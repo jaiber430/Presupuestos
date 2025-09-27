@@ -31,7 +31,7 @@ return [
     'crear_anio_fiscal-post'=> fn() => AnioFiscalController::crear(),
     //Gestión de Roles
     'gestionar/usuarios'=> fn()=> (new DashboardController())-> index('usuarios'),
-    'usuarios/update'=> fn()=> (new UserController())-> update($user_id= $_POST['id'], $_POST),
+    'usuarios/update-post'=> fn()=> (new UserController())-> update($user_id= $_POST['id'], $_POST),
     /*
     
     'gestionar-usuarios'=> fn()=> (RoleController()->listar()),

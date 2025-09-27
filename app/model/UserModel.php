@@ -52,6 +52,7 @@ class UserModel extends MainModel {
 
 
     public function update(int $id, array $data): bool {
+
         $fields = [];
         $params = ['id' => $id];
         
@@ -66,6 +67,7 @@ class UserModel extends MainModel {
             $stmt = parent::executeQuery($query, $params);
             return $stmt->rowCount() > 0;
         } catch (PDOException $e) {
+            //echo $e->getMessage();
             return false;
         }
     }
