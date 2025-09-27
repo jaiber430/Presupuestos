@@ -33,12 +33,21 @@ class DashboardController {
         $permisoController = new PermisoController();
         $permisos = $permisoController->list();
 
+
+        
+
         $views = [
             "dashboard"      => __DIR__ . '/../view/content/dashboard.php',
             "reportes"       => __DIR__ . '/../view/content/reports.php',
             "usuarios"=> __DIR__ . '/../view/content/role/manage.php',
             "page_not_found" => __DIR__ . '/../app/view/errors/404.php',
+            "sin-rol"=> __DIR__ . '/../app/view/errors/sin_rol.php',
         ];
+
+        // $userRol = $_SESSION[APP_SESSION_NAME]['rol'] ?? null;
+        // if (empty($userRol)) {
+        //     $page = $views['sin-rol'];
+        // }
 
         $stylesByView = [
             //"dashboard" => ["css/dashboard/dashboard.css"],
