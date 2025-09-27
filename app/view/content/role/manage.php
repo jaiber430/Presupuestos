@@ -1,7 +1,4 @@
 
-<body>
-
-
 <div class="table-container">
   <table>
     <thead>
@@ -75,5 +72,4 @@
   </table>
 </div>
 
-</body>
 

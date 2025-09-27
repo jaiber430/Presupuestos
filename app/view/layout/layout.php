@@ -11,13 +11,11 @@
     <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/menustyles.css">
 
 
-    <?php 
-	if (!empty($styles)) {
-		foreach ($styles as $css){
-			echo "<link rel='stylesheet' href='$css'>";
-		} 
-	}	
-	?>
+     
+	<?php foreach ($styles as $css): ?>
+            <link rel="stylesheet" href="<?= APP_URL . '/' . $css ?>">
+    <?php endforeach; ?>
+	
 
     <!-- Estilos específicos para modales de Roles y Permisos -->
     <link rel="stylesheet" type="text/css" href="<?= APP_URL ?>css/roles/roles.css">
@@ -151,17 +149,17 @@
 
     <?php 
 	require $view;
-	if(!empty($scripts)){
-        foreach ($scripts as $script){
-		echo "<script src='{$script}'></script>";
-	    }
+	
+    foreach ($scripts as $script) {
+        echo '<script src="' . APP_URL . '/' . $script . '"></script>';
     }
+
 	
 	?>
 
 </div>
 
-<script type="text/javascript" src="<?= APP_URL ?>js/menuctr.js"></script>
+<script src="<?= APP_URL ?>js/menuctr.js"></script>
 <?php if (!empty($pageScripts)) { echo $pageScripts; } ?>
 
 
@@ -309,8 +307,8 @@
     const hayAnioFiscal = <?= $hayAnioFiscal ? 'true' : 'false' ?>;
 </script>
 
-<script src="./js/dashboard/dashboard.js"></script>
-<script src="./js/sweetalert2.all.min.js"></script>
-<script src="./js/alerts.js"></script>
+<script src="<?= rtrim(APP_URL, '/') ?>/js/dashboard/dashboard.js"></script>
+<script src="<?= rtrim(APP_URL, '/') ?>/js/sweetalert2.all.min.js"></script>
+<script src="<?= rtrim(APP_URL, '/') ?>/js/alerts.js"></script>
 </body>
 </html>

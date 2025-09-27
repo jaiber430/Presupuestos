@@ -29,7 +29,7 @@ return [
     'dashboard/actualizar-permiso-post'=> fn()=> (new MenuController())->updatePermisses(),
     'crear_anio_fiscal-post'=> fn() => AnioFiscalController::crear(),
     //Gestión de Roles
-    'gestionar/usuarios'=> fn()=> (new DashboardController())-> index('gestionar/usuarios'),
+    'gestionar/usuarios'=> fn()=> (new DashboardController())-> index('usuarios'),
     /*
     
     'gestionar-usuarios'=> fn()=> (RoleController()->listar()),

@@ -11,17 +11,6 @@ h2 {
     margin-bottom: 30px;
 }
 
-.alert {
-    background: var(--color-tertiary);
-    color: var(--text-secondary);
-    border: 1px solid var(--border-light);
-    padding: 10px 15px;
-    max-width: 900px;
-    margin: 0 auto 20px auto;
-    border-radius: 8px;
-    text-align: center;
-}
-
 .table-container {
     max-width: 900px;
     margin: 0 auto;

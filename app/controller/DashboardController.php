@@ -32,19 +32,19 @@ class DashboardController {
         $views = [
             "dashboard"      => __DIR__ . '/../view/content/dashboard.php',
             "reportes"       => __DIR__ . '/../view/content/reports.php',
-            "gestionar/usuarios"=> __DIR__ .'/../view/content/role/manage.php',
+            "usuarios"=> __DIR__ . '/../view/content/role/manage.php',
             "page_not_found" => __DIR__ . '/../app/view/errors/404.php',
         ];
 
         $stylesByView = [
             //"dashboard" => ["css/dashboard/dashboard.css"],
             "reportes"  => ["css/reports/reports.css"],
-            "gestionar/usuarios" => ["css/role/manage.css"]
+            "usuarios" => ["css/role/manage.css"]
         ];
 
         $scriptsByView = [
             "dashboard" => ["js/dashboard/dashboard.js"],
-            "gestionar/usuarios"=> ["js/role/manage.js"]
+            "usuarios"=> ["js/role/manage.js"]
         ];
 
         $view    = $views[$page] ?? $views["dashboard"];
