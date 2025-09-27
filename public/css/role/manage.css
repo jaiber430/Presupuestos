@@ -1,20 +1,25 @@
-body {
-    font-family: var(--font-family-base);
+/* === Tabla de usuarios dentro del layout === */
+.app-content {
+    padding: 1.5rem;
     background-color: var(--color-quaternary);
-    color: var(--text-secondary);
-    margin: 20px;
+    min-height: calc(100vh - 70px);
+    /* compensar header fijo */
 }
 
 h2 {
     text-align: center;
     color: var(--color-secondary);
     margin-bottom: 30px;
+    font-weight: 600;
 }
 
 .table-container {
-    max-width: 900px;
-    margin: 0 auto;
+    max-width: 80%;
+    margin: 24px auto;
     overflow-x: auto;
+    background: var(--color-primary);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 table {
@@ -22,7 +27,6 @@ table {
     border-collapse: collapse;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 th,
@@ -30,6 +34,8 @@ td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid var(--border-lighter);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
 }
 
 thead {
@@ -43,13 +49,17 @@ tbody tr:nth-child(even) {
 
 tbody tr:hover {
     background: var(--color-tertiary);
+    color: var(--text-inverse);
 }
 
+/* === Badges para estados === */
 .badge {
     padding: 4px 8px;
     border-radius: 4px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-inverse);
+    font-weight: 500;
+    display: inline-block;
 }
 
 .badge-success {
@@ -60,19 +70,24 @@ tbody tr:hover {
     background: var(--error-color);
 }
 
+/* === Formularios en las vistas === */
 form {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
+    margin-top: 15px;
 }
 
 input[type="email"],
 select {
-    padding: 6px 8px;
+    padding: 8px 10px;
     border-radius: 4px;
     border: 1px solid var(--border-light);
     font-size: 0.9rem;
+    background-color: var(--color-primary);
+    color: var(--text-secondary);
+    min-width: 180px;
 }
 
 input[type="checkbox"] {
@@ -83,13 +98,40 @@ button {
     background: var(--color-secondary);
     color: var(--text-inverse);
     border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
+    padding: 8px 14px;
+    border-radius: 6px;
     cursor: pointer;
     transition: 0.3s ease;
     font-size: 0.9rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 button:hover {
     background: var(--success-hover);
+}
+
+/* === Responsive para móviles === */
+@media (max-width: 768px) {
+    .table-container {
+        box-shadow: none;
+        border-radius: 0;
+    }
+
+    th,
+    td {
+        padding: 10px;
+        font-size: 0.85rem;
+    }
+
+    form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    input[type="email"],
+    select,
+    button {
+        width: 100%;
+    }
 }

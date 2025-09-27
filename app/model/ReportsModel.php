@@ -6,8 +6,7 @@ use PDO;
 
 require_once __DIR__ . '/MainModel.php';
 
-class ReportsModel extends MainModel
-{
+class ReportsModel extends MainModel{
 	/**
 	 * Campos numéricos por tabla para limpiar valores monetarios y numéricos.
 	 */

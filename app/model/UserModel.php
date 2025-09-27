@@ -93,4 +93,9 @@ class UserModel extends MainModel {
         }
     }
 
+    public static function getAll() {
+        $sql = "SELECT * FROM users";
+        return self::query($sql)->fetchAll();
+    }
+
 }

@@ -11,6 +11,7 @@ use presupuestos\controller\role\PermisoController;
 require __DIR__ . '/../../bootstrap.php';
 
 class DashboardController {
+    
     public function index($page = "dashboard") {
         Auth::check();       
         $title = ucfirst($page);
