@@ -95,8 +95,9 @@ class UserModel extends MainModel {
 
     public static function getAllByCentro($centroId) {
         try {
-            $query = "SELECT id, nombres, apellidos, email, rol_id 
-                    FROM user
+            $query = "SELECT u.id, u.nombres, u.apellidos, u.email, u.es_verificado, r.nombre as nombre_rol
+                    FROM user u
+                    JOIN rol r ON u.rol_id = r.id
                     WHERE centro_id = ?";
             $stmt = parent::executeQuery($query, [$centroId]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
