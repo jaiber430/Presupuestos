@@ -3,7 +3,7 @@ namespace presupuestos\controller;
 
 use presupuestos\helpers\Auth;
 use presupuestos\helpers\HtmlResponse;
-use presupuestos\model\UserModel; 
+use presupuestos\controller\UserController; 
 use presupuestos\model\AnioFiscalModel;
 use presupuestos\controller\role\RoleController;
 use presupuestos\controller\role\PermisoController;
@@ -18,13 +18,16 @@ class DashboardController {
         $title= str_replace("/", " ", $title);
 
         $centroId = $_SESSION[APP_SESSION_NAME]['centro_id'];
-        $subdirector = UserModel::getSubdirector($centroId);
+        $subdirector = UserController::getSubdirector($centroId);
         $anioFiscalActivo = AnioFiscalModel::getPresupuestoActivo($centroId);
         $hayAnioFiscal = !empty($anioFiscalActivo);
 
         //obtengo los roles para listarlos en la vista
         $roleController = new RoleController();
         $roles = $roleController->list();
+
+        //Obtengo todos los usuarios
+        $users= UserController::listByCentro($centroId);
 
         //Obtengo los permisos para listarlos en la lista que los necesite. 
         $permisoController = new PermisoController();

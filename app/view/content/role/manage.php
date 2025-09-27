@@ -1,3 +1,7 @@
+<?php
+echo "<pre>";
+print_r($users)
+?>
 <div class="table-container">
   <table>
     <thead>
@@ -11,64 +15,41 @@
     </thead>
     <tbody>
       <tr>
-        <td>1</td>
-        <td>juan@example.com</td>
-        <td><span class="badge badge-success">✔ Sí</span></td>
-        <td>Administrador</td>
+        <td><?= $user['id'] ?></td>
+        <td><?= htmlspecialchars($user['email']) ?></td>
         <td>
-          <form>
-            <input type="email" value="juan@example.com">
-            <label><input type="checkbox" checked> Verificado</label>
-            <select>
-              <option selected>Administrador</option>
-              <option>Usuario</option>
-              <option>Invitado</option>
+          <?php if ($user['es_verificado']): ?>
+            <span class="badge badge-success">✔ Sí</span>
+          <?php else: ?>
+            <span class="badge badge-danger">✘ No</span>
+          <?php endif; ?>
+        </td>
+        <td><?= htmlspecialchars($user['nombre_rol']) ?></td>
+        <td>
+          <form method="post" action="usuarios/update.php">
+            <input type="hidden" name="id" value="<?= $user['id'] ?>">
+
+            <input type="email" name="email" value="<?= htmlspecialchars($user['email']) ?>">
+
+            <label>
+              <input type="checkbox" name="verificado" value="1" <?= $user['verificado'] ? 'checked' : '' ?>>
+              Verificado
+            </label>
+
+            <select name="role_id" id="role_id" required>
+              <option value="">Seleccione el rol</option>
+              <?php foreach ($roles as $role): ?>
+                <option value="<?= $role['id'] ?>"
+                  <?= $role['id'] == $user['rol_id'] ? 'selected' : '' ?>>
+                  <?= htmlspecialchars($role['nombre']) ?>
+                </option>
+              <?php endforeach; ?>
             </select>
+
             <button type="submit">💾 Guardar</button>
           </form>
         </td>
       </tr>
-
-      <tr>
-        <td>2</td>
-        <td>maria@example.com</td>
-        <td><span class="badge badge-error">✘ No</span></td>
-        <td>Usuario</td>
-        <td>
-          <form>
-            <input type="email" value="maria@example.com">
-            <label><input type="checkbox"> Verificado</label>
-            <select>
-              <option>Administrador</option>
-              <option selected>Usuario</option>
-              <option>Invitado</option>
-            </select>
-            <button type="submit">💾 Guardar</button>
-          </form>
-        </td>
-      </tr>
-
-      <tr>
-        <td>3</td>
-        <td>carlos@example.com</td>
-        <td><span class="badge badge-success">✔ Sí</span></td>
-        <td>Invitado</td>
-        <td>
-          <form>
-            <input type="email" value="carlos@example.com">
-            <label><input type="checkbox" checked> Verificado</label>
-            <select>
-              <option>Administrador</option>
-              <option>Usuario</option>
-              <option selected>Invitado</option>
-            </select>
-            <button type="submit">💾 Guardar</button>
-          </form>
-        </td>
-      </tr>
-
     </tbody>
   </table>
 </div>
-
-

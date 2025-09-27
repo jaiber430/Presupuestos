@@ -63,7 +63,7 @@ $(document).ready(function() {
 
       userRolePermissions.forEach((permiso) => {
         let clase = "";
-        if(permiso.nombre_permiso === "Gestionar roles"){
+        if(permiso.nombre_permiso === "Gestionar Permisos"){
             clase= "manage_role";
         } else if (permiso.nombre_permiso === "Gestionar usuarios") {
             clase= "manage_user";

@@ -93,9 +93,19 @@ class UserModel extends MainModel {
         }
     }
 
-    public static function getAll() {
-        $sql = "SELECT * FROM users";
-        return self::query($sql)->fetchAll();
+    public static function getAllByCentro($centroId) {
+        try {
+            $query = "SELECT id, nombres, apellidos, email, rol_id 
+                    FROM user
+                    WHERE centro_id = ?";
+            $stmt = parent::executeQuery($query, [$centroId]);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return $result ?: [];
+        } catch (Exception $e) {
+            return [];
+        }
     }
+
 
 }
