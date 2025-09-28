@@ -27,7 +27,9 @@ class AnioFiscalController {
         }
 
         $anioFiscal    = (int) $_POST['year_fiscal'];
-        $presupuesto   = (float) $_POST['valor_presupuesto'];
+        $presupuesto   =  $_POST['valor_presupuesto'];
+        $presupuesto = str_replace(['$', '.'], '', $presupuesto);
+        $presupuesto= (float) $presupuesto;
         $estado        = ($_POST['estado'] ?? '') === 'activo' ? 1 : 0;
         $fechaInicio   = $_POST['fecha_inicio'];
         $fechaCierre   = $_POST['fecha_cierre'];

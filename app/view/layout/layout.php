@@ -31,7 +31,7 @@
                 <img src="<?= APP_URL ?>assets/img/logoSena.png" alt="Foto de usuario" class="rounded-circle" width="45" height="45">
             </div>
             <div class="user-role">
-                <span><?= $_SESSION[APP_SESSION_NAME]['rolNombre'] ?></span>
+                <span><?= $userRol ?></span>
             </div>
             <div class="user-info d-flex align-items-center">
                 <span class="me-2">
@@ -55,57 +55,36 @@
         </div>
     </header>
 
-    <div class="subheader-container">
-        <div class="reports-header">
-            <div class="reports-controls">
-                <!-- Subdirector -->
-                <div class="rc-field">
-                    <label for="subdirector" class="form-label">Subdirector:</label>
-                    <?php if ($subdirector): ?>
-                        <p id="subdirector" class="form-control-plaintext">
-                            <?= htmlspecialchars($subdirector['nombres'] . ' ' . $subdirector['apellidos']) ?>
-                        </p>
-                    <?php else: ?>
-                        <p id="subdirector" class="form-control-plaintext text-muted">
-                            No hay subdirector asignado actualmente
-                        </p>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Año Fiscal -->
-                <div class="rc-field">
-                    <label for="year-fiscal" class="form-label">Año Fiscal:</label>
-                    <input type="number" id="year-fiscal" class="form-control form-control-sm"
-                        value="<?= $anioFiscalActivo['anio_fiscal'] ?? '' ?>" readonly />
-                </div>
-
-                <div class="rc-field">
-                    <label for="value-year-fiscal" class="form-label">Año Fiscal:</label>
-                    <input type="number" id="value-year-fiscal" class="form-control form-control-sm"
-                        value="<?= $anioFiscalActivo['valor_anio_fiscal'] ?? '' ?>" readonly />
-                </div>
-
-                <!-- Fecha Inicio -->
-                <div class="rc-field">
-                    <label for="date-start" class="form-label">Inicio:</label>
-                    <input type="date" id="date-start" class="form-control form-control-sm"
-                        value="<?= $anioFiscalActivo['fecha_inicio'] ?? '' ?>" readonly />
-                </div>
-
-                <!-- Fecha Fin -->
-                <div class="rc-field">
-                    <label for="date-end" class="form-label">Fin:</label>
-                    <input type="date" id="date-end" class="form-control form-control-sm"
-                        value="<?= $anioFiscalActivo['fecha_cierre'] ?? '' ?>" readonly />
-                </div>
-
-                <!-- Estado -->
-                <div class="rc-field">
-                    <label for="status-filter" class="form-label">Estado:</label>
-                    <input type="text" id="status-filter" class="form-control form-control-sm"
-                        value="<?= (!empty($anioFiscalActivo) && $anioFiscalActivo['estado'] == 1) ? 'Activo' : 'Inactivo' ?>"
-                        readonly />
-                </div>
+    <!-- SUBHEADER -->
+    <div class="subheader-container bg-light p-3 border-bottom">
+        <div class="row g-3">
+            <div class="col-md">
+                <label class="form-label">Subdirector:</label>
+                <p class="form-control-plaintext mb-0">
+                    <?= $subdirector ? htmlspecialchars($subdirector['nombres'] . ' ' . $subdirector['apellidos']) : 'No hay subdirector asignado' ?>
+                </p>
+            </div>
+            <div class="col-md">
+                <label class="form-label">Año Fiscal:</label>
+                <input type="number" class="form-control form-control-sm" value="<?= $anioFiscalActivo['anio_fiscal'] ?? '' ?>" readonly>
+            </div>
+            <div class="col-md">
+                <label class="form-label">Valor:</label>
+                <input type="text" class="form-control form-control-sm"
+                    value="<?= isset($anioFiscalActivo['valor_anio_fiscal']) ? '$' . number_format($anioFiscalActivo['valor_anio_fiscal'], 0, ',', '.') : '' ?>" readonly>
+            </div>
+            <div class="col-md">
+                <label class="form-label">Inicio:</label>
+                <input type="date" class="form-control form-control-sm" value="<?= $anioFiscalActivo['fecha_inicio'] ?? '' ?>" readonly>
+            </div>
+            <div class="col-md">
+                <label class="form-label">Fin:</label>
+                <input type="date" class="form-control form-control-sm" value="<?= $anioFiscalActivo['fecha_cierre'] ?? '' ?>" readonly>
+            </div>
+            <div class="col-md">
+                <label class="form-label">Estado:</label>
+                <input type="text" class="form-control form-control-sm"
+                    value="<?= (!empty($anioFiscalActivo) && $anioFiscalActivo['estado'] == 1) ? 'Activo' : 'Inactivo' ?>" readonly>
             </div>
         </div>
     </div>

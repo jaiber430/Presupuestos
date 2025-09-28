@@ -35,7 +35,7 @@ class UserController {
     }
 
     /** Verificar una cuenta de usuario */
-    public static function verifyAccount(int $userId): bool {
+    public static function verifyAccount(int $userId){
         $userModel = new UserModel();
         return $userModel->verifyAccount($userId);
     }
