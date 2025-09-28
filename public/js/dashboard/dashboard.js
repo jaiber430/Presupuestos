@@ -50,6 +50,27 @@ $(document).ready(function() {
         });
     }
 
+    $('#valor_presupuesto').on('input', function() {
+        let value = $(this).val();
+        console.log(value);
+        // Quitar todo lo que no sea número
+        value = value.replace(/\D/g, '');
+
+        if(value === '') {
+            $(this).val('');
+            $('#monto_hidden').val('');
+            return;
+        }
+
+        // Formatear con separador de miles
+        let formatted = '$' + parseInt(value, 10).toLocaleString('es-CO');
+
+        // Mostrar en el input
+        $(this).val(formatted);
+
+        // Guardar valor limpio en el hidden
+        $('#monto_hidden').val(value);
+    });
 
 
   $.post(BASE_URL + 'dashboard/listar', function(answer) {
@@ -167,36 +188,40 @@ $(document).ready(function() {
       
   });
 
-function showToast(message, type = 'info') {
-    const bg = {
-        success: 'bg-success text-white',
-        error: 'bg-danger text-white',
-        warning: 'bg-warning text-dark',
-        info: 'bg-info text-white'
-    }[type] || 'bg-info text-white';
+  
+  
 
-    const container = document.querySelector('#toast-container');
+  function showToast(message, type = 'info') {
+      const bg = {
+          success: 'bg-success text-white',
+          error: 'bg-danger text-white',
+          warning: 'bg-warning text-dark',
+          info: 'bg-info text-white'
+      }[type] || 'bg-info text-white';
 
-    const toastEl = document.createElement('div');
-    toastEl.className = `toast align-items-center ${bg} border-0`;
-    toastEl.role = 'alert';
-    toastEl.ariaLive = 'assertive';
-    toastEl.ariaAtomic = 'true';
-    toastEl.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">${message}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-    `;
+      const container = document.querySelector('#toast-container');
 
-    container.appendChild(toastEl);
+      const toastEl = document.createElement('div');
+      toastEl.className = `toast align-items-center ${bg} border-0`;
+      toastEl.role = 'alert';
+      toastEl.ariaLive = 'assertive';
+      toastEl.ariaAtomic = 'true';
+      toastEl.innerHTML = `
+          <div class="d-flex">
+              <div class="toast-body">${message}</div>
+              <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+      `;
 
-    const bsToast = new bootstrap.Toast(toastEl, { delay: 3000 });
-    bsToast.show();
+      container.appendChild(toastEl);
 
-    // Quitar del DOM cuando desaparezca
-    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
-}
+      const bsToast = new bootstrap.Toast(toastEl, { delay: 3000 });
+      bsToast.show();
+
+      // Quitar del DOM cuando desaparezca
+      toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+  }
+
 
 
 

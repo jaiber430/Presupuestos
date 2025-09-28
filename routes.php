@@ -20,7 +20,7 @@ return [
     'logout-post' => fn() => (new AuthController())->logout(),
     'verify' => fn() => (new AuthController())->verify($_GET['token']),
     'dashboard' => fn()=> (new DashboardController())->index(),    
-    'reports'=> fn()=> (new DashboardController())->index("reportes"),
+    'sin-rol' => fn() => (new DashboardController())->index("sin-rol"),
     'reports-post'=> fn()=> (new ReportsController())->index(),
     'reports/dependencias'=> fn()=> (new ReportsController())->dependencias(),
     'reports/consulta'=> fn()=> (new ReportsController())->consulta(),
@@ -32,6 +32,7 @@ return [
     //Gestión de Roles
     'gestionar/usuarios'=> fn()=> (new DashboardController())-> index('usuarios'),
     'usuarios/update-post'=> fn()=> (new UserController())-> update($user_id= $_POST['id'], $_POST),
+    
     /*
     
     'gestionar-usuarios'=> fn()=> (RoleController()->listar()),

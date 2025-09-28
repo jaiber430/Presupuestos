@@ -94,7 +94,6 @@ class AuthController {
                 'email'    => $dataUser['email'],
                 'name'     => $dataUser['nombres'],
                 'lastName' => $dataUser['apellidos'],
-                'rolNombre'     => $dataUser['nombre_rol'],
                 'centro_id'     => $dataUser['centro_id'],
                 "idROl"=> $dataUser['rol_id']
             ];
@@ -186,7 +185,7 @@ class AuthController {
 
 
                 $sent = $mailer->sendVerificationEmail([
-                    'name' => $user['nombres'] ?? $Names,
+                    'name' => $user['nombres'],
                     'lastName' => $user['apellidos'] ?? $lastNames,
                     'email' => $user['email'] ?? $email
                 ], $token);
@@ -242,8 +241,8 @@ class AuthController {
         $tokenModel->create($dataUser['id'], $token, 'recovery', $expiresAt);
 
         $sent = $mailer->sendRecoveryEmail([
-            'name' => $dataUser['nombres'] ?? $Names,
-            'lastName' => $dataUser['apellidos'] ?? $lastNames,
+            'name' => $dataUser['nombres'],
+            'lastName' => $dataUser['apellidos'],
             'email' => $dataUser['email'] ?? $email
         ], $token);
 

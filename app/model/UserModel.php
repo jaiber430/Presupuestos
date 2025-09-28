@@ -8,9 +8,8 @@ use PDOException;
 class UserModel extends MainModel {	
     
     public function findByEmail(string $email) {
-        $query= "SELECT r.nombre AS nombre_rol, u.*
+        $query= "SELECT u.*
             FROM user u
-            JOIN rol r on u.rol_id=r.id 
             WHERE email = :email";
 
         $params= ["email" => $email];
@@ -50,7 +49,6 @@ class UserModel extends MainModel {
 		}
 	}
 
-
     public function update(int $id, array $data): bool {
 
         $fields = [];
@@ -72,12 +70,24 @@ class UserModel extends MainModel {
         }
     }
 
-    public function verifyAccount(int $userId): bool {
-        $query = "UPDATE user SET es_verificado = 1 WHERE id = :id";
+    public function verifyAccount(int $userId): ?string{
+        $query = "SELECT r.nombre AS rol
+              FROM user u
+              JOIN rol r ON u.rol_id = r.id
+              WHERE u.id = :id";
         $params = [':id' => $userId];
         $stmt = parent::executeQuery($query, $params);
-        return $stmt->rowCount() > 0;
+
+        if ($stmt) {
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if ($result && isset($result['rol'])) {
+                return $result['rol'];
+            }
+        }
+
+        return null; 
     }
+
 
     public static function getSubdirector($centroId) {
         try {

@@ -26,19 +26,31 @@ class DashboardController {
         $roleController = new RoleController();
         $roles = $roleController->list();
 
+    
+
         //Obtengo todos los usuarios
         $users= UserController::listByCentro($centroId);
 
         //Obtengo los permisos para listarlos en la lista que los necesite. 
         $permisoController = new PermisoController();
-        $permisos = $permisoController->list();
+        $permisos = $permisoController->list();    
 
         $views = [
-            "dashboard"      => __DIR__ . '/../view/content/dashboard.php',
-            "reportes"       => __DIR__ . '/../view/content/reports.php',
+            "dashboards"      => __DIR__ . '/../view/content/dashboard.php',
+            "dashboard"       => __DIR__ . '/../view/content/reports.php',
             "usuarios"=> __DIR__ . '/../view/content/role/manage.php',
             "page_not_found" => __DIR__ . '/../app/view/errors/404.php',
+            "sin-rol"=> __DIR__ . '/../app/view/errors/sin_rol.php',
         ];
+
+        $userRol= UserController::verifyAccount($_SESSION[APP_SESSION_NAME]['id']);
+        
+        if (empty($userRol)) {
+            require_once __DIR__ . '/../view/content/sin_rol.php';
+            exit;
+        }
+
+
 
         $stylesByView = [
             //"dashboard" => ["css/dashboard/dashboard.css"],
