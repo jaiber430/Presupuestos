@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $title ?></title>
+    <link rel="icon" href="<?= APP_URL ?>assets/img/sena.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -23,12 +24,13 @@
 </head>
 
 <body>
+   
 
     <header class="header d-flex align-items-center justify-content-between px-4 py-3">
         <div class="user-section">
             <button class="btn btn-primary btn-menu-toggle me-3" id="toggleMenu" aria-label="Abrir menú"><i class="fas fa-bars"></i></button>
             <div class="user-photo">
-                <img src="<?= APP_URL ?>assets/img/logoSena.png" alt="Foto de usuario" class="rounded-circle" width="45" height="45">
+                <img src="<?= APP_URL ?>assets/img/default.png" alt="Foto de usuario" class="rounded-circle" width="45" height="45">
             </div>
             <div class="user-role">
                 <span><?= $userRol ?></span>
