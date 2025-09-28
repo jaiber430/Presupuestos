@@ -20,7 +20,6 @@ return [
     'logout-post' => fn() => (new AuthController())->logout(),
     'verify' => fn() => (new AuthController())->verify($_GET['token']),
     'dashboard' => fn()=> (new DashboardController())->index(),    
-    'reports'=> fn()=> (new DashboardController())->index("reportes"),
     'sin-rol' => fn() => (new DashboardController())->index("sin-rol"),
     'reports-post'=> fn()=> (new ReportsController())->index(),
     'reports/dependencias'=> fn()=> (new ReportsController())->dependencias(),
