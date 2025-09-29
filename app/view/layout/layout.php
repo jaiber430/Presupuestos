@@ -76,11 +76,11 @@
                     value="<?= isset($anioFiscalActivo['valor_anio_fiscal']) ? '$' . number_format($anioFiscalActivo['valor_anio_fiscal'], 0, ',', '.') : '' ?>" readonly>
             </div>
             <div class="col-md">
-                <label class="form-label">Inicio:</label>
+                <label class="form-label">Fecha inicio</label>
                 <input type="date" class="form-control form-control-sm" value="<?= $anioFiscalActivo['fecha_inicio'] ?? '' ?>" readonly>
             </div>
             <div class="col-md">
-                <label class="form-label">Fin:</label>
+                <label class="form-label">Fecha Fin</label>
                 <input type="date" class="form-control form-control-sm" value="<?= $anioFiscalActivo['fecha_cierre'] ?? '' ?>" readonly>
             </div>
             <div class="col-md">

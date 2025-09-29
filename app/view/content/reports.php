@@ -8,36 +8,45 @@
                 <p class="text-muted small mb-3">Listado de semanas cargadas. Desde aquí puedes ver detalles o subir nuevos reportes semanales.</p>
                 <div class="table-responsive">
                 <table class="table reports-table mb-0">
-                <thead>
-                    <tr>
-                        <th>Semana</th>
-                        <th>Desde</th>
-                        <th>Hasta</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Semana 1</td>
-                        <td>01/01/2025</td>
-                        <td>07/01/2025</td>
-                        <td>
-                            <button class="btn btn-outline-secondary btn-sm btn-ver-detalles" data-week="Semana 1" data-bs-toggle="modal" data-bs-target="#modalDetalles">Ver Detalles</button>
-                            <button class="btn btn-primary btn-sm btn-open-modal" data-week="Semana 1" data-bs-toggle="modal" data-bs-target="#modalReporte">Subir Reporte</button>
-                            <button class="btn btn-danger btn-sm btn-delete-week" data-week="Semana 1"><i class="fas fa-trash-alt me-1"></i>Eliminar</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Semana 2</td>
-                        <td>08/01/2025</td>
-                        <td>14/01/2025</td>
-                        <td>
-                            <button class="btn btn-outline-secondary btn-sm btn-ver-detalles" data-week="Semana 2" data-bs-toggle="modal" data-bs-target="#modalDetalles">Ver Detalles</button>
-                            <button class="btn btn-primary btn-sm btn-open-modal" data-week="Semana 2" data-bs-toggle="modal" data-bs-target="#modalReporte">Subir Reporte</button>
-                            <button class="btn btn-danger btn-sm btn-delete-week" data-week="Semana 2"><i class="fas fa-trash-alt me-1"></i>Eliminar</button>
-                        </td>
-                    </tr>
-                </tbody>
+                    <thead>
+                        <tr>
+                            <th>Semana</th>
+                            <th>Desde</th>
+                            <th>Hasta</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <?php
+                                    $contador = 1;
+                        foreach ($semanas as $semana): 
+                        ?>
+                            <tr>
+                                <td>Semana <?= $contador ?></td>
+                                <td><?= date("d/m/Y", strtotime($semana['inicio'])) ?></td>
+                                <td><?= date("d/m/Y", strtotime($semana['fin'])) ?></td>
+                                <td>
+                                    <button class="btn btn-outline-secondary btn-sm btn-ver-detalles" 
+                                            data-week="Semana <?= $contador ?>" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalDetalles">Ver Detalles</button>
+                                    
+                                    <button class="btn btn-primary btn-sm btn-open-modal" 
+                                            data-week="Semana <?= $contador ?>" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modalReporte">Subir Reporte</button>
+                                    
+                                    <button class="btn btn-danger btn-sm btn-delete-week" 
+                                            data-week="Semana <?= $contador ?>">
+                                            <i class="fas fa-trash-alt me-1"></i>Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php 
+                            $contador++;
+                        endforeach; 
+                        ?>
+                                                
+                    </tbody>
                 </table>
                 </div>
             </div>

@@ -1,14 +1,14 @@
 <?php
-namespace presupuestos\controller;
 
-require_once __DIR__ . '../../../config/app.php';
+namespace presupuestos\controller;
 use presupuestos\model\AnioFiscalModel;
 use presupuestos\helpers\HtmlResponse;
 use Exception;
 
-class AnioFiscalController {
+class AnioFiscalController
+{
 
-   public static function crear()
+    public static function crear()
     {
         if (
             empty($_POST['year_fiscal']) ||
@@ -29,7 +29,7 @@ class AnioFiscalController {
         $anioFiscal    = (int) $_POST['year_fiscal'];
         $presupuesto   =  $_POST['valor_presupuesto'];
         $presupuesto = str_replace(['$', '.'], '', $presupuesto);
-        $presupuesto= (float) $presupuesto;
+        $presupuesto = (float) $presupuesto;
         $estado        = ($_POST['estado'] ?? '') === 'activo' ? 1 : 0;
         $fechaInicio   = $_POST['fecha_inicio'];
         $fechaCierre   = $_POST['fecha_cierre'];
@@ -84,7 +84,8 @@ class AnioFiscalController {
         }
     }
 
-    public static function modificar() {
+    public static function modificar()
+    {
         try {
             if (empty($_POST['anio_fiscal_id']) || empty($_POST['tipo_modificacion']) || empty($_POST['monto'])) {
                 throw new Exception("Datos incompletos");
@@ -107,7 +108,13 @@ class AnioFiscalController {
 
             // Registrar modificación
             AnioFiscalModel::insertModificacion([
-                $id, $tipo, $anterior, $monto, $nuevo, $motivo, $usuario
+                $id,
+                $tipo,
+                $anterior,
+                $monto,
+                $nuevo,
+                $motivo,
+                $usuario
             ]);
 
             // Actualizar
@@ -119,7 +126,6 @@ class AnioFiscalController {
                 "texto" => "Presupuesto actualizado correctamente",
                 "icono" => "success"
             ]);
-
         } catch (Exception $e) {
             echo json_encode([
                 "tipo" => "simple",
@@ -130,7 +136,8 @@ class AnioFiscalController {
         }
     }
 
-    private static function calcularNuevoPresupuesto($anterior, $monto, $tipo) {
+    private static function calcularNuevoPresupuesto($anterior, $monto, $tipo)
+    {
         switch ($tipo) {
             case 'incremento':
                 return $anterior + $monto;
@@ -144,5 +151,37 @@ class AnioFiscalController {
             default:
                 throw new Exception('Tipo de modificación no válido');
         }
+    }
+
+    public static function generarSemanas($fechaInicio, $fechaFin)
+    {
+        $inicio = new \DateTime($fechaInicio);
+        $fin = new \DateTime($fechaFin);
+
+        // Si la fecha de inicio no es lunes, llevarla al lunes anterior
+        if ($inicio->format('N') != 1) {
+            $inicio->modify('last monday');
+        }
+
+        $semanas = [];
+
+        while ($inicio <= $fin) {
+            $semanaInicio = clone $inicio;
+            $semanaFin = clone $inicio;
+            $semanaFin->modify('sunday this week');
+
+            if ($semanaFin > $fin) {
+                $semanaFin = clone $fin;
+            }
+
+            $semanas[] = [
+                'inicio' => $semanaInicio->format('Y-m-d'),
+                'fin'    => $semanaFin->format('Y-m-d')
+            ];
+
+            $inicio->modify('+1 week');
+        }
+
+        return $semanas;
     }
 }
