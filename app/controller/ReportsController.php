@@ -1,21 +1,23 @@
 <?php
+
 namespace presupuestos\controller;
 
 use presupuestos\helpers\Auth;
-use presupuestos\helpers\ResponseHelper;
 use presupuestos\model\ReportsModel;
 
 require __DIR__ . '/../../bootstrap.php';
 
-class ReportsController {
+class ReportsController{
     /**
-     * POST /reports -> subir CSVs semana 1 (cdp, rp, pagos)
+     * POST /reports -> subir Excel semana 1 (cdp, rp, pagos)
      */
-    public function index() {
+    public function index()
+    {
         Auth::check();
 
         try {
             if (empty($_POST['week'])) {
+                ob_clean(); // Limpiar cualquier salida previa
                 header('Content-Type: application/json; charset=utf-8');
                 echo json_encode([
                     'tipo'   => 'simple',
@@ -26,12 +28,12 @@ class ReportsController {
                 exit;
             }
 
-            // Nota: FormularioAjax envía archivos en $_FILES
             $files = $_FILES ?? [];
 
-            $results = ReportsModel::processWeek1CSVs($files);
+            // Procesa Excel usando ReportsModel adaptado
+            $results = ReportsModel::processWeek1Excels($files);
 
-            // Estructura compatible con alerts.js -> tipo simple/recargar/limpiar
+            ob_clean(); // Limpiar cualquier salida antes del JSON
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode([
                 'tipo'   => 'simple',
@@ -41,6 +43,7 @@ class ReportsController {
             ], JSON_UNESCAPED_UNICODE);
             exit;
         } catch (\Throwable $e) {
+            ob_clean(); // Limpiar salida antes del JSON
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode([
                 'tipo'   => 'simple',
@@ -52,10 +55,11 @@ class ReportsController {
         }
     }
 
+
     /**
      * GET /reports/dependencias -> lista dependencias
      */
-    public function dependencias() {
+    public function dependencias(){
         Auth::check();
         header('Content-Type: application/json; charset=utf-8');
         $deps = ReportsModel::getDependencias();
@@ -66,7 +70,7 @@ class ReportsController {
     /**
      * GET /reports/consulta?dependencia=...&codigo_cdp=...
      */
-    public function consulta() {
+    public function consulta(){
         Auth::check();
         header('Content-Type: application/json; charset=utf-8');
         $filters = [
@@ -79,9 +83,9 @@ class ReportsController {
     }
 
     /**
-     * POST /reports/delete -> limpia datos cargados (TRUNCATE) para la semana indicada.
+     * POST /reports/delete -> limpia datos cargados (TRUNCATE) para la semana indicada
      */
-    public function delete() {
+    public function delete(){
         Auth::check();
         header('Content-Type: application/json; charset=utf-8');
         try {
@@ -95,7 +99,9 @@ class ReportsController {
                 ], JSON_UNESCAPED_UNICODE);
                 exit;
             }
+
             ReportsModel::clearWeekData($week);
+
             echo json_encode([
                 'tipo' => 'simple',
                 'titulo' => 'Datos eliminados',

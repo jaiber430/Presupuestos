@@ -1,8 +1,11 @@
 <?php
+
 namespace presupuestos\model;
 
 use Exception;
 use PDO;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 require_once __DIR__ . '/MainModel.php';
 
@@ -16,39 +19,45 @@ class ReportsModel extends MainModel{
 		'reporte_presupuestal' => ['valor_inicial', 'valor_operaciones', 'valor_actual', 'saldo_utilizar']
 	];
 
-	public static function processWeek1CSVs(array $files): array{
+	/**
+	 * Procesa archivos Excel (.xlsx/.xls) para la semana 1.
+	 * $files = [
+	 *   'cdp' => $_FILES['cdp'],
+	 *   'pagos' => $_FILES['pagos'],
+	 *   'rp' => $_FILES['rp']
+	 * ]
+	 */
+	public static function processWeek1Excels(array $files): array{
 		$results = [];
-
 		$mapping = [
 			'cdp'   => 'cdp',
 			'pagos' => 'pagos',
 			'rp'    => 'reporte_presupuestal',
 		];
 
-		// Validar que al menos 1 archivo fue seleccionado
 		$hasAny = false;
 		foreach ($mapping as $key => $table) {
-			if (!empty($files[$key]['tmp_name'])) { $hasAny = true; break; }
+			if (!empty($files[$key]['tmp_name'])) {
+				$hasAny = true;
+				break;
+			}
 		}
 		if (!$hasAny) {
-			throw new Exception('Debes seleccionar al menos un archivo CSV.');
+			throw new Exception('Debes seleccionar al menos un archivo Excel.');
 		}
 
-		// Validación previa: si se cargan varios, validar todos antes de insertar
+		// Validación de columnas
 		foreach ($mapping as $key => $table) {
 			if (!empty($files[$key]['tmp_name'])) {
-				$valid = self::validateCSVColumns($files[$key]['tmp_name'], $table);
-				if ($valid !== true) {
-					throw new Exception($valid);
-				}
+				$valid = self::validateExcelColumns($files[$key]['tmp_name'], $table);
+				if ($valid !== true) throw new Exception($valid);
 			}
 		}
 
-		// Procesamiento
+		// Insertar en la BD
 		foreach ($mapping as $key => $table) {
 			if (!empty($files[$key]['tmp_name'])) {
-				$msg = self::importCSVToTable($files[$key]['tmp_name'], $table);
-				$results[] = $msg;
+				$results[] = self::importExcelToTable($files[$key]['tmp_name'], $table);
 			}
 		}
 
@@ -56,66 +65,67 @@ class ReportsModel extends MainModel{
 	}
 
 	/**
-	 * Obtiene columnas de una tabla (excluyendo auto_increment) en orden.
+	 * Obtiene columnas de una tabla (excluyendo auto_increment)
 	 */
 	private static function getTableColumns(string $table): array{
 		$stmt = self::executeQuery("SHOW COLUMNS FROM `$table`");
 		$cols = [];
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			if (strpos($row['Extra'] ?? '', 'auto_increment') === false) {
-				$cols[] = $row['Field'];
-			}
+			if (strpos($row['Extra'] ?? '', 'auto_increment') === false) $cols[] = $row['Field'];
 		}
 		return $cols;
 	}
 
 	/**
-	 * Valida que cada fila del CSV tenga el número de columnas que la tabla requiere
-	 * (excluyendo el id autoincrement si aplica). Retorna true o un mensaje de error.
+	 * Valida que cada fila del Excel tenga el número de columnas correcto
 	 */
-	private static function validateCSVColumns(string $filePath, string $table){
-		if (!is_readable($filePath)) {
-			return "No se puede leer el archivo para '$table'.";
-		}
+	private static function validateExcelColumns(string $filePath, string $table){
+		if (!is_readable($filePath)) return "No se puede leer el archivo para '$table'.";
 
-		$cols = self::getTableColumns($table);
-		$expected = count($cols);
+		$columns = self::getTableColumns($table);
+		$expected = count($columns);
 
-		if (($handle = fopen($filePath, 'r')) === false) {
-			return "No se pudo abrir el archivo para '$table'.";
-		}
+		$spreadsheet = IOFactory::load($filePath);
+		$sheet = $spreadsheet->getActiveSheet();
 
-		// Descartar cabecera
-		fgetcsv($handle, 10000, ',');
-		$line = 2;
-		while (($data = fgetcsv($handle, 10000, ',')) !== false) {
+		$rowNumber = 1;
+		foreach ($sheet->getRowIterator() as $row) {
+			if ($rowNumber === 1) {
+				$rowNumber++;
+				continue;
+			} // saltar cabecera
+
+			$cellIterator = $row->getCellIterator();
+			$cellIterator->setIterateOnlyExistingCells(false);
+			$data = [];
+			foreach ($cellIterator as $cell) $data[] = $cell->getValue();
+
 			if (count($data) !== $expected) {
-				fclose($handle);
-				return "Error en '$table': la fila $line no coincide con las columnas de la tabla ($expected esperadas).";
+				return "Error en '$table': fila $rowNumber no coincide con columnas de la tabla ($expected esperadas).";
 			}
-			$line++;
+			$rowNumber++;
 		}
 
-		fclose($handle);
 		return true;
 	}
 
 	/**
-	 * Limpia y normaliza una cadena (acentos, caracteres raros, Ñ -> n).
+	 * Normaliza texto: tildes, caracteres raros, ñ -> n
 	 */
-	private static function normalizeText(string $text): string{
-		$text = str_replace("\xEF\xBF\xBD", '', $text); // reemplazar �
-		$text = str_replace(['Ñ','ñ'], 'n', $text);
-		$tildes = ['á','é','í','ó','ú','ü','Á','É','Í','Ó','Ú','Ü'];
-		$sin    = ['a','e','i','o','u','u','A','E','I','O','U','U'];
-		$text = str_replace($tildes, $sin, $text);
-		return $text;
+	private static function normalizeText(string $text): string
+	{
+		$text = str_replace("\xEF\xBF\xBD", '', $text);
+		$text = str_replace(['Ñ', 'ñ'], 'n', $text);
+		$tildes = ['á', 'é', 'í', 'ó', 'ú', 'ü', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ü'];
+		$sin    = ['a', 'e', 'i', 'o', 'u', 'u', 'A', 'E', 'I', 'O', 'U', 'U'];
+		return str_replace($tildes, $sin, $text);
 	}
 
 	/**
-	 * Quita símbolos y convierte en entero seguro.
+	 * Convierte a entero seguro
 	 */
-	private static function toNumeric($value): int{
+	private static function toNumeric($value): int
+	{
 		if ($value === null) return 0;
 		$value = str_replace(['$', '.', ','], '', (string)$value);
 		$value = trim($value);
@@ -123,80 +133,114 @@ class ReportsModel extends MainModel{
 	}
 
 	/**
-	 * Inserta el CSV a la tabla indicada. Trunca tabla antes (como en la prueba).
+	 * Inserta los datos del Excel a la tabla indicada
 	 */
-	private static function importCSVToTable(string $filePath, string $table): string{
+	private static function importExcelToTable(string $filePath, string $table): string
+	{
 		$pdo = self::getConnection();
-		$cols = self::getTableColumns($table);
-		if (empty($cols)) {
-			throw new Exception("No se encontraron columnas para la tabla $table");
-		}
+		$columns = self::getTableColumns($table);
 
-		if (($handle = fopen($filePath, 'r')) === false) {
-			throw new Exception("No se pudo abrir el archivo para '$table'.");
-		}
+		$spreadsheet = IOFactory::load($filePath);
+		$sheet = $spreadsheet->getActiveSheet();
 
-		// Truncar tabla antes de insertar (comportamiento de prueba)
 		$pdo->exec("TRUNCATE TABLE `$table`");
-
-		// Descartar cabecera
-		fgetcsv($handle, 10000, ',');
-
-		$placeholders = '(' . implode(',', array_fill(0, count($cols), '?')) . ')';
-		$sql = "INSERT INTO `$table` (`" . implode('`,`', $cols) . "`) VALUES $placeholders";
+		$placeholders = '(' . implode(',', array_fill(0, count($columns), '?')) . ')';
+		$sql = "INSERT INTO `$table` (`" . implode('`,`', $columns) . "`) VALUES $placeholders";
 		$stmt = $pdo->prepare($sql);
 
-		$numericForTable = self::$numericFields[$table] ?? [];
+		$numericCols = self::$numericFields[$table] ?? [];
 
-		while (($data = fgetcsv($handle, 10000, ',')) !== false) {
+		$firstRow = true;
+		foreach ($sheet->getRowIterator() as $row) {
+			if ($firstRow) {
+				$firstRow = false;
+				continue;
+			} // ignorar cabecera
+
+			$cellIterator = $row->getCellIterator();
+			$cellIterator->setIterateOnlyExistingCells(false);
+			$data = [];
+			foreach ($cellIterator as $cell) $data[] = $cell->getValue();
+
 			$values = [];
 			foreach ($data as $i => $val) {
-				$col = $cols[$i];
-				if (in_array($col, $numericForTable, true)) {
+				$col = $columns[$i] ?? null;
+				if (!$col) continue;
+
+				if (in_array($col, $numericCols, true)) {
 					$values[] = self::toNumeric($val);
 				} else {
 					$val = mb_convert_encoding(trim((string)$val), 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252');
-					$val = self::normalizeText($val);
-					$values[] = $val;
+					$values[] = self::normalizeText($val);
 				}
 			}
+			foreach ($sheet->getRowIterator() as $row) {
+				if ($firstRow) {
+					$firstRow = false;
+					continue;
+				}
+
+				$cellIterator = $row->getCellIterator();
+				$cellIterator->setIterateOnlyExistingCells(false);
+				$data = [];
+				foreach ($cellIterator as $cell) $data[] = $cell->getValue();
+
+				$values = [];
+				foreach ($data as $i => $val) {
+					$col = $columns[$i] ?? null;
+					if (!$col) continue;
+
+					if (in_array($col, $numericCols, true)) {
+						$values[] = self::toNumeric($val);
+					} else {
+						$val = mb_convert_encoding(trim((string)$val), 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252');
+						$values[] = self::normalizeText($val);
+					}
+				}
+
+				// <--- Aquí pegamos el log de depuración
+				error_log("Tabla: $table, Valores: " . implode(" | ", $values));
+
+				$stmt->execute($values);
+			}
+
 			$stmt->execute($values);
 		}
 
-		fclose($handle);
 		return "Datos de '$table' insertados correctamente.";
 	}
 
 	/**
 	 * Lista dependencias (codigo, nombre)
 	 */
-	public static function getDependencias(): array{
+	public static function getDependencias(): array
+	{
 		$stmt = self::executeQuery("SELECT codigo, nombre FROM dependencias ORDER BY nombre ASC");
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	/**
-	 * Consulta CDP por dependencia o por codigo_cdp (al menos uno de los dos).
-	 * Filtros: ['dependencia' => string, 'codigo_cdp' => string]
+	 * Consulta CDP por dependencia o código_cdp
 	 */
-	public static function consultarCDP(array $filters): array{
+	public static function consultarCDP(array $filters): array
+	{
 		$sql = "SELECT 
-					c.codigo_cdp                      AS numero_cdp,
-					c.fecha_registro                  AS fecha_registro,
-					d.codigo                          AS dependencia,
-					d.nombre                          AS dependencia_descripcion,
-					SUBSTRING_INDEX(c.objeto, ':', 1) AS concepto_interno,
-					c.rubro                           AS rubro,
-					c.descripcion                     AS descripcion,
-					c.fuente                          AS fuente,
-					c.valor_inicial                   AS valor_inicial,
-					c.valor_operaciones               AS valor_operaciones,
-					c.valor_actual                    AS valor_actual,
-					c.comprometer_saldo               AS saldo_por_comprometer,
-					c.objeto                          AS objeto
-				FROM cdp c
-				INNER JOIN dependencias d ON c.dependencia = d.codigo
-				WHERE 1=1";
+                    c.codigo_cdp                      AS numero_cdp,
+                    c.fecha_registro                  AS fecha_registro,
+                    d.codigo                          AS dependencia,
+                    d.nombre                          AS dependencia_descripcion,
+                    SUBSTRING_INDEX(c.objeto, ':', 1) AS concepto_interno,
+                    c.rubro                           AS rubro,
+                    c.descripcion                     AS descripcion,
+                    c.fuente                          AS fuente,
+                    c.valor_inicial                   AS valor_inicial,
+                    c.valor_operaciones               AS valor_operaciones,
+                    c.valor_actual                    AS valor_actual,
+                    c.comprometer_saldo               AS saldo_por_comprometer,
+                    c.objeto                          AS objeto
+                FROM cdp c
+                INNER JOIN dependencias d ON c.dependencia = d.codigo
+                WHERE 1=1";
 
 		$params = [];
 		if (!empty($filters['codigo_cdp'])) {
@@ -207,7 +251,6 @@ class ReportsModel extends MainModel{
 			$params[':dep'] = $filters['dependencia'];
 		}
 
-		// Si no hay filtros, limitar para evitar respuestas enormes
 		if (empty($filters['codigo_cdp']) && empty($filters['dependencia'])) {
 			$sql .= " ORDER BY c.id DESC LIMIT 200";
 		}
@@ -217,9 +260,10 @@ class ReportsModel extends MainModel{
 	}
 
 	/**
-	 * De momento sólo se manejan las mismas tablas independientemente de la semana
+	 * Limpia datos cargados (TRUNCATE) para la semana indicada
 	 */
-	public static function clearWeekData(string $week): void{
+	public static function clearWeekData(string $week): void
+	{
 		$tables = ['cdp', 'pagos', 'reporte_presupuestal'];
 		$pdo = self::getConnection();
 		try {
@@ -233,4 +277,3 @@ class ReportsModel extends MainModel{
 		}
 	}
 }
-

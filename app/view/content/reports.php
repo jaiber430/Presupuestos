@@ -107,16 +107,16 @@
                         <input type="hidden" name="week" id="input-week">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
-                                <label for="file-cdp" class="form-label">CDP (Excel CSV)</label>
-                                <input type="file" class="form-control" id="file-cdp" name="cdp" accept=".csv">
+                                <label for="file-cdp" class="form-label">Listado CDP </label>
+                                <input type="file" class="form-control" id="file-cdp" name="cdp" accept=".xlsx">
                             </div>
                             <div class="col-md-4">
-                                <label for="file-rp" class="form-label">R.P (Excel CSV)</label>
-                                <input type="file" class="form-control" id="file-rp" name="rp" accept=".csv">
+                                <label for="file-rp" class="form-label">Listado R.P </label>
+                                <input type="file" class="form-control" id="file-rp" name="rp" accept=".xlsx">
                             </div>
                             <div class="col-md-4">
-                                <label for="file-pagos" class="form-label">Pagos (Excel CSV)</label>
-                                <input type="file" class="form-control" id="file-pagos" name="pagos" accept=".csv">
+                                <label for="file-pagos" class="form-label">Listado de Pagos</label>
+                                <input type="file" class="form-control" id="file-pagos" name="pagos" accept=".xlsx">
                             </div>
                         </div>
                         <div class="modal-footer">
