@@ -112,8 +112,7 @@ class ReportsModel extends MainModel
 		return true;
 	}
 
-	private static function normalizeText(string $text): string
-	{
+	private static function normalizeText(string $text): string{
 		$text = str_replace("\xEF\xBF\xBD", '', $text);
 		$text = str_replace(['Ñ', 'ñ'], 'n', $text);
 		$tildes = ['á', 'é', 'í', 'ó', 'ú', 'ü', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ü'];
@@ -132,58 +131,73 @@ class ReportsModel extends MainModel
 	/**
 	 * Inserta los datos del Excel a la tabla indicada (fila por fila)
 	 */
-	private static function importExcelToTable(string $filePath, string $table): string
-	{
+	private static function importExcelToTable(string $filePath, string $table): string{
 		$pdo = self::getConnection();
-		$columns = self::getTableColumns($table); // excluye auto_increment
+		$columns = self::getTableColumns($table);
 		$numericCols = self::$numericFields[$table] ?? [];
 
-		$spreadsheet = IOFactory::load($filePath);
+		// Crear reader en modo “read-only” para no cargar todo en memoria
+		$reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($filePath);
+		$reader->setReadDataOnly(true);
+		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
 
+		// Limpiar tabla antes de insertar
 		$pdo->exec("TRUNCATE TABLE `$table`");
-		$pdo->beginTransaction();
 
+		// Preparar SQL dinámico
+		$placeholders = '(' . implode(',', array_fill(0, count($columns), '?')) . ')';
+		$sql = "INSERT INTO `$table` (`" . implode('`,`', $columns) . "`) VALUES $placeholders";
+		$stmt = $pdo->prepare($sql);
+
+		$pdo->beginTransaction();
 		$firstRow = true;
+
 		foreach ($sheet->getRowIterator() as $row) {
 			if ($firstRow) {
-				$firstRow = false;
+				$firstRow = false; // saltar cabecera
 				continue;
-			} // saltar cabecera
+			}
 
 			$cellIterator = $row->getCellIterator();
-			$cellIterator->setIterateOnlyExistingCells(false);
+			$cellIterator->setIterateOnlyExistingCells(false); // leer todas
+			$data = [];
+			foreach ($cellIterator as $cell) {
+				$data[] = $cell->getValue();
+			}
+
+			// Ajustar cantidad de valores a columnas de la tabla
+			if (count($data) < count($columns)) {
+				$data = array_pad($data, count($columns), null);
+			} elseif (count($data) > count($columns)) {
+				$data = array_slice($data, 0, count($columns));
+			}
 
 			$values = [];
 			foreach ($columns as $i => $col) {
-				$cell = $cellIterator->current();
-				$val = $cell ? $cell->getValue() : null;
-
+				$val = $data[$i] ?? null;
 				if (in_array($col, $numericCols, true)) {
 					$values[] = self::toNumeric($val);
 				} else {
-					$val = mb_convert_encoding(trim((string)($val ?? '')), 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252');
+					$val = mb_convert_encoding(trim((string)$val), 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252');
 					$values[] = self::normalizeText($val);
 				}
-
-				$cellIterator->next();
 			}
 
-			$placeholders = '(' . implode(',', array_fill(0, count($columns), '?')) . ')';
-			$sql = "INSERT INTO `$table` (`" . implode('`,`', $columns) . "`) VALUES $placeholders";
-			$stmt = $pdo->prepare($sql);
 			$stmt->execute($values);
 		}
 
 		$pdo->commit();
+
+		// Limpiar memoria
+		$spreadsheet->disconnectWorksheets();
+		unset($spreadsheet);
+
 		return "Datos de '$table' insertados correctamente.";
 	}
 
 
-
-
-	public static function getDependencias(): array
-	{
+	public static function getDependencias(): array{
 		$stmt = self::executeQuery("SELECT codigo, nombre FROM dependencias ORDER BY nombre ASC");
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
