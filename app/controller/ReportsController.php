@@ -11,8 +11,7 @@ class ReportsController{
     /**
      * POST /reports -> subir Excel semana 1 (cdp, rp, pagos)
      */
-    public function index()
-    {
+    public function index(){
         Auth::check();
 
         try {
