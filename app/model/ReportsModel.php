@@ -16,8 +16,7 @@ class ReportsModel extends MainModel{
 		'reporte_presupuestal' => ['valor_inicial', 'valor_operaciones', 'valor_actual', 'saldo_utilizar']
 	];
 
-	public static function processWeek1CSVs(array $files): array
-	{
+	public static function processWeek1CSVs(array $files): array{
 		$results = [];
 
 		$mapping = [
@@ -59,8 +58,7 @@ class ReportsModel extends MainModel{
 	/**
 	 * Obtiene columnas de una tabla (excluyendo auto_increment) en orden.
 	 */
-	private static function getTableColumns(string $table): array
-	{
+	private static function getTableColumns(string $table): array{
 		$stmt = self::executeQuery("SHOW COLUMNS FROM `$table`");
 		$cols = [];
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -75,8 +73,7 @@ class ReportsModel extends MainModel{
 	 * Valida que cada fila del CSV tenga el número de columnas que la tabla requiere
 	 * (excluyendo el id autoincrement si aplica). Retorna true o un mensaje de error.
 	 */
-	private static function validateCSVColumns(string $filePath, string $table)
-	{
+	private static function validateCSVColumns(string $filePath, string $table){
 		if (!is_readable($filePath)) {
 			return "No se puede leer el archivo para '$table'.";
 		}
@@ -106,8 +103,7 @@ class ReportsModel extends MainModel{
 	/**
 	 * Limpia y normaliza una cadena (acentos, caracteres raros, Ñ -> n).
 	 */
-	private static function normalizeText(string $text): string
-	{
+	private static function normalizeText(string $text): string{
 		$text = str_replace("\xEF\xBF\xBD", '', $text); // reemplazar �
 		$text = str_replace(['Ñ','ñ'], 'n', $text);
 		$tildes = ['á','é','í','ó','ú','ü','Á','É','Í','Ó','Ú','Ü'];
@@ -119,8 +115,7 @@ class ReportsModel extends MainModel{
 	/**
 	 * Quita símbolos y convierte en entero seguro.
 	 */
-	private static function toNumeric($value): int
-	{
+	private static function toNumeric($value): int{
 		if ($value === null) return 0;
 		$value = str_replace(['$', '.', ','], '', (string)$value);
 		$value = trim($value);
@@ -130,8 +125,7 @@ class ReportsModel extends MainModel{
 	/**
 	 * Inserta el CSV a la tabla indicada. Trunca tabla antes (como en la prueba).
 	 */
-	private static function importCSVToTable(string $filePath, string $table): string
-	{
+	private static function importCSVToTable(string $filePath, string $table): string{
 		$pdo = self::getConnection();
 		$cols = self::getTableColumns($table);
 		if (empty($cols)) {
@@ -176,8 +170,7 @@ class ReportsModel extends MainModel{
 	/**
 	 * Lista dependencias (codigo, nombre)
 	 */
-	public static function getDependencias(): array
-	{
+	public static function getDependencias(): array{
 		$stmt = self::executeQuery("SELECT codigo, nombre FROM dependencias ORDER BY nombre ASC");
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
@@ -186,8 +179,7 @@ class ReportsModel extends MainModel{
 	 * Consulta CDP por dependencia o por codigo_cdp (al menos uno de los dos).
 	 * Filtros: ['dependencia' => string, 'codigo_cdp' => string]
 	 */
-	public static function consultarCDP(array $filters): array
-	{
+	public static function consultarCDP(array $filters): array{
 		$sql = "SELECT 
 					c.codigo_cdp                      AS numero_cdp,
 					c.fecha_registro                  AS fecha_registro,
@@ -227,8 +219,7 @@ class ReportsModel extends MainModel{
 	/**
 	 * De momento sólo se manejan las mismas tablas independientemente de la semana
 	 */
-	public static function clearWeekData(string $week): void
-	{
+	public static function clearWeekData(string $week): void{
 		$tables = ['cdp', 'pagos', 'reporte_presupuestal'];
 		$pdo = self::getConnection();
 		try {

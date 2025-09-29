@@ -5,11 +5,9 @@ use presupuestos\model\AnioFiscalModel;
 use presupuestos\helpers\HtmlResponse;
 use Exception;
 
-class AnioFiscalController
-{
+class AnioFiscalController{
 
-    public static function crear()
-    {
+    public static function crear(){
         if (
             empty($_POST['year_fiscal']) ||
             empty($_POST['valor_presupuesto']) ||
@@ -84,8 +82,7 @@ class AnioFiscalController
         }
     }
 
-    public static function modificar()
-    {
+    public static function modificar(){
         try {
             if (empty($_POST['anio_fiscal_id']) || empty($_POST['tipo_modificacion']) || empty($_POST['monto'])) {
                 throw new Exception("Datos incompletos");
@@ -136,8 +133,7 @@ class AnioFiscalController
         }
     }
 
-    private static function calcularNuevoPresupuesto($anterior, $monto, $tipo)
-    {
+    private static function calcularNuevoPresupuesto($anterior, $monto, $tipo){
         switch ($tipo) {
             case 'incremento':
                 return $anterior + $monto;
@@ -153,8 +149,7 @@ class AnioFiscalController
         }
     }
 
-    public static function generarSemanas($fechaInicio, $fechaFin)
-    {
+    public static function generarSemanas($fechaInicio, $fechaFin){
         $inicio = new \DateTime($fechaInicio);
         $fin = new \DateTime($fechaFin);
 
