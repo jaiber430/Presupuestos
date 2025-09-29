@@ -1,7 +1,3 @@
-@import url('../variables_globales.css');
-
-
-
 .rp-card{
 	background: var(--color-primary);
 	border: 1px solid var(--border-light);
