@@ -1,13 +1,18 @@
 <?php
 
 namespace presupuestos\controller;
+
 use presupuestos\model\AnioFiscalModel;
+use presupuestos\model\MainModel;
 use presupuestos\helpers\HtmlResponse;
 use Exception;
 
-class AnioFiscalController{
+require __DIR__ . '/../../bootstrap.php';
 
-    public static function crear(){
+class AnioFiscalController
+{
+    public static function crear()
+    {
         if (
             empty($_POST['year_fiscal']) ||
             empty($_POST['valor_presupuesto']) ||
@@ -25,7 +30,7 @@ class AnioFiscalController{
         }
 
         $anioFiscal    = (int) $_POST['year_fiscal'];
-        $presupuesto   =  $_POST['valor_presupuesto'];
+        $presupuesto   = $_POST['valor_presupuesto'];
         $presupuesto = str_replace(['$', '.'], '', $presupuesto);
         $presupuesto = (float) $presupuesto;
         $estado        = ($_POST['estado'] ?? '') === 'activo' ? 1 : 0;
@@ -33,8 +38,8 @@ class AnioFiscalController{
         $fechaCierre   = $_POST['fecha_cierre'];
         $subdirectorId = (int) $_POST['subdirector_id'];
 
-        $usuarioId = $_SESSION[APP_SESSION_NAME]['id'] ?? null;
-        $centroId  = $_SESSION[APP_SESSION_NAME]['centro_id'] ?? null;
+        $usuarioId = $_SESSION[APP_SESSION_NAME]['id'];
+        $centroId  = $_SESSION[APP_SESSION_NAME]['centro_id'];
 
         if (!$usuarioId || !$centroId) {
             echo json_encode([
@@ -46,43 +51,80 @@ class AnioFiscalController{
             return;
         }
 
-        $ok = AnioFiscalModel::insert([
-            $subdirectorId,   // subdirector_id
-            $usuarioId,       // user_id
-            $anioFiscal,      // anio_fiscal
-            $presupuesto,     // valor_anio_fiscal
-            $presupuesto,     // presupuesto_actual
-            $fechaInicio,     // fecha_inicio
-            $fechaCierre,     // fecha_cierre
-            $estado,          // estado
-            $centroId         // id_centro
-        ]);
+        try {
+            // Preparar datos para el año fiscal
+            $datosAnioFiscal = [
+                $subdirectorId,   // subdirector_id
+                $usuarioId,       // user_id
+                $anioFiscal,      // anio_fiscal
+                $presupuesto,     // valor_anio_fiscal
+                $presupuesto,     // presupuesto_actual
+                $fechaInicio,     // fecha_inicio
+                $fechaCierre,     // fecha_cierre
+                $estado,          // estado
+                $centroId         // id_centro
+            ];
 
-        if ($ok) {
-            if ($estado === 1) {
-                // Usamos el método público para obtener el último ID insertado
-                $idNuevo = AnioFiscalModel::getLastInsertId();
-                AnioFiscalModel::desactivarOtros($idNuevo, $anioFiscal);
-            }
+            // Generar semanas
+            $semanas = self::generarSemanas($fechaInicio, $fechaCierre);
+
+            // Llamar al método del modelo que maneja la transacción completa
+            AnioFiscalModel::crearAnioFiscalConSemanas($datosAnioFiscal, $semanas, $centroId);
 
             echo json_encode([
                 "tipo"   => "redireccionar",
                 "titulo" => "Éxito",
-                "texto"  => "Año fiscal creado correctamente",
+                "texto"  => "Año fiscal creado correctamente con " . count($semanas) . " semanas generadas",
                 "icono"  => "success",
                 "url"    => "dashboard"
             ]);
-        } else {
+        } catch (Exception $e) {
             echo json_encode([
                 "tipo"   => "simple",
                 "titulo" => "Error",
-                "texto"  => "No se pudo registrar el año fiscal",
+                "texto"  => $e->getMessage(),
                 "icono"  => "error"
             ]);
         }
     }
 
-    public static function modificar(){
+    public static function generarSemanas($fechaInicio, $fechaFin)
+    {
+        $inicio = new \DateTime($fechaInicio);
+        $fin = new \DateTime($fechaFin);
+
+        // Si la fecha de inicio no es lunes, llevarla al lunes anterior
+        if ($inicio->format('N') != 1) {
+            $inicio->modify('last monday');
+        }
+
+        $semanas = [];
+        $numeroSemana = 1;
+
+        while ($inicio <= $fin) {
+            $semanaInicio = clone $inicio;
+            $semanaFin = clone $inicio;
+            $semanaFin->modify('sunday this week');
+
+            if ($semanaFin > $fin) {
+                $semanaFin = clone $fin;
+            }
+
+            $semanas[] = [
+                'numero_semana' => $numeroSemana,
+                'inicio' => $semanaInicio->format('Y-m-d'),
+                'fin'    => $semanaFin->format('Y-m-d')
+            ];
+
+            $inicio->modify('+1 week');
+            $numeroSemana++;
+        }
+
+        return $semanas;
+    }
+
+    public static function modificar()
+    {
         try {
             if (empty($_POST['anio_fiscal_id']) || empty($_POST['tipo_modificacion']) || empty($_POST['monto'])) {
                 throw new Exception("Datos incompletos");
@@ -133,7 +175,8 @@ class AnioFiscalController{
         }
     }
 
-    private static function calcularNuevoPresupuesto($anterior, $monto, $tipo){
+    private static function calcularNuevoPresupuesto($anterior, $monto, $tipo)
+    {
         switch ($tipo) {
             case 'incremento':
                 return $anterior + $monto;
@@ -147,36 +190,5 @@ class AnioFiscalController{
             default:
                 throw new Exception('Tipo de modificación no válido');
         }
-    }
-
-    public static function generarSemanas($fechaInicio, $fechaFin){
-        $inicio = new \DateTime($fechaInicio);
-        $fin = new \DateTime($fechaFin);
-
-        // Si la fecha de inicio no es lunes, llevarla al lunes anterior
-        if ($inicio->format('N') != 1) {
-            $inicio->modify('last monday');
-        }
-
-        $semanas = [];
-
-        while ($inicio <= $fin) {
-            $semanaInicio = clone $inicio;
-            $semanaFin = clone $inicio;
-            $semanaFin->modify('sunday this week');
-
-            if ($semanaFin > $fin) {
-                $semanaFin = clone $fin;
-            }
-
-            $semanas[] = [
-                'inicio' => $semanaInicio->format('Y-m-d'),
-                'fin'    => $semanaFin->format('Y-m-d')
-            ];
-
-            $inicio->modify('+1 week');
-        }
-
-        return $semanas;
     }
 }
