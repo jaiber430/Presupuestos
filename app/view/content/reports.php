@@ -1,25 +1,4 @@
 <div class="container-fluid mt-4 reports-page">
-
-    <!-- Header de la página -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="fw-bold text-primary mb-1">
-                        <i class="fas fa-chart-line me-2"></i>Reportes Presupuestales
-                    </h2>
-                    <p class="text-muted mb-0">Sistema de gestión y análisis de presupuesto semanal</p>
-                </div>
-                <div class="text-end">
-                    <span class="badge bg-info fs-6">
-                        <i class="fas fa-calendar me-1"></i>
-                        <?= date('d/m/Y') ?>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Contenido en dos columnas: izquierda (tabla) | derecha (gráfico) -->
     <div class="row g-4 reports-layout">
         <!-- Columna Tabla -->
@@ -499,7 +478,6 @@
 </div>
 
 <style>
-    /* COLORES SENA - VERDE HIJUEPUTA */
     .reports-page {
         background: linear-gradient(135deg, #f0f9f0 0%, #e6f3e6 100%);
         min-height: 100vh;
