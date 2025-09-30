@@ -29,22 +29,25 @@
                                                 data-week="Semana <?= $semana['numero_semana'] ?>"
                                                 data-semana-id="<?= $semana['id'] ?>"
                                                 data-bs-toggle="modal"
-                                                data-bs-target="#modalDetalles">
-                                                <i class="fas fa-eye me-1"></i>Ver Detalles
+                                                data-bs-target="#modalDetalles"
+                                                title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
                                             </button>
 
                                             <button class="btn btn-primary btn-sm btn-open-modal"
                                                 data-week="Semana <?= $semana['numero_semana'] ?>"
                                                 data-semana-id="<?= $semana['id'] ?>"
                                                 data-bs-toggle="modal"
-                                                data-bs-target="#modalReporte">
-                                                <i class="fas fa-upload me-1"></i>Subir Reporte
+                                                data-bs-target="#modalReporte"
+                                                title="Subir reporte">
+                                                <i class="fas fa-upload"></i>
                                             </button>
 
                                             <button class="btn btn-danger btn-sm btn-delete-week"
                                                 data-week="Semana <?= $semana['numero_semana'] ?>"
-                                                data-semana-id="<?= $semana['id'] ?>">
-                                                <i class="fas fa-trash-alt me-1"></i>Eliminar
+                                                data-semana-id="<?= $semana['id'] ?>"
+                                                title="Eliminar semana">
+                                                <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </div>
                                     </td>
