@@ -157,35 +157,53 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Filtros + Mini gráfica -->
-                    <div class="row mb-3 g-3 align-items-stretch">
-                        <div class="col-lg-8 col-md-7 col-12">
-                            <div class="reports-header p-2 h-100">
-                                <div class="d-flex align-items-center flex-wrap gap-3 w-100">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <label for="modal-dependency-input" class="form-label m-0">Dependencia:</label>
-                                        <input id="modal-dependency-input" list="dependencias-list" class="form-control form-control-sm w-auto" placeholder="Todas (dejar vacío)" autocomplete="off" />
-                                        <datalist id="dependencias-list">
-                                            <!-- Opciones dinámicas cargadas por JS -->
-                                        </datalist>
-                                    </div>
-                                    <button class="btn btn-success btn-sm" id="btn-modal-buscar">
-                                        <i class="fas fa-search me-1"></i>Buscar
-                                    </button>
-                                </div>
+                    <!-- Filtros Mejorados -->
+                    <div class="row mb-3 g-2 align-items-center">
+                        <div class="col-auto">
+                            <label for="modal-dependency-input" class="form-label small fw-semibold mb-1">Dependencia:</label>
+                            <input id="modal-dependency-input" list="dependencias-list" class="form-control form-control-sm" placeholder="Todas" autocomplete="off" style="width: 200px;" />
+                        </div>
+                        <div class="col-auto">
+                            <label for="modal-rubro-input" class="form-label small fw-semibold mb-1">Rubro:</label>
+                            <input id="modal-rubro-input" list="rubros-list" class="form-control form-control-sm" placeholder="Todos" autocomplete="off" style="width: 180px;" />
+                        </div>
+                        <div class="col-auto">
+                            <label for="modal-fuente-input" class="form-label small fw-semibold mb-1">Fuente:</label>
+                            <select id="modal-fuente-input" class="form-select form-select-sm" style="width: 150px;">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <label class="form-label small fw-semibold mb-1">&nbsp;</label>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-success btn-sm" id="btn-modal-buscar">
+                                    <i class="fas fa-search me-1"></i>Filtrar
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" id="btn-modal-reset">
+                                    <i class="fas fa-redo me-1"></i>
+                                </button>
                             </div>
                         </div>
-                        <div class="col-lg-4 col-md-5 col-12 d-flex">
-                            <div id="mini-presupuesto-container" class="mini-presupuesto-box w-100" style="display:none;">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <small class="text-muted fw-semibold">Estado Dependencia</small>
-                                    <button type="button" class="btn btn-link p-0 small text-decoration-none" id="mini-hide-btn" title="Ocultar" style="line-height:1;">&times;</button>
-                                </div>
-                                <canvas id="mini-presupuesto-chart" height="190"></canvas>
-                                <small class="text-muted d-block mt-1" id="mini-presupuesto-label"></small>
+                        <div class="col-auto ms-auto">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-light text-dark">
+                                    <i class="fas fa-list me-1"></i>
+                                    <span id="total-registros">0</span> registros
+                                </span>
+                                <span class="badge bg-primary">
+                                    <i class="fas fa-dollar-sign me-1"></i>
+                                    S/ <span id="total-monto">0</span>
+                                </span>
                             </div>
                         </div>
                     </div>
+
+                    <datalist id="dependencias-list">
+                        <!-- Opciones dinámicas cargadas por JS -->
+                    </datalist>
+                    <datalist id="rubros-list">
+                        <!-- Opciones dinámicas cargadas por JS -->
+                    </datalist>
 
                     <!-- Tabla de detalles -->
                     <div class="table-scroll-wrapper">
@@ -198,9 +216,9 @@
                                     <th>Rubro</th>
                                     <th>Descripción</th>
                                     <th>Fuente</th>
-                                    <th>Valor Actual</th>
-                                    <th>Saldo por Comprometer</th>
-                                    <th>Valor Comprometido</th>
+                                    <th class="text-end">Valor Actual</th>
+                                    <th class="text-end">Saldo por Comprometer</th>
+                                    <th class="text-end">Valor Comprometido</th>
                                     <th>Compromiso</th>
                                     <th>Objeto</th>
                                 </tr>
@@ -248,11 +266,15 @@
         border-bottom: 2px solid #dee2e6;
         font-weight: 600;
         color: #495057;
+        font-size: 0.875rem;
+        padding: 8px 6px;
     }
 
     .reports-table td {
         vertical-align: middle;
         border-color: #e9ecef;
+        font-size: 0.875rem;
+        padding: 6px;
     }
 
     .reports-table tbody tr:hover {
@@ -279,10 +301,26 @@
     }
 
     .table-scroll-wrapper {
-        max-height: calc(100vh - 200px);
+        max-height: calc(100vh - 180px);
         overflow-y: auto;
         border: 1px solid #e9ecef;
         border-radius: 6px;
+    }
+
+    /* Filtros mejorados */
+    .form-label.small {
+        font-size: 0.8rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .form-control-sm,
+    .form-select-sm {
+        font-size: 0.875rem;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 500;
     }
 
     /* Responsive */
@@ -307,6 +345,16 @@
         .d-flex.gap-1.flex-wrap {
             gap: 0.25rem !important;
         }
+
+        /* Filtros responsive */
+        .row.g-2 .col-auto {
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control-sm,
+        .form-select-sm {
+            width: 100% !important;
+        }
     }
 
     @media (max-width: 576px) {
@@ -320,6 +368,12 @@
 
         .modal-fullscreen {
             padding: 0;
+        }
+
+        .reports-table th,
+        .reports-table td {
+            padding: 4px;
+            font-size: 0.7rem;
         }
     }
 </style>
