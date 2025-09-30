@@ -37,8 +37,7 @@ class ReportsModel extends MainModel
 		'reporte_presupuestal' => ['valor_inicial', 'valor_operaciones', 'valor_actual', 'saldo_utilizar']
 	];
 
-	public static function processWeek1Excels(array $files): array
-	{
+	public static function processWeek1Excels(array $files): array{
 		$results = [];
 		$mapping = [
 			'cdp'   => 'cdp',
@@ -71,8 +70,7 @@ class ReportsModel extends MainModel
 		return $results;
 	}
 
-	private static function getTableColumns(string $table): array
-	{
+	private static function getTableColumns(string $table): array{
 		$stmt = self::executeQuery("SHOW COLUMNS FROM `$table`");
 		$cols = [];
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -81,8 +79,7 @@ class ReportsModel extends MainModel
 		return $cols;
 	}
 
-	private static function validateExcelColumns(string $filePath, string $table)
-	{
+	private static function validateExcelColumns(string $filePath, string $table){
 		if (!is_readable($filePath)) return "No se puede leer el archivo para '$table'.";
 
 		$columns = self::getTableColumns($table);

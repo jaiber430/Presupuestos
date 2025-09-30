@@ -59,7 +59,7 @@ class ReportsController{
      * GET /reports/dependencias -> lista dependencias
      */
     public function dependencias(){
-        Auth::check();
+
         header('Content-Type: application/json; charset=utf-8');
         $deps = ReportsModel::getDependencias();
         echo json_encode($deps, JSON_UNESCAPED_UNICODE);
@@ -70,7 +70,7 @@ class ReportsController{
      * GET /reports/consulta?dependencia=...&codigo_cdp=...
      */
     public function consulta(){
-        Auth::check();
+
         header('Content-Type: application/json; charset=utf-8');
         $filters = [
             'dependencia' => $_GET['dependencia'] ?? '',

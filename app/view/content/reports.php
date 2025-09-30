@@ -7,47 +7,47 @@
                 <h3 class="subheader mb-1">Gastos por Semana</h3>
                 <p class="text-muted small mb-3">Listado de semanas cargadas. Desde aquí puedes ver detalles o subir nuevos reportes semanales.</p>
                 <div class="table-responsive">
-                <table class="table reports-table mb-0">
-                    <thead>
-                        <tr>
-                            <th>Semana</th>
-                            <th>Desde</th>
-                            <th>Hasta</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <?php
-                                    $contador = 1;
-                        foreach ($semanas as $semana): 
+                    <table class="table reports-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Semana</th>
+                                <th>Desde</th>
+                                <th>Hasta</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <?php
+                        $contador = 1;
+                        foreach ($semanas as $semana):
                         ?>
                             <tr>
                                 <td>Semana <?= $contador ?></td>
                                 <td><?= date("d/m/Y", strtotime($semana['inicio'])) ?></td>
                                 <td><?= date("d/m/Y", strtotime($semana['fin'])) ?></td>
                                 <td>
-                                    <button class="btn btn-outline-secondary btn-sm btn-ver-detalles" 
-                                            data-week="Semana <?= $contador ?>" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#modalDetalles">Ver Detalles</button>
-                                    
-                                    <button class="btn btn-primary btn-sm btn-open-modal" 
-                                            data-week="Semana <?= $contador ?>" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#modalReporte">Subir Reporte</button>
-                                    
-                                    <button class="btn btn-danger btn-sm btn-delete-week" 
-                                            data-week="Semana <?= $contador ?>">
-                                            <i class="fas fa-trash-alt me-1"></i>Eliminar
+                                    <button class="btn btn-outline-secondary btn-sm btn-ver-detalles"
+                                        data-week="Semana <?= $contador ?>"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalDetalles">Ver Detalles</button>
+
+                                    <button class="btn btn-primary btn-sm btn-open-modal"
+                                        data-week="Semana <?= $contador ?>"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalReporte">Subir Reporte</button>
+
+                                    <button class="btn btn-danger btn-sm btn-delete-week"
+                                        data-week="Semana <?= $contador ?>">
+                                        <i class="fas fa-trash-alt me-1"></i>Eliminar
                                     </button>
                                 </td>
                             </tr>
-                        <?php 
+                        <?php
                             $contador++;
-                        endforeach; 
+                        endforeach;
                         ?>
-                                                
-                    </tbody>
-                </table>
+
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -103,20 +103,20 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="formReporte" class="FormularioAjax" action="<?= APP_URL . "reports"?>" method="POST" enctype="multipart/form-data">
+                    <form id="formReporte" class="FormularioAjax" action="<?= APP_URL . "reports" ?>" method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="week" id="input-week">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
-                                <label for="file-cdp" class="form-label">Listado CDP </label>
-                                <input type="file" class="form-control" id="file-cdp" name="cdp" accept=".xlsx">
+                                <label for="file-cdp" class="form-label">CDP (Excel CSV)</label>
+                                <input type="file" class="form-control" id="file-cdp" name="cdp" accept=".csv">
                             </div>
                             <div class="col-md-4">
-                                <label for="file-rp" class="form-label">Listado R.P </label>
-                                <input type="file" class="form-control" id="file-rp" name="rp" accept=".xlsx">
+                                <label for="file-rp" class="form-label">R.P (Excel CSV)</label>
+                                <input type="file" class="form-control" id="file-rp" name="rp" accept=".csv">
                             </div>
                             <div class="col-md-4">
-                                <label for="file-pagos" class="form-label">Listado de Pagos</label>
-                                <input type="file" class="form-control" id="file-pagos" name="pagos" accept=".xlsx">
+                                <label for="file-pagos" class="form-label">Pagos (Excel CSV)</label>
+                                <input type="file" class="form-control" id="file-pagos" name="pagos" accept=".csv">
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -125,7 +125,7 @@
                         </div>
                     </form>
                 </div>
-                
+
             </div>
         </div>
     </div>
@@ -152,6 +152,10 @@
                                             <!-- Opciones dinámicas cargadas por JS -->
                                         </datalist>
                                     </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label for="modal-cdp-input" class="form-label m-0">Número CDP:</label>
+                                        <input id="modal-cdp-input" type="text" class="form-control form-control-sm w-auto" placeholder="Número CDP">
+                                    </div>
                                     <button class="btn btn-success btn-sm" id="btn-modal-buscar">
                                         <i class="fas fa-search me-1"></i>Buscar
                                     </button>
@@ -169,7 +173,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Tabla de detalles -->
                     <div class="table-scroll-wrapper">
                         <table class="table table-striped table-hover reports-table">
@@ -192,7 +196,7 @@
                                 </tr>
                             </thead>
                             <tbody id="tabla-detalles-body">
-                            
+
                             </tbody>
                         </table>
                     </div>
@@ -204,3 +208,4 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="<?= APP_URL ?>js/reports/reports.js"></script>
+
