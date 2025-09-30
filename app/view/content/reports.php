@@ -1,4 +1,5 @@
 <div class="container-fluid mt-4 reports-page">
+
     <!-- Contenido en dos columnas: izquierda (tabla) | derecha (gráfico) -->
     <div class="row mt-4 g-4 reports-layout">
         <!-- Columna Tabla -->
@@ -99,6 +100,7 @@
             </div>
         </div>
     </div>
+
     <!-- Modal Subir Reporte -->
     <div class="modal fade modal-reports" id="modalReporte" tabindex="-1" aria-labelledby="modalReporteLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -112,16 +114,16 @@
                         <input type="hidden" name="week" id="input-week">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
-                                <label for="file-cdp" class="form-label">CDP (Excel CSV)</label>
-                                <input type="file" class="form-control" id="file-cdp" name="cdp" accept=".csv">
+                                <label for="file-cdp" class="form-label">CDP (Excel)</label>
+                                <input type="file" class="form-control" id="file-cdp" name="cdp" accept=".xlsx, .xls">
                             </div>
                             <div class="col-md-4">
-                                <label for="file-rp" class="form-label">R.P (Excel CSV)</label>
-                                <input type="file" class="form-control" id="file-rp" name="rp" accept=".csv">
+                                <label for="file-rp" class="form-label">R.P (Excel)</label>
+                                <input type="file" class="form-control" id="file-rp" name="rp" accept=".xlsx, .xls">
                             </div>
                             <div class="col-md-4">
-                                <label for="file-pagos" class="form-label">Pagos (Excel CSV)</label>
-                                <input type="file" class="form-control" id="file-pagos" name="pagos" accept=".csv">
+                                <label for="file-pagos" class="form-label">Pagos (Excel)</label>
+                                <input type="file" class="form-control" id="file-pagos" name="pagos" accept=".xlsx, .xls">
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -130,7 +132,6 @@
                         </div>
                     </form>
                 </div>
-
             </div>
         </div>
     </div>
@@ -145,20 +146,60 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Filtros + Mini gráfica - ESTRUCTURA ORIGINAL RESTAURADA -->
+                    <!-- Filtros + Mini gráfica - CON NUEVOS FILTROS -->
                     <div class="row mb-3 g-3 align-items-stretch">
                         <div class="col-lg-8 col-md-7 col-12">
-                            <div class="reports-header p-2 h-100">
-                                <div class="d-flex align-items-center flex-wrap gap-3 w-100">
+                            <div class="reports-header p-3 h-100">
+                                <!-- Fila 1: Filtros principales -->
+                                <div class="d-flex align-items-center flex-wrap gap-3 mb-2">
+                                    <!-- Dependencia -->
                                     <div class="d-flex align-items-center gap-2">
-                                        <label for="modal-dependency-input" class="form-label m-0">Dependencia:</label>
-                                        <input id="modal-dependency-input" list="dependencias-list" class="form-control form-control-sm w-auto" placeholder="Todas (dejar vacío)" autocomplete="off" />
+                                        <label for="modal-dependency-input" class="form-label m-0 small fw-semibold">Dependencia:</label>
+                                        <input id="modal-dependency-input" list="dependencias-list" class="form-control form-control-sm" placeholder="Todas" autocomplete="off" style="width: 180px;" />
                                         <datalist id="dependencias-list">
                                             <!-- Opciones dinámicas cargadas por JS -->
                                         </datalist>
                                     </div>
+
+                                    <!-- Concepto Interno -->
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label for="filtro-concepto" class="form-label m-0 small fw-semibold">Concepto:</label>
+                                        <select id="filtro-concepto" class="form-select form-select-sm" style="width: 200px;">
+                                            <option value="">Todos los conceptos</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Botón Buscar -->
                                     <button class="btn btn-success btn-sm" id="btn-modal-buscar">
                                         <i class="fas fa-search me-1"></i>Buscar
+                                    </button>
+                                </div>
+
+                                <!-- Fila 2: Filtros adicionales -->
+                                <div class="d-flex align-items-center flex-wrap gap-3">
+                                    <!-- Informe de Pagos -->
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label for="filtro-pagos" class="form-label m-0 small fw-semibold">Pagos:</label>
+                                        <select id="filtro-pagos" class="form-select form-select-sm" style="width: 150px;">
+                                            <option value="">Todos</option>
+                                            <option value="con_pagos">Con pagos</option>
+                                            <option value="sin_pagos">Sin pagos</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Informe de Contrato -->
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label for="filtro-contrato" class="form-label m-0 small fw-semibold">Contrato:</label>
+                                        <select id="filtro-contrato" class="form-select form-select-sm" style="width: 150px;">
+                                            <option value="">Todos</option>
+                                            <option value="con_contrato">Con contrato</option>
+                                            <option value="sin_contrato">Sin contrato</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Botón Limpiar Filtros -->
+                                    <button class="btn btn-outline-secondary btn-sm" id="btn-limpiar-filtros">
+                                        <i class="fas fa-times me-1"></i>Limpiar
                                     </button>
                                 </div>
                             </div>
@@ -175,7 +216,7 @@
                         </div>
                     </div>
 
-                    <!-- Tabla de detalles - ESTRUCTURA ORIGINAL -->
+                    <!-- Tabla de detalles -->
                     <div class="table-scroll-wrapper">
                         <table class="table table-striped table-hover reports-table">
                             <thead class="table-dark">
@@ -194,7 +235,7 @@
                                 </tr>
                             </thead>
                             <tbody id="tabla-detalles-body">
-
+                                <!-- Datos cargados dinámicamente -->
                             </tbody>
                         </table>
                     </div>
@@ -295,6 +336,23 @@
         margin: 0;
     }
 
+    /* Estilos para los nuevos filtros */
+    .reports-header {
+        background: #f8f9fa;
+        border-radius: 6px;
+        border: 1px solid #e9ecef;
+    }
+
+    .form-select-sm {
+        font-size: 0.875rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .form-label.small {
+        font-size: 0.875rem;
+        min-width: max-content;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
         .reports-layout .order-2 {
@@ -317,6 +375,15 @@
         .d-flex.gap-1.flex-wrap {
             gap: 0.25rem !important;
         }
+
+        .reports-header .d-flex {
+            gap: 0.5rem !important;
+        }
+
+        .form-select-sm,
+        .form-control-sm {
+            width: 100% !important;
+        }
     }
 
     @media (max-width: 576px) {
@@ -330,6 +397,10 @@
 
         .modal-fullscreen {
             padding: 0;
+        }
+
+        .reports-header {
+            padding: 1rem !important;
         }
     }
 </style>
