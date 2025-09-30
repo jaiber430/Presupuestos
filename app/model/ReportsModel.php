@@ -29,8 +29,8 @@ class ChunkReadFilter implements IReadFilter
 	}
 }
 
-class ReportsModel extends MainModel
-{
+class ReportsModel extends MainModel{
+
 	private static array $numericFields = [
 		'cdp' => ['valor_inicial', 'valor_operaciones', 'valor_actual', 'comprometer_saldo'],
 		'pagos' => ['valor_bruto', 'valor_deducciones', 'valor_neto', 'valor_pesos'],
@@ -117,8 +117,7 @@ class ReportsModel extends MainModel
 		return str_replace($tildes, $sin, $text);
 	}
 
-	private static function toNumeric($value): int
-	{
+	private static function toNumeric($value): int{
 		if ($value === null) return 0;
 		$value = str_replace(['$', '.', ','], '', (string)$value);
 		$value = trim($value);
