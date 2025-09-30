@@ -127,7 +127,7 @@
                 <div class="modal-body">
                     <form id="formReporte" class="FormularioAjax" action="<?= APP_URL . "reports" ?>" method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="week" id="input-week">
-                        <input type="hidden" name="semana_id" id="input-semana-id">
+                        <input type="hidden" name="semana_id" id="input-semana-id"> <!-- ¡ESTE CAMPO ES ESENCIAL! -->
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
                                 <label for="file-cdp" class="form-label">CDP (Excel)</label>
