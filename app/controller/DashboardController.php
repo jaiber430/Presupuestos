@@ -32,7 +32,7 @@ class DashboardController {
         $users= UserController::listByCentro($centroId);
 
         //Generación de las semanas por el rango de apertura y cierre del año fiscal
-        $semanas = AnioFiscalController::generarSemanas($anioFiscalActivo['fecha_inicio'], $anioFiscalActivo['fecha_cierre']);
+        $semanas = AnioFiscalModel::obtenerSemanasPorCentro($centroId);
         //Obtengo los permisos para listarlos en la lista que los necesite. 
         $permisoController = new PermisoController();
         $permisos = $permisoController->list();
