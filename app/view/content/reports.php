@@ -16,36 +16,42 @@
                                 <th>Acciones</th>
                             </tr>
                         </thead>
-                        <?php
-                        $contador = 1;
-                        foreach ($semanas as $semana):
-                        ?>
-                            <tr>
-                                <td>Semana <?= $contador ?></td>
-                                <td><?= date("d/m/Y", strtotime($semana['inicio'])) ?></td>
-                                <td><?= date("d/m/Y", strtotime($semana['fin'])) ?></td>
-                                <td>
-                                    <button class="btn btn-outline-secondary btn-sm btn-ver-detalles"
-                                        data-week="Semana <?= $contador ?>"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modalDetalles">Ver Detalles</button>
+                        <tbody>
+                            <?php
+                            $contador = 1;
+                            foreach ($semanas as $semana):
+                            ?>
+                                <tr>
+                                    <td class="fw-semibold">Semana <?= $contador ?></td>
+                                    <td><?= date("d/m/Y", strtotime($semana['inicio'])) ?></td>
+                                    <td><?= date("d/m/Y", strtotime($semana['fin'])) ?></td>
+                                    <td>
+                                        <div class="d-flex gap-1 flex-wrap">
+                                            <button class="btn btn-outline-secondary btn-sm btn-ver-detalles"
+                                                data-week="Semana <?= $contador ?>"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalDetalles">
+                                                <i class="fas fa-eye me-1"></i>Ver Detalles
+                                            </button>
 
-                                    <button class="btn btn-primary btn-sm btn-open-modal"
-                                        data-week="Semana <?= $contador ?>"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modalReporte">Subir Reporte</button>
+                                            <button class="btn btn-primary btn-sm btn-open-modal"
+                                                data-week="Semana <?= $contador ?>"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalReporte">
+                                                <i class="fas fa-upload me-1"></i>Subir Reporte
+                                            </button>
 
-                                    <button class="btn btn-danger btn-sm btn-delete-week"
-                                        data-week="Semana <?= $contador ?>">
-                                        <i class="fas fa-trash-alt me-1"></i>Eliminar
-                                    </button>
-                                </td>
-                            </tr>
-                        <?php
-                            $contador++;
-                        endforeach;
-                        ?>
-
+                                            <button class="btn btn-danger btn-sm btn-delete-week"
+                                                data-week="Semana <?= $contador ?>">
+                                                <i class="fas fa-trash-alt me-1"></i>Eliminar
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php
+                                $contador++;
+                            endforeach;
+                            ?>
                         </tbody>
                     </table>
                 </div>
@@ -85,7 +91,6 @@
                     <canvas id="canvas-gastos" class="mt-2 main-chart" height="320"></canvas>
                 </div>
 
-
                 <div id="chart-dependencias" class="chart-container" style="display:none;">
                     <h5 class="chart-title">Comprometido por Dependencia</h5>
                     <p class="chart-desc small text-muted mb-1">Top dependencias según valor comprometido (agrupando el resto en "Otros").</p>
@@ -99,7 +104,10 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content reports-modal reports-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalReporteLabel">Subir Reporte <span class="text-muted" id="modal-week-label"></span></h5>
+                    <h5 class="modal-title" id="modalReporteLabel">
+                        <i class="fas fa-upload me-2"></i>
+                        Subir Reporte <span class="text-muted" id="modal-week-label"></span>
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
@@ -107,16 +115,22 @@
                         <input type="hidden" name="week" id="input-week">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-4">
-                                <label for="file-cdp" class="form-label">CDP (Excel CSV)</label>
-                                <input type="file" class="form-control" id="file-cdp" name="cdp" accept=".csv">
+                                <label for="file-cdp" class="form-label">
+                                    <i class="fas fa-file-excel me-1"></i>CDP (Excel XLSX)
+                                </label>
+                                <input type="file" class="form-control" id="file-cdp" name="cdp" accept=".xlsx, .xls">
                             </div>
                             <div class="col-md-4">
-                                <label for="file-rp" class="form-label">R.P (Excel CSV)</label>
-                                <input type="file" class="form-control" id="file-rp" name="rp" accept=".csv">
+                                <label for="file-rp" class="form-label">
+                                    <i class="fas fa-file-excel me-1"></i>R.P (Excel XLSX)
+                                </label>
+                                <input type="file" class="form-control" id="file-rp" name="rp" accept=".xlsx, .xls">
                             </div>
                             <div class="col-md-4">
-                                <label for="file-pagos" class="form-label">Pagos (Excel CSV)</label>
-                                <input type="file" class="form-control" id="file-pagos" name="pagos" accept=".csv">
+                                <label for="file-pagos" class="form-label">
+                                    <i class="fas fa-file-excel me-1"></i>Pagos (Excel XLSX)
+                                </label>
+                                <input type="file" class="form-control" id="file-pagos" name="pagos" accept=".xlsx, .xls">
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -131,12 +145,15 @@
     </div>
     <!-- Fin Modal Subir Reporte -->
 
-    <!-- Modal Ver Detalles -->
+    <!-- Modal Ver Detalles - FULLSCREEN -->
     <div class="modal fade modal-reports" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-dialog modal-fullscreen">
             <div class="modal-content reports-modal reports-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalDetallesLabel">Detalles de <span class="text-muted" id="modal-detalles-week-label"></span></h5>
+                    <h5 class="modal-title" id="modalDetallesLabel">
+                        <i class="fas fa-search me-2"></i>
+                        Detalles de <span class="text-muted" id="modal-detalles-week-label"></span>
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
@@ -151,10 +168,6 @@
                                         <datalist id="dependencias-list">
                                             <!-- Opciones dinámicas cargadas por JS -->
                                         </datalist>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <label for="modal-cdp-input" class="form-label m-0">Número CDP:</label>
-                                        <input id="modal-cdp-input" type="text" class="form-control form-control-sm w-auto" placeholder="Número CDP">
                                     </div>
                                     <button class="btn btn-success btn-sm" id="btn-modal-buscar">
                                         <i class="fas fa-search me-1"></i>Buscar
@@ -179,11 +192,8 @@
                         <table class="table table-striped table-hover reports-table">
                             <thead class="table-dark">
                                 <tr>
-                                    <!-- <th>#</th> -->
                                     <th>Número CDP</th>
                                     <th>Fecha de Registro</th>
-                                    <!-- <th>Dependencia</th>
-                                    <th>Dependencia Descripción</th> -->
                                     <th>Concepto Interno</th>
                                     <th>Rubro</th>
                                     <th>Descripción</th>
@@ -206,6 +216,113 @@
     </div>
     <!-- Fin Modal Ver Detalles -->
 </div>
+
+<style>
+    .reports-page {
+        background-color: #f5f7fa;
+    }
+
+    .rp-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+
+    .rp-card:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .subheader {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .table-responsive {
+        border-radius: 6px;
+    }
+
+    .reports-table th {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .reports-table td {
+        vertical-align: middle;
+        border-color: #e9ecef;
+    }
+
+    .reports-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .btn {
+        border-radius: 4px;
+        font-weight: 500;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 8px;
+    }
+
+    .modal-fullscreen .modal-content {
+        border-radius: 0;
+    }
+
+    .table-scroll-wrapper {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .reports-layout .order-2 {
+            order: 2 !important;
+        }
+
+        .reports-layout .order-1 {
+            order: 1 !important;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .reports-table {
+            font-size: 0.75rem;
+        }
+
+        .d-flex.gap-1.flex-wrap {
+            gap: 0.25rem !important;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .rp-card {
+            padding: 1rem !important;
+        }
+
+        .table-responsive {
+            font-size: 0.7rem;
+        }
+
+        .modal-fullscreen {
+            padding: 0;
+        }
+    }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="<?= APP_URL ?>js/reports/reports.js"></script>
-
