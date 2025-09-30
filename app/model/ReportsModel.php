@@ -9,11 +9,8 @@ use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
 
 require_once __DIR__ . '/MainModel.php';
 
-/**
- * Filtro para lectura por bloques de PhpSpreadsheet
- */
-class ChunkReadFilter implements IReadFilter
-{
+
+class ChunkReadFilter implements IReadFilter{
 	private int $startRow = 0;
 	private int $chunkSize = 0;
 
@@ -37,7 +34,7 @@ class ReportsModel extends MainModel{
 		'reporte_presupuestal' => ['valor_inicial', 'valor_operaciones', 'valor_actual', 'saldo_utilizar']
 	];
 
-	public static function processWeek1Excels(array $files): array{
+	public static function processWeek1Excels(array $files, int $semanaId): array{
 		$results = [];
 		$mapping = [
 			'cdp'   => 'cdp',
@@ -63,14 +60,15 @@ class ReportsModel extends MainModel{
 
 		foreach ($mapping as $key => $table) {
 			if (!empty($files[$key]['tmp_name'])) {
-				$results[] = self::importExcelToTable($files[$key]['tmp_name'], $table);
+				$results[] = self::importExcelToTable($files[$key]['tmp_name'], $table, $semanaId);
 			}
 		}
 
 		return $results;
 	}
 
-	private static function getTableColumns(string $table): array{
+	private static function getTableColumns(string $table): array
+	{
 		$stmt = self::executeQuery("SHOW COLUMNS FROM `$table`");
 		$cols = [];
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -79,11 +77,15 @@ class ReportsModel extends MainModel{
 		return $cols;
 	}
 
-	private static function validateExcelColumns(string $filePath, string $table){
+	private static function validateExcelColumns(string $filePath, string $table)
+	{
 		if (!is_readable($filePath)) return "No se puede leer el archivo para '$table'.";
 
 		$columns = self::getTableColumns($table);
 		$expected = count($columns);
+
+		// RESTAR 1 PORQUE TODAS LAS TABLAS TIENEN semana_id
+		$excelColumnsExpected = $expected - 1; // 23 columnas en el Excel
 
 		$reader = IOFactory::createReaderForFile($filePath);
 		$reader->setReadDataOnly(true);
@@ -100,8 +102,8 @@ class ReportsModel extends MainModel{
 			$cellIterator->setIterateOnlyExistingCells(false);
 			$data = [];
 			foreach ($cellIterator as $cell) $data[] = $cell->getValue();
-			if (count($data) !== $expected) {
-				return "Error en '$table': fila $rowNumber no coincide con columnas de la tabla ($expected esperadas).";
+			if (count($data) !== $excelColumnsExpected) {
+				return "Error en '$table': fila $rowNumber no coincide con columnas del archivo ($excelColumnsExpected esperadas).";
 			}
 			$rowNumber++;
 		}
@@ -109,7 +111,8 @@ class ReportsModel extends MainModel{
 		return true;
 	}
 
-	private static function normalizeText(string $text): string{
+	private static function normalizeText(string $text): string
+	{
 		$text = str_replace("\xEF\xBF\xBD", '', $text);
 		$text = str_replace(['Ñ', 'ñ'], 'n', $text);
 		$tildes = ['á', 'é', 'í', 'ó', 'ú', 'ü', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ü'];
@@ -117,7 +120,8 @@ class ReportsModel extends MainModel{
 		return str_replace($tildes, $sin, $text);
 	}
 
-	private static function toNumeric($value): int{
+	private static function toNumeric($value): int
+	{
 		if ($value === null) return 0;
 		$value = str_replace(['$', '.', ','], '', (string)$value);
 		$value = trim($value);
@@ -127,50 +131,52 @@ class ReportsModel extends MainModel{
 	/**
 	 * Inserta los datos del Excel a la tabla indicada (fila por fila)
 	 */
-	private static function importExcelToTable(string $filePath, string $table): string{
+	private static function importExcelToTable(string $filePath, string $table, int $semanaId): string
+	{
 		$pdo = self::getConnection();
 		$columns = self::getTableColumns($table);
+
+		// Filtrar columnas para el INSERT (excluir semana_id si existe)
+		$insertColumns = array_filter($columns, fn($col) => $col !== 'semana_id');
 		$numericCols = self::$numericFields[$table] ?? [];
 
-		// Crear reader en modo “read-only” para no cargar todo en memoria
 		$reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($filePath);
 		$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
 
-		// Limpiar tabla antes de insertar
-		$pdo->exec("TRUNCATE TABLE `$table`");
-
-		// Preparar SQL dinámico
-		$placeholders = '(' . implode(',', array_fill(0, count($columns), '?')) . ')';
-		$sql = "INSERT INTO `$table` (`" . implode('`,`', $columns) . "`) VALUES $placeholders";
+		// CORREGIDO: Placeholders correctos incluyendo semana_id
+		$columnList = "`" . implode('`,`', $insertColumns) . "`, `semana_id`";
+		$placeholders = "(" . rtrim(str_repeat("?,", count($insertColumns) + 1), ",") . ")";
+		$sql = "INSERT INTO `$table` ($columnList) VALUES $placeholders";
 		$stmt = $pdo->prepare($sql);
 
 		$pdo->beginTransaction();
 		$firstRow = true;
+		$rowCount = 0;
 
 		foreach ($sheet->getRowIterator() as $row) {
 			if ($firstRow) {
-				$firstRow = false; // saltar cabecera
+				$firstRow = false;
 				continue;
 			}
 
 			$cellIterator = $row->getCellIterator();
-			$cellIterator->setIterateOnlyExistingCells(false); // leer todas
+			$cellIterator->setIterateOnlyExistingCells(false);
 			$data = [];
 			foreach ($cellIterator as $cell) {
 				$data[] = $cell->getValue();
 			}
 
-			// Ajustar cantidad de valores a columnas de la tabla
-			if (count($data) < count($columns)) {
-				$data = array_pad($data, count($columns), null);
-			} elseif (count($data) > count($columns)) {
-				$data = array_slice($data, 0, count($columns));
+			// Ajustar cantidad de valores
+			if (count($data) < count($insertColumns)) {
+				$data = array_pad($data, count($insertColumns), null);
+			} elseif (count($data) > count($insertColumns)) {
+				$data = array_slice($data, 0, count($insertColumns));
 			}
 
 			$values = [];
-			foreach ($columns as $i => $col) {
+			foreach ($insertColumns as $i => $col) {
 				$val = $data[$i] ?? null;
 				if (in_array($col, $numericCols, true)) {
 					$values[] = self::toNumeric($val);
@@ -180,26 +186,27 @@ class ReportsModel extends MainModel{
 				}
 			}
 
+			// Agregar el semana_id al final
+			$values[] = $semanaId;
+
 			$stmt->execute($values);
+			$rowCount++;
 		}
 
 		$pdo->commit();
-
-		// Limpiar memoria
 		$spreadsheet->disconnectWorksheets();
 		unset($spreadsheet);
 
-		return "Datos de '$table' insertados correctamente.";
+		return "Datos de '$table' insertados correctamente ($rowCount registros).";
 	}
 
-
-	public static function getDependencias(): array{
+	public static function getDependencias(): array
+	{
 		$stmt = self::executeQuery("SELECT codigo, nombre FROM dependencias ORDER BY nombre ASC");
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
 
-	public static function consultarCDP(array $filters): array
-	{
+	public static function consultarCDP(array $filters): array{
 		$sql = "SELECT 
                     c.codigo_cdp AS numero_cdp,
                     c.fecha_registro AS fecha_registro,

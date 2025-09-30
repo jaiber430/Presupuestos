@@ -1,16 +1,21 @@
-    // Script para manejar la apertura del modal y actualizar el título dinámicamente
+// Script completo para reports - Solo quitamos la validación de archivos
 document.addEventListener('DOMContentLoaded', function(){
     // Modal Subir Reporte
     const modal = document.getElementById('modalReporte');
     const weekLabel = document.getElementById('modal-week-label');
     const inputWeek = document.getElementById('input-week');
+    const inputSemanaId = document.getElementById('input-semana-id');
     const triggers = document.querySelectorAll('.btn-open-modal');
 
     triggers.forEach(btn => {
         btn.addEventListener('click', () => {
             const w = btn.getAttribute('data-week');
+            const semanaId = btn.getAttribute('data-semana-id');
             weekLabel.textContent = '- ' + w;
             inputWeek.value = w;
+            if (inputSemanaId) {
+                inputSemanaId.value = semanaId;
+            }
         });
     });
 
@@ -20,11 +25,10 @@ document.addEventListener('DOMContentLoaded', function(){
     const triggersDetalles = document.querySelectorAll('.btn-ver-detalles');
     const dependenciaInput = document.getElementById('modal-dependency-input');
     const dependenciaDataList = document.getElementById('dependencias-list');
-    const cdpInput = document.getElementById('modal-cdp-input');
     const btnBuscar = document.getElementById('btn-modal-buscar');
     const tbodyDetalles = document.getElementById('tabla-detalles-body');
 
-    // Cargar dependencias al abrir el modal (una sola vez)
+    // Cargar dependencias al abrir el modal
     let depsCargadas = false;
     const cargarDependencias = async () => {
         if (depsCargadas) return;
@@ -32,12 +36,11 @@ document.addEventListener('DOMContentLoaded', function(){
             const resp = await fetch(`${BASE_URL}reports/dependencias`);
             const data = await resp.json();
             if (Array.isArray(data)) {
-                // Limpiar datalist primero
                 if (dependenciaDataList) dependenciaDataList.innerHTML = '';
                 data.forEach(dep => {
                     const opt = document.createElement('option');
-                    opt.value = dep.codigo; // valor que se enviará
-                    opt.label = `${dep.codigo} - ${dep.nombre}`; // algunos navegadores muestran label
+                    opt.value = dep.codigo;
+                    opt.label = `${dep.codigo} - ${dep.nombre}`;
                     opt.textContent = `${dep.codigo} - ${dep.nombre}`;
                     dependenciaDataList.appendChild(opt);
                 });
@@ -46,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function(){
         } catch (e) { console.error(e); }
     };
 
-    // Utilidades de formato usadas por buscarYRender
+    // Utilidades de formato
     const limpiarNumero = (valor) => {
         if (!valor) return 0;
         return parseFloat(String(valor).replace(/[^0-9.-]+/g, "")) || 0;
@@ -55,9 +58,9 @@ document.addEventListener('DOMContentLoaded', function(){
     const formatoMoneda = (valor) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
 
     // Gestión de gráficas
-    let chartGastos = null;        // Barra apilada (Comprometido vs Saldo)
-    let chartPresupuesto = null;   // Barras múltiples
-    let chartDependencias = null;  // Barra horizontal dependencias
+    let chartGastos = null;
+    let chartPresupuesto = null;
+    let chartDependencias = null;
 
     const disposeChart = (chartRef) => {
         if (chartRef && typeof chartRef.destroy === 'function') {
@@ -68,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     const palette = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ab'];
 
-    // Agregación de filas en un solo lugar para reutilizar en charts y mini chart
+    // Agregación de filas
     const aggregateRows = (rows) => {
         const acc = {
             totalInicial: 0,
@@ -101,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const totalPresEl = document.getElementById('total-presupuesto');
         if (totalPresEl) totalPresEl.textContent = formatoMoneda(totalInicial);
 
-        // Chart 1: Distribución (barra apilada)
+        // Chart 1: Distribución
         chartGastos = disposeChart(chartGastos);
         const canvasGastos = document.getElementById('canvas-gastos');
         if (canvasGastos) {
@@ -123,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function(){
             });
         }
 
-        // Chart 2: Estado Presupuesto (multi barras)
+        // Chart 2: Estado Presupuesto
         chartPresupuesto = disposeChart(chartPresupuesto);
         const canvasPres = document.getElementById('canvas-presupuesto');
         if (canvasPres) {
@@ -148,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function(){
             });
         }
 
-        // Chart 3: Dependencias (horizontal)
+        // Chart 3: Dependencias
         chartDependencias = disposeChart(chartDependencias);
         const entries = Array.from(porDependencia.entries()).sort((a,b)=>b[1]-a[1]);
         const top = entries.slice(0,10);
@@ -209,7 +212,6 @@ document.addEventListener('DOMContentLoaded', function(){
                 let clase = 'rojo';
                 if (comprometido === inicial && saldo === 0) clase = 'verde'; else if (comprometido > 0) clase = 'naranja';
                 const tr = document.createElement('tr');
-                // Sanitizar texto para evitar inyección simple (reemplazar < y >)
                 const safe = (txt) => (txt ?? '').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;');
                 tr.innerHTML = `
                     <td>${safe(row.numero_cdp)}</td>
@@ -234,11 +236,10 @@ document.addEventListener('DOMContentLoaded', function(){
         }
     };
 
-    // Cargar siempre datos globales para panel principal al abrir la página (Todas)
-    // Se hace una consulta inicial sin parámetros solo si aún no se ha hecho.
+    // Cargar datos globales
     let globalLoaded = false;
     const loadGlobalCharts = async () => {
-        if (globalLoaded) return; // evitar recarga innecesaria
+        if (globalLoaded) return;
         globalLoaded = true;
         try {
             const resp = await fetch(`${BASE_URL}reports/consulta`);
@@ -255,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function(){
             await cargarDependencias();
             tbodyDetalles.innerHTML = '';
             const raw = dependenciaInput.value.trim();
-            const depValue = raw === '' ? '' : raw; // si vacío => todas
+            const depValue = raw === '' ? '' : raw;
             const data = await buscarYRender(depValue);
             if (depValue) renderMiniChart(data, depValue); else renderMiniChart([], '');
         });
@@ -275,37 +276,113 @@ document.addEventListener('DOMContentLoaded', function(){
 
     chartSelect.addEventListener('change', function() {
         const selectedChart = this.value;
-        
-        // Ocultar todas las gráficas
         chartContainers.forEach(container => {
             container.style.display = 'none';
         });
-        
-        // Mostrar la gráfica seleccionada
         const selectedContainer = document.getElementById('chart-' + selectedChart);
         if (selectedContainer) {
             selectedContainer.style.display = 'block';
         }
-        
-        console.log('Gráfica seleccionada: ' + selectedChart);
     });
 
-    // Forzar estado inicial (presupuesto visible)
+    // Forzar estado inicial
     (()=>{
         const preset = 'presupuesto';
         chartContainers.forEach(c=>{ c.style.display = (c.id === 'chart-' + preset) ? 'block' : 'none'; });
         chartSelect.value = preset;
     })();
 
+    // SUBIDA DE ARCHIVOS SIMPLIFICADA - Sin validación de mierda
+    const formReporte = document.getElementById('formReporte');
+    if (formReporte) {
+        formReporte.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const weekValue = inputWeek.value;
+            const semanaIdValue = inputSemanaId ? inputSemanaId.value : '';
+            
+            if (!weekValue || !semanaIdValue) {
+                Swal.fire('Error', 'Datos incompletos.', 'error');
+                return;
+            }
+
+            const fileCdp = document.getElementById('file-cdp').files[0];
+            const fileRp = document.getElementById('file-rp').files[0];
+            const filePagos = document.getElementById('file-pagos').files[0];
+            
+            if (!fileCdp && !fileRp && !filePagos) {
+                Swal.fire('Error', 'Debe seleccionar al menos un archivo.', 'warning');
+                return;
+            }
+
+            // Mostrar carga directamente
+            let loadingAlert = Swal.fire({
+                title: 'Subiendo archivos...',
+                html: `
+                    <div class="text-center">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Subiendo...</span>
+                        </div>
+                        <p class="mb-1">Procesando archivos Excel</p>
+                    </div>
+                `,
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                const formData = new FormData();
+                formData.append('week', weekValue);
+                formData.append('semana_id', semanaIdValue);
+                if (fileCdp) formData.append('cdp', fileCdp);
+                if (fileRp) formData.append('rp', fileRp);
+                if (filePagos) formData.append('pagos', filePagos);
+
+                const response = await fetch(formReporte.action, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                Swal.close();
+                const result = await response.json();
+
+                Swal.fire({
+                    title: result.titulo,
+                    text: result.texto,
+                    icon: result.icono,
+                    confirmButtonText: 'Aceptar'
+                }).then(() => {
+                    if (result.icono === 'success') {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('modalReporte'));
+                        if (modal) modal.hide();
+                        window.location.reload();
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.close();
+                Swal.fire('Error', 'Ocurrió un error al subir los archivos.', 'error');
+            }
+        });
+    }
+
     // Botones Eliminar Semana
     const deleteButtons = document.querySelectorAll('.btn-delete-week');
     deleteButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const week = btn.getAttribute('data-week') || '';
-            if (!window.Swal) { console.warn('SweetAlert no disponible'); return; }
+            const semanaId = btn.getAttribute('data-semana-id') || '';
+            
+            if (!week || !semanaId) {
+                Swal.fire('Error', 'Faltan datos.', 'error');
+                return;
+            }
+            
             Swal.fire({
                 title: '¿Eliminar datos?',
-                text: `Se eliminarán los datos cargados (CDP, RP, Pagos). Esta acción no se puede deshacer.`,
+                text: `Se eliminarán los datos de ${week}.`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sí, eliminar',
@@ -313,25 +390,56 @@ document.addEventListener('DOMContentLoaded', function(){
             }).then(async (res) => {
                 if (!res.isConfirmed) return;
                 try {
+                    const deleteAlert = Swal.fire({
+                        title: 'Eliminando...',
+                        html: `
+                            <div class="text-center">
+                                <div class="spinner-border text-danger mb-3" role="status">
+                                    <span class="visually-hidden">Eliminando...</span>
+                                </div>
+                                <p>Eliminando datos</p>
+                            </div>
+                        `,
+                        allowOutsideClick: false,
+                        showConfirmButton: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
                     const formData = new FormData();
                     formData.append('week', week);
-                    const resp = await fetch(`${BASE_URL}reports/delete`, { method: 'POST', body: formData }); // index.php añadirá -post
+                    formData.append('semana_id', semanaId);
+                    
+                    const resp = await fetch(`${BASE_URL}reports/delete`, { 
+                        method: 'POST', 
+                        body: formData 
+                    });
+                    
                     const data = await resp.json();
+                    
+                    Swal.close();
+                    
                     Swal.fire(data.titulo || 'Resultado', data.texto || '', data.icono || 'info');
-                    // Limpiar tablas y gráficas si éxito
+                    
                     if (data.icono === 'success') {
-                        // Vaciar cuerpo detalles si existe
                         if (tbodyDetalles) tbodyDetalles.innerHTML = '';
-                        // Destruir charts y reiniciar totales
-                        if (chartPresupuesto) { chartPresupuesto.destroy(); chartPresupuesto=null; }
-                        if (chartGastos) { chartGastos.destroy(); chartGastos=null; }
-                        if (chartDependencias) { chartDependencias.destroy(); chartDependencias=null; }
+                        chartGastos = disposeChart(chartGastos);
+                        chartPresupuesto = disposeChart(chartPresupuesto);
+                        chartDependencias = disposeChart(chartDependencias);
+                        
                         if (document.getElementById('total-presupuesto')) {
-                            document.getElementById('total-presupuesto').textContent = 'S/ 0';
+                            document.getElementById('total-presupuesto').textContent = formatoMoneda(0);
                         }
+                        
+                        globalLoaded = false;
+                        await loadGlobalCharts();
+                        
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
                     }
                 } catch (e) {
-                    Swal.fire('Error', 'No se pudo eliminar los datos.', 'error');
+                    console.error('Error al eliminar:', e);
+                    Swal.fire('Error', 'No se pudo eliminar.', 'error');
                 }
             });
         });

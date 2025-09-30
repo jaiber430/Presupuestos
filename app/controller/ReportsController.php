@@ -15,24 +15,25 @@ class ReportsController{
         Auth::check();
 
         try {
-            if (empty($_POST['week'])) {
-                ob_clean(); // Limpiar cualquier salida previa
+            if (empty($_POST['week']) || empty($_POST['semana_id'])) {
+                ob_clean();
                 header('Content-Type: application/json; charset=utf-8');
                 echo json_encode([
                     'tipo'   => 'simple',
                     'titulo' => 'Datos incompletos',
-                    'texto'  => 'Debes indicar la semana.',
+                    'texto'  => 'Debes indicar la semana y el ID de semana.',
                     'icono'  => 'warning',
                 ], JSON_UNESCAPED_UNICODE);
                 exit;
             }
 
             $files = $_FILES ?? [];
+            $semanaId = (int)$_POST['semana_id'];
 
             // Procesa Excel usando ReportsModel adaptado
-            $results = ReportsModel::processWeek1Excels($files);
+            $results = ReportsModel::processWeek1Excels($files, $semanaId);
 
-            ob_clean(); // Limpiar cualquier salida antes del JSON
+            ob_clean();
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode([
                 'tipo'   => 'simple',
@@ -42,7 +43,7 @@ class ReportsController{
             ], JSON_UNESCAPED_UNICODE);
             exit;
         } catch (\Throwable $e) {
-            ob_clean(); // Limpiar salida antes del JSON
+            ob_clean();
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode([
                 'tipo'   => 'simple',
