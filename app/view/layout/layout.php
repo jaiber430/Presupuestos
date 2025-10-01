@@ -85,7 +85,6 @@
         </div>
     </header>
 
-    <!-- TODO LO DEMÁS EXACTAMENTE IGUAL -->
     <!-- Subheader informativo -->
     <section class="subheader-container bg-light p-3 border-bottom" aria-labelledby="subheader-title">
         <h2 id="subheader-title" class="visually-hidden">Información del año fiscal</h2>
@@ -97,7 +96,7 @@
                 </p>
             </div>
             <div class="col-md">
-                <label class="form-label fw-bold">Año Fiscal:</label>
+                <label class="form-label fw-bold">Vigencia Fiscal:</label>
                 <input type="number" class="form-control form-control-sm"
                     value="<?= $anioFiscalActivo['anio_fiscal'] ?? '' ?>"
                     readonly aria-label="Año fiscal actual">
