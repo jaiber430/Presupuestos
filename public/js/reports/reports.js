@@ -1,6 +1,7 @@
-// Script completo para reports - Solo quitamos la validación de archivos
-document.addEventListener('DOMContentLoaded', function(){
-    // Modal Subir Reporte
+document.addEventListener('DOMContentLoaded', function () {
+    // ============================
+    // MODAL SUBIR REPORTE
+    // ============================
     const modal = document.getElementById('modalReporte');
     const weekLabel = document.getElementById('modal-week-label');
     const inputWeek = document.getElementById('input-week');
@@ -19,7 +20,9 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     });
 
-    // Modal Ver Detalles
+    // ============================
+    // MODAL VER DETALLES
+    // ============================
     const modalDetalles = document.getElementById('modalDetalles');
     const weekLabelDetalles = document.getElementById('modal-detalles-week-label');
     const triggersDetalles = document.querySelectorAll('.btn-ver-detalles');
@@ -28,7 +31,14 @@ document.addEventListener('DOMContentLoaded', function(){
     const btnBuscar = document.getElementById('btn-modal-buscar');
     const tbodyDetalles = document.getElementById('tabla-detalles-body');
 
-    // Cargar dependencias al abrir el modal
+    // Instancia del modal (Bootstrap 5)
+    const modalDetallesInstance = new bootstrap.Modal(modalDetalles);
+
+    // Almacenar dependencias y datos globales
+    let dependencias = [];
+    let datosGlobales = null;
+
+    // Cargar dependencias solo una vez
     let depsCargadas = false;
     const cargarDependencias = async () => {
         if (depsCargadas) return;
@@ -36,42 +46,44 @@ document.addEventListener('DOMContentLoaded', function(){
             const resp = await fetch(`${BASE_URL}reports/dependencias`);
             const data = await resp.json();
             if (Array.isArray(data)) {
-                if (dependenciaDataList) dependenciaDataList.innerHTML = '';
+                dependenciaDataList.innerHTML = '';
+                dependencias = data;
                 data.forEach(dep => {
                     const opt = document.createElement('option');
                     opt.value = dep.codigo;
-                    opt.label = `${dep.codigo} - ${dep.nombre}`;
                     opt.textContent = `${dep.codigo} - ${dep.nombre}`;
                     dependenciaDataList.appendChild(opt);
                 });
                 depsCargadas = true;
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error('Error al cargar dependencias:', e); }
     };
 
-    // Utilidades de formato
+    // Función para obtener nombre completo de dependencia
+    const obtenerNombreDependencia = (codigo) => {
+        if (!codigo || !codigo.trim()) return 'Todas las dependencias';
+        const clean = codigo.trim();
+        const dep = dependencias.find(d => d.codigo.toString().trim() === clean);
+        return dep ? `${dep.codigo} - ${dep.nombre}` : clean;
+    };
+
+    // ============================
+    // UTILIDADES
+    // ============================
     const limpiarNumero = (valor) => {
         if (!valor) return 0;
         return parseFloat(String(valor).replace(/[^0-9.-]+/g, "")) || 0;
     };
 
-    const formatoMoneda = (valor) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
+    const formatoMoneda = (valor) => new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+    }).format(valor);
 
-    // Gestión de gráficas
-    let chartGastos = null;
-    let chartPresupuesto = null;
-    let chartDependencias = null;
-
-    const disposeChart = (chartRef) => {
-        if (chartRef && typeof chartRef.destroy === 'function') {
-            chartRef.destroy();
-        }
-        return null;
-    };
-
-    const palette = ['#4e79a7','#f28e2b','#e15759','#76b7b2','#59a14f','#edc948','#b07aa1','#ff9da7','#9c755f','#bab0ab'];
-
-    // Agregación de filas
+    // ============================
+    // AGREGACIÓN DE FILAS
+    // ============================
     const aggregateRows = (rows) => {
         const acc = {
             totalInicial: 0,
@@ -87,15 +99,30 @@ document.addEventListener('DOMContentLoaded', function(){
             const operaciones = limpiarNumero(r.valor_operaciones);
             const actual = limpiarNumero(r.valor_actual);
             const comprometido = Math.max(inicial - saldo, 0);
+
             acc.totalInicial += inicial;
             acc.totalSaldo += saldo;
             acc.totalComprometido += comprometido;
             acc.totalOperaciones += operaciones;
             acc.totalActual += actual;
+
             const depName = r.dependencia_descripcion || r.dependencia || 'Sin dependencia';
             acc.porDependencia.set(depName, (acc.porDependencia.get(depName) || 0) + comprometido);
         });
         return acc;
+    };
+
+    // ============================
+    // GRÁFICAS GLOBALES (PANEL PRINCIPAL)
+    // ============================
+    let chartGastos = null;
+    let chartPresupuesto = null;
+    let chartDependencias = null;
+    const palette = ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f', '#edc948', '#b07aa1', '#ff9da7', '#9c755f', '#bab0ab'];
+
+    const disposeChart = (chartRef) => {
+        if (chartRef && typeof chartRef.destroy === 'function') chartRef.destroy();
+        return null;
     };
 
     const updateCharts = (rows) => {
@@ -153,46 +180,273 @@ document.addEventListener('DOMContentLoaded', function(){
 
         // Chart 3: Dependencias
         chartDependencias = disposeChart(chartDependencias);
-        const entries = Array.from(porDependencia.entries()).sort((a,b)=>b[1]-a[1]);
-        const top = entries.slice(0,10);
+        const entries = Array.from(porDependencia.entries()).sort((a, b) => b[1] - a[1]);
+        const top = entries.slice(0, 10);
         if (entries.length > 10) {
-            const otros = entries.slice(10).reduce((acc,cur)=>acc+cur[1],0);
+            const otros = entries.slice(10).reduce((acc, cur) => acc + cur[1], 0);
             top.push(['Otros', otros]);
         }
-        const depLabels = top.map(x=>x[0]);
-        const depValues = top.map(x=>x[1]);
+        const depLabels = top.map(x => x[0]);
+        const depValues = top.map(x => x[1]);
         const canvasDeps = document.getElementById('canvas-dependencias');
         if (canvasDeps) {
             chartDependencias = new Chart(canvasDeps.getContext('2d'), {
                 type: 'bar',
-                data: { labels: depLabels, datasets: [{ label: 'Comprometido', data: depValues, backgroundColor: depLabels.map((_,i)=> palette[i % palette.length]) }] },
-                options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false }, tooltip: { mode: 'nearest', intersect: true } }, scales: { x: { beginAtZero: true } } }
+                data: {
+                    labels: depLabels,
+                    datasets: [{
+                        label: 'Comprometido',
+                        data: depValues,
+                        backgroundColor: depLabels.map((_, i) => palette[i % palette.length])
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: { legend: { display: false }, tooltip: { mode: 'nearest', intersect: true } },
+                    scales: { x: { beginAtZero: true } }
+                }
             });
         }
     };
 
-    // Mini gráfica dependencia específica
+    // ============================
+    // MINI CHART EN MODAL (AL LADO DE LA TABLA)
+    // ============================
     let miniChart = null;
+    let cdpIndividualChart = null;
+    
     const miniContainer = () => document.getElementById('mini-presupuesto-container');
+    const cdpContainer = () => document.getElementById('cdp-individual-container');
     const miniCanvas = () => document.getElementById('mini-presupuesto-chart');
+    const cdpCanvas = () => document.getElementById('cdp-individual-chart');
     const miniLabel = () => document.getElementById('mini-presupuesto-label');
+    const cdpLabel = () => document.getElementById('cdp-individual-label');
     const hideMiniBtn = () => document.getElementById('mini-hide-btn');
+    const hideCdpBtn = () => document.getElementById('cdp-hide-btn');
 
     const renderMiniChart = (rows, dependenciaTxt) => {
+        // Ocultar gráfica de CDP individual y mostrar la general
+        if (cdpContainer()) cdpContainer().style.display = 'none';
+        if (miniContainer()) miniContainer().style.display = 'block';
+        
         if (!miniCanvas()) return;
         if (miniChart) { miniChart.destroy(); miniChart = null; }
-        if (!rows || rows.length === 0) { if (miniContainer()) miniContainer().style.display = 'none'; return; }
+        if (!rows || rows.length === 0) {
+            if (miniContainer()) miniContainer().style.display = 'none';
+            return;
+        }
+
         const { totalInicial, totalSaldo, totalComprometido, totalActual } = aggregateRows(rows);
-        if (miniContainer()) miniContainer().style.display = 'block';
+
         if (miniLabel()) miniLabel().textContent = dependenciaTxt || '';
-        miniChart = new Chart(miniCanvas().getContext('2d'), {
+
+        // Gráfica general
+        const config = {
             type: 'bar',
-            data: { labels: ['Inicial','Actual','Comprometido','Saldo'], datasets: [{ label: 'Valores', data: [totalInicial, totalActual, totalComprometido, totalSaldo], backgroundColor: ['#4e79a7','#59a14f','#e15759','#b07aa1'] }] },
-            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-        });
-        if (hideMiniBtn()) hideMiniBtn().onclick = () => { if (miniContainer()) miniContainer().style.display = 'none'; };
+            data: {
+                labels: ['Inicial', 'Actual', 'Comprometido', 'Saldo'],
+                datasets: [{
+                    label: 'Valores',
+                    data: [totalInicial, totalActual, totalComprometido, totalSaldo],
+                    backgroundColor: [
+                        '#4e79a7', // Inicial → Azul
+                        '#59a14f', // Actual → Verde
+                        '#e15759', // Comprometido → Rojo
+                        '#b07aa1'  // Saldo → Morado
+                    ],
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'top',
+                        color: 'black',
+                        font: { weight: 'bold', size: 12 },
+                        formatter: value => formatoMoneda(value),
+                        offset: 4
+                    }
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return `${context.label}: ${formatoMoneda(context.raw)}`;
+                            }
+                        }
+                    },
+                    datalabels: {
+                        display: true,
+                        color: 'black',
+                        font: { weight: 'bold', size: 12 },
+                        formatter: value => formatoMoneda(value),
+                        offset: 4
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return formatoMoneda(value);
+                            }
+                        },
+                        grid: {
+                            drawBorder: false,
+                            color: '#eee'
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { weight: 'bold' }
+                        }
+                    }
+                },
+                layout: {
+                    padding: {
+                        top: 10,
+                        right: 10,
+                        bottom: 10,
+                        left: 10
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        };
+
+        miniChart = new Chart(miniCanvas().getContext('2d'), config);
+
+        if (hideMiniBtn()) {
+            hideMiniBtn().onclick = () => {
+                if (miniContainer()) miniContainer().style.display = 'none';
+            };
+        }
     };
 
+    // ============================
+    // NUEVA FUNCIONALIDAD: CLICK EN CDP PARA MOSTRAR GRÁFICA INDIVIDUAL EN EL MODAL
+    // ============================
+    const renderCdpIndividualChart = (rowData) => {
+        if (!rowData || !cdpCanvas()) return;
+        
+        // Destruir gráfica anterior si existe
+        if (cdpIndividualChart) {
+            cdpIndividualChart.destroy();
+            cdpIndividualChart = null;
+        }
+        
+        const inicial = limpiarNumero(rowData.valor_inicial);
+        const saldo = limpiarNumero(rowData.saldo_por_comprometer);
+        const operaciones = limpiarNumero(rowData.valor_operaciones);
+        const actual = limpiarNumero(rowData.valor_actual);
+        const comprometido = Math.max(inicial - saldo, 0);
+
+        // Ocultar gráfica general y mostrar la individual
+        if (miniContainer()) miniContainer().style.display = 'none';
+        if (cdpContainer()) cdpContainer().style.display = 'block';
+
+        // Actualizar título
+        if (cdpLabel()) {
+            cdpLabel().textContent = `CDP: ${rowData.numero_cdp || 'N/A'} - ${rowData.descripcion || 'Sin descripción'}`;
+        }
+
+        // Crear gráfica individual de CDP
+        cdpIndividualChart = new Chart(cdpCanvas().getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Inicial', 'Operaciones', 'Actual', 'Comprometido', 'Saldo'],
+                datasets: [{
+                    label: 'Valores',
+                    data: [inicial, operaciones, actual, comprometido, saldo],
+                    backgroundColor: [
+                        '#4e79a7', // Inicial → Azul
+                        '#f28e2b', // Operaciones → Naranja
+                        '#59a14f', // Actual → Verde
+                        '#e15759', // Comprometido → Rojo
+                        '#b07aa1'  // Saldo → Morado
+                    ],
+                    borderColor: [
+                        '#2c3e50',
+                        '#d35400', 
+                        '#27ae60',
+                        '#c0392b',
+                        '#8e44ad'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return `${context.label}: ${formatoMoneda(context.raw)}`;
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: `Detalle CDP: ${rowData.numero_cdp || 'N/A'}`,
+                        font: { size: 14, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return formatoMoneda(value);
+                            }
+                        },
+                        grid: {
+                            drawBorder: false,
+                            color: '#eee'
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { weight: 'bold' }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Botón para ocultar gráfica individual y volver a la general
+        if (hideCdpBtn()) {
+            hideCdpBtn().onclick = () => {
+                if (cdpContainer()) cdpContainer().style.display = 'none';
+                if (miniContainer()) miniContainer().style.display = 'block';
+                
+                // Remover clase activa de todos los CDP
+                document.querySelectorAll('.cdp-clickable').forEach(cdp => {
+                    cdp.classList.remove('cdp-active');
+                });
+            };
+        }
+
+        // Mostrar notificación
+        if (window.Swal) {
+            Swal.fire({
+                title: `CDP: ${rowData.numero_cdp || 'N/A'}`,
+                text: `Visualizando datos específicos de este CDP en el panel lateral`,
+                icon: 'info',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    };
+
+    // ============================
+    // BUSCAR Y RENDER TABLA
+    // ============================
     const buscarYRender = async (depValue) => {
         const params = new URLSearchParams();
         if (depValue) params.set('dependencia', depValue);
@@ -201,20 +455,27 @@ document.addEventListener('DOMContentLoaded', function(){
             const data = await resp.json();
             tbodyDetalles.innerHTML = '';
             if (!Array.isArray(data) || data.length === 0) {
-                tbodyDetalles.innerHTML = `<tr><td colspan="14" class="text-center text-muted">Sin resultados</td></tr>`;
+                tbodyDetalles.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-5">Sin resultados</td></tr>`;
                 return [];
             }
-            data.forEach((row, index) => {
+
+            data.forEach(row => {
                 const inicial = limpiarNumero(row.valor_inicial);
                 const saldo = limpiarNumero(row.saldo_por_comprometer);
                 const comprometido = inicial - saldo;
                 const porcentaje = inicial > 0 ? ((comprometido / inicial) * 100).toFixed(2) : 0;
                 let clase = 'rojo';
-                if (comprometido === inicial && saldo === 0) clase = 'verde'; else if (comprometido > 0) clase = 'naranja';
+                if (comprometido === inicial && saldo === 0) clase = 'verde';
+                else if (comprometido > 0) clase = 'naranja';
+
                 const tr = document.createElement('tr');
-                const safe = (txt) => (txt ?? '').toString().replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                const safe = (txt) => (txt ?? '').toString().replace(/</g, '<').replace(/>/g, '>');
+                
+                // Hacer el CDP clickeable
+                const cdpCell = `<td class="cdp-clickable" data-row='${JSON.stringify(row).replace(/'/g, "\\'")}'>${safe(row.numero_cdp)}</td>`;
+                
                 tr.innerHTML = `
-                    <td>${safe(row.numero_cdp)}</td>
+                    ${cdpCell}
                     <td>${safe(row.fecha_registro)}</td>
                     <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.concepto_interno)}</textarea></td>
                     <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.rubro)}</textarea></td>
@@ -228,6 +489,25 @@ document.addEventListener('DOMContentLoaded', function(){
                 `;
                 tbodyDetalles.appendChild(tr);
             });
+
+            // Agregar event listeners a los CDP clickeables
+            document.querySelectorAll('.cdp-clickable').forEach(cell => {
+                cell.addEventListener('click', function() {
+                    const rowData = JSON.parse(this.getAttribute('data-row'));
+                    
+                    // Remover clase activa de todos los CDP
+                    document.querySelectorAll('.cdp-clickable').forEach(cdp => {
+                        cdp.classList.remove('cdp-active');
+                    });
+                    
+                    // Agregar clase activa al CDP clickeado
+                    this.classList.add('cdp-active');
+                    
+                    // Renderizar gráfica individual en el modal
+                    renderCdpIndividualChart(rowData);
+                });
+            });
+
             return data;
         } catch (err) {
             console.error('Error cargando detalles:', err);
@@ -236,7 +516,71 @@ document.addEventListener('DOMContentLoaded', function(){
         }
     };
 
-    // Cargar datos globales
+    // ============================
+    // CARGAR DATOS GLOBALES PARA EL MODAL
+    // ============================
+    const cargarDatosGlobales = async () => {
+        if (datosGlobales) return datosGlobales;
+        try {
+            const resp = await fetch(`${BASE_URL}reports/consulta`);
+            const data = await resp.json();
+            if (Array.isArray(data)) {
+                datosGlobales = data;
+                return data;
+            }
+        } catch (err) {
+            console.error('Error al cargar datos globales para el modal:', err);
+        }
+        return [];
+    };
+
+    // ============================
+    // EVENTOS MODAL DETALLES
+    // ============================
+    triggersDetalles.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const w = btn.getAttribute('data-week');
+            weekLabelDetalles.textContent = w;
+
+            await cargarDependencias();
+            const dataGlobal = await cargarDatosGlobales();
+
+            tbodyDetalles.innerHTML = '';
+            dependenciaInput.value = '';
+
+            // Mostrar gráfica general al abrir y ocultar la individual
+            if (cdpContainer()) cdpContainer().style.display = 'none';
+            if (miniContainer()) miniContainer().style.display = 'block';
+            renderMiniChart(dataGlobal, 'Todas las dependencias');
+
+            modalDetallesInstance.show();
+        });
+    });
+
+    btnBuscar.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const depValue = dependenciaInput.value.trim() || '';
+
+        // Al buscar, mostrar gráfica general y ocultar individual
+        if (cdpContainer()) cdpContainer().style.display = 'none';
+        if (miniContainer()) miniContainer().style.display = 'block';
+
+        if (!depValue) {
+            const dataGlobal = await cargarDatosGlobales();
+            renderMiniChart(dataGlobal, 'Todas las dependencias');
+            return;
+        }
+
+        const data = await buscarYRender(depValue);
+        const nombreDep = obtenerNombreDependencia(depValue);
+        renderMiniChart(data, nombreDep);
+    });
+
+    // ============================
+    // CARGAR CHARTS GLOBALES INICIALES
+    // ============================
     let globalLoaded = false;
     const loadGlobalCharts = async () => {
         if (globalLoaded) return;
@@ -244,37 +588,21 @@ document.addEventListener('DOMContentLoaded', function(){
         try {
             const resp = await fetch(`${BASE_URL}reports/consulta`);
             const data = await resp.json();
-            if (Array.isArray(data)) updateCharts(data);
+            if (Array.isArray(data)) {
+                updateCharts(data);
+                datosGlobales = data;
+            }
         } catch (e) { console.error('No se pudo cargar datos globales', e); }
     };
     loadGlobalCharts();
 
-    triggersDetalles.forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const w = btn.getAttribute('data-week');
-            weekLabelDetalles.textContent = w;
-            await cargarDependencias();
-            tbodyDetalles.innerHTML = '';
-            const raw = dependenciaInput.value.trim();
-            const depValue = raw === '' ? '' : raw;
-            const data = await buscarYRender(depValue);
-            if (depValue) renderMiniChart(data, depValue); else renderMiniChart([], '');
-        });
-    });
-
-    btnBuscar.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const raw = dependenciaInput.value.trim();
-        const depValue = raw === '' ? '' : raw;
-        const data = await buscarYRender(depValue);
-        if (depValue) renderMiniChart(data, depValue); else renderMiniChart([], '');
-    });
-
-    // Selector de Gráficas
+    // ============================
+    // SELECTOR DE GRÁFICAS PRINCIPALES
+    // ============================
     const chartSelect = document.getElementById('chart-select');
     const chartContainers = document.querySelectorAll('.chart-container');
 
-    chartSelect.addEventListener('change', function() {
+    chartSelect.addEventListener('change', function () {
         const selectedChart = this.value;
         chartContainers.forEach(container => {
             container.style.display = 'none';
@@ -286,21 +614,25 @@ document.addEventListener('DOMContentLoaded', function(){
     });
 
     // Forzar estado inicial
-    (()=>{
+    (() => {
         const preset = 'presupuesto';
-        chartContainers.forEach(c=>{ c.style.display = (c.id === 'chart-' + preset) ? 'block' : 'none'; });
+        chartContainers.forEach(c => {
+            c.style.display = (c.id === 'chart-' + preset) ? 'block' : 'none';
+        });
         chartSelect.value = preset;
     })();
 
-    // SUBIDA DE ARCHIVOS SIMPLIFICADA - Sin validación de mierda
+    // ============================
+    // SUBIDA DE ARCHIVOS
+    // ============================
     const formReporte = document.getElementById('formReporte');
     if (formReporte) {
-        formReporte.addEventListener('submit', async function(e) {
+        formReporte.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const weekValue = inputWeek.value;
             const semanaIdValue = inputSemanaId ? inputSemanaId.value : '';
-            
+
             if (!weekValue || !semanaIdValue) {
                 Swal.fire('Error', 'Datos incompletos.', 'error');
                 return;
@@ -309,13 +641,12 @@ document.addEventListener('DOMContentLoaded', function(){
             const fileCdp = document.getElementById('file-cdp').files[0];
             const fileRp = document.getElementById('file-rp').files[0];
             const filePagos = document.getElementById('file-pagos').files[0];
-            
+
             if (!fileCdp && !fileRp && !filePagos) {
                 Swal.fire('Error', 'Debe seleccionar al menos un archivo.', 'warning');
                 return;
             }
 
-            // Mostrar carga directamente
             let loadingAlert = Swal.fire({
                 title: 'Subiendo archivos...',
                 html: `
@@ -368,18 +699,20 @@ document.addEventListener('DOMContentLoaded', function(){
         });
     }
 
-    // Botones Eliminar Semana
+    // ============================
+    // ELIMINAR SEMANA
+    // ============================
     const deleteButtons = document.querySelectorAll('.btn-delete-week');
     deleteButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const week = btn.getAttribute('data-week') || '';
             const semanaId = btn.getAttribute('data-semana-id') || '';
-            
+
             if (!week || !semanaId) {
                 Swal.fire('Error', 'Faltan datos.', 'error');
                 return;
             }
-            
+
             Swal.fire({
                 title: '¿Eliminar datos?',
                 text: `Se eliminarán los datos de ${week}.`,
@@ -408,31 +741,32 @@ document.addEventListener('DOMContentLoaded', function(){
                     const formData = new FormData();
                     formData.append('week', week);
                     formData.append('semana_id', semanaId);
-                    
-                    const resp = await fetch(`${BASE_URL}reports/delete`, { 
-                        method: 'POST', 
-                        body: formData 
+
+                    const resp = await fetch(`${BASE_URL}reports/delete`, {
+                        method: 'POST',
+                        body: formData
                     });
-                    
+
                     const data = await resp.json();
-                    
+
                     Swal.close();
-                    
+
                     Swal.fire(data.titulo || 'Resultado', data.texto || '', data.icono || 'info');
-                    
+
                     if (data.icono === 'success') {
                         if (tbodyDetalles) tbodyDetalles.innerHTML = '';
                         chartGastos = disposeChart(chartGastos);
                         chartPresupuesto = disposeChart(chartPresupuesto);
                         chartDependencias = disposeChart(chartDependencias);
-                        
+
                         if (document.getElementById('total-presupuesto')) {
                             document.getElementById('total-presupuesto').textContent = formatoMoneda(0);
                         }
-                        
+
                         globalLoaded = false;
+                        datosGlobales = null;
                         await loadGlobalCharts();
-                        
+
                         setTimeout(() => {
                             window.location.reload();
                         }, 2000);
