@@ -30,32 +30,47 @@
     <?php foreach ($styles as $css): ?>
         <link rel="stylesheet" href="<?= APP_URL . '/' . $css ?>">
     <?php endforeach; ?>
+
+    <!-- Solo estos pequeños ajustes para consistencia -->
+    <style>
+        .page-wrapper {
+            background-color: #f8f9fa;
+            min-height: calc(100vh - 200px);
+        }
+
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            border-radius: 6px;
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Cabecera principal -->
+    <!-- Cabecera principal - SOLO ELIMINÉ LA REDUNDANCIA Y ORGANICÉ VERTICALMENTE -->
     <header class="header d-flex align-items-center justify-content-between px-4 py-3" role="banner">
         <div class="user-section d-flex align-items-center">
             <button class="btn btn-primary btn-menu-toggle me-3" id="toggleMenu" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebarMenu">
                 <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
 
-            <div class="user-photo me-2">
-                <img src="<?= APP_URL ?>assets/img/default.png" alt="Foto de usuario" class="rounded-circle" width="45" height="45">
-            </div>
-
-            <div class="user-role me-3">
-                <span class="badge bg-secondary"><?= $userRol ?></span>
-            </div>
-
+            <!-- SOLUCIÓN: Eliminé el icono duplicado y organicé verticalmente -->
             <div class="user-info d-flex align-items-center">
-                <span class="me-2">
-                    <?=
-                    $_SESSION[APP_SESSION_NAME]['name'] . " " .
-                        $_SESSION[APP_SESSION_NAME]['lastName']
-                    ?>
-                </span>
-                <i class="fas fa-user-circle fa-lg" aria-hidden="true"></i>
+                <div class="user-photo me-3">
+                    <img src="<?= APP_URL ?>assets/img/default.png" alt="Foto de usuario" class="rounded-circle" width="45" height="45">
+                </div>
+                <div class="d-flex flex-column">
+                    <span class="fw-semibold">
+                        <?=
+                        $_SESSION[APP_SESSION_NAME]['name'] . " " .
+                            $_SESSION[APP_SESSION_NAME]['lastName']
+                        ?>
+                    </span>
+                    <span class="badge bg-secondary mt-1"><?= $userRol ?></span>
+                </div>
             </div>
         </div>
 
@@ -70,6 +85,7 @@
         </div>
     </header>
 
+    <!-- TODO LO DEMÁS EXACTAMENTE IGUAL -->
     <!-- Subheader informativo -->
     <section class="subheader-container bg-light p-3 border-bottom" aria-labelledby="subheader-title">
         <h2 id="subheader-title" class="visually-hidden">Información del año fiscal</h2>
@@ -113,7 +129,7 @@
         </div>
     </section>
 
-    <!-- Menú lateral -->
+    <!-- Menú lateral - EXACTAMENTE IGUAL -->
     <nav class="sidebar" id="sidebarMenu" role="navigation" aria-label="Menú principal">
         <div class="accordion1 accordion-flush" id="menuAccordion">
             <div class="accordion-item">
