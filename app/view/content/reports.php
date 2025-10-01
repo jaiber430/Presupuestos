@@ -478,21 +478,10 @@
 </div>
 
 <style>
+    /* COLORES SENA - DEBE IR DESPUÉS DE BOOTSTRAP */
     .reports-page {
-        background: linear-gradient(135deg, #f0f9f0 0%, #e6f3e6 100%);
+        background: linear-gradient(135deg, #f0f9f0 0%, #e6f3e6 100%) !important;
         min-height: 100vh;
-    }
-
-    .card {
-        border: none;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        transition: transform 0.2s ease-in-out;
-        background: white;
-    }
-
-    .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 168, 89, 0.15);
     }
 
     .bg-gradient-primary {
@@ -512,50 +501,31 @@
     }
 
     .btn-primary {
-        background-color: #00a859;
-        border-color: #00a859;
-        font-weight: 600;
+        background-color: #00a859 !important;
+        border-color: #00a859 !important;
     }
 
     .btn-primary:hover {
-        background-color: #006837;
-        border-color: #006837;
-        transform: translateY(-1px);
+        background-color: #006837 !important;
+        border-color: #006837 !important;
     }
 
     .btn-success {
-        background-color: #00a859;
-        border-color: #00a859;
-    }
-
-    .btn-success:hover {
-        background-color: #006837;
-        border-color: #006837;
+        background-color: #00a859 !important;
+        border-color: #00a859 !important;
     }
 
     .btn-outline-primary {
-        color: #00a859;
-        border-color: #00a859;
+        color: #00a859 !important;
+        border-color: #00a859 !important;
     }
 
     .btn-outline-primary:hover {
-        background-color: #00a859;
-        border-color: #00a859;
-        color: white;
+        background-color: #00a859 !important;
+        border-color: #00a859 !important;
+        color: white !important;
     }
 
-    /* Headers de cards con verde sena */
-    .card-header.bg-white {
-        background-color: #e8f5e8 !important;
-        border-bottom: 2px solid #00a859;
-    }
-
-    .card-header.bg-light {
-        background-color: #e8f5e8 !important;
-        border-bottom: 2px solid #00a859;
-    }
-
-    /* Badges verde sena */
     .badge.bg-primary {
         background-color: #00a859 !important;
     }
@@ -568,28 +538,32 @@
         background-color: #00c06b !important;
     }
 
-    .badge.bg-warning {
-        background-color: #ffc107 !important;
-        color: #000;
-    }
-
-    /* Tablas con acentos verde */
     .table-dark {
         background: linear-gradient(135deg, #006837 0%, #00a859 100%) !important;
     }
 
-    .table-light {
+    .card-header.bg-white {
         background-color: #e8f5e8 !important;
+        border-bottom: 2px solid #00a859 !important;
     }
 
-    /* Hover effects verde */
-    .card:hover {
-        border-left: 4px solid #00a859;
+    .card-header.bg-light {
+        background-color: #e8f5e8 !important;
+        border-bottom: 2px solid #00a859 !important;
     }
 
-    /* Iconos en verde */
+    .card-footer.bg-light {
+        background-color: #f0f9f0 !important;
+        border-top: 1px solid #00a859 !important;
+    }
+
+    .modal-header.bg-primary {
+        background: linear-gradient(135deg, #006837 0%, #00a859 100%) !important;
+    }
+
+    /* Iconos verdes */
     .text-primary i,
-    .text-muted i.text-primary {
+    .fas.text-primary {
         color: #00a859 !important;
     }
 
@@ -597,176 +571,32 @@
     .verde {
         background: linear-gradient(135deg, #d4edda 0%, #00a859 100%) !important;
         color: #004d29 !important;
-        font-weight: 600;
     }
 
     .naranja {
         background: linear-gradient(135deg, #fff3cd 0%, #ffc107 100%) !important;
         color: #856404 !important;
-        font-weight: 600;
     }
 
     .rojo {
         background: linear-gradient(135deg, #f8d7da 0%, #dc3545 100%) !important;
         color: #721c24 !important;
-        font-weight: 600;
     }
 
-    .table th {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        border-bottom: 2px solid #dee2e6;
-        font-weight: 600;
-    }
-
-    .table td {
-        font-size: 0.875rem;
-        vertical-align: middle;
-    }
-
-    .sticky-top {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-
-    .font-monospace {
-        font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-    }
-
-    .btn {
-        border-radius: 6px;
-        font-weight: 500;
-        transition: all 0.2s ease-in-out;
-    }
-
-    .btn:hover {
-        transform: translateY(-1px);
-    }
-
-    .btn-sm {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.875rem;
-    }
-
-    .badge {
-        font-size: 0.75rem;
-        padding: 0.35rem 0.65rem;
-    }
-
-    .modal-content {
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
-    }
-
-    .modal-header {
-        border-radius: 12px 12px 0 0;
-    }
-
-    .cell-textarea textarea {
-        width: 100%;
-        border: none;
-        background: transparent;
-        resize: none;
-        font-size: inherit;
-        font-family: inherit;
-        padding: 0;
-        margin: 0;
-        line-height: 1.4;
-    }
-
-    .chart-container {
-        padding: 1rem;
-    }
-
-    .main-chart {
-        border-radius: 8px;
-        background: #fff;
-        padding: 1rem;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    }
-
-    /* Alertas con verde sena */
+    /* Alertas */
     .alert-info {
-        background-color: #e8f5e8;
-        border-color: #00a859;
-        color: #006837;
+        background-color: #e8f5e8 !important;
+        border-color: #00a859 !important;
+        color: #006837 !important;
     }
 
     .alert-info .text-info {
         color: #00a859 !important;
     }
 
-    /* Footer de cards */
-    .card-footer.bg-light {
-        background-color: #f0f9f0 !important;
-        border-top: 1px solid #00a859;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .reports-layout .order-2 {
-            order: 2 !important;
-        }
-
-        .reports-layout .order-1 {
-            order: 1 !important;
-        }
-
-        .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.75rem;
-        }
-
-        .table {
-            font-size: 0.75rem;
-        }
-
-        .card-body {
-            padding: 1rem !important;
-        }
-
-        .modal-body {
-            padding: 1rem !important;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .container-fluid {
-            padding: 1rem;
-        }
-
-        .card {
-            margin-bottom: 1rem;
-        }
-
-        .table-responsive {
-            font-size: 0.7rem;
-        }
-
-        .btn-group-vertical .btn {
-            margin-bottom: 0.25rem;
-        }
-    }
-
-    /* Animaciones */
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .card,
-    .modal-content {
-        animation: fadeIn 0.3s ease-in-out;
+    /* Hover effects */
+    .card:hover {
+        border-left: 4px solid #00a859 !important;
     }
 </style>
 
