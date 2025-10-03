@@ -37,14 +37,15 @@ class ReportsModel extends MainModel{
 	public static function processWeek1Excels(array $files, int $semanaId): array{
 		$results = [];
 		$mapping = [
-			'cdp'   => 'cdp',
-			'pagos' => 'pagos',
-			'rp'    => 'reporte_presupuestal',
+			'cdp'   => 'cdptemporal',
+			// 'pagos' => 'pagos',
+			// 'rp'    => 'reportepresupuestal',
 		];
 
 		$hasAny = false;
 		foreach ($mapping as $key => $table) {
 			if (!empty($files[$key]['tmp_name'])) {
+				echo $files[$key]['tmp_name'];
 				$hasAny = true;
 				break;
 			}

@@ -5,7 +5,6 @@ namespace presupuestos\controller;
 use presupuestos\helpers\Auth;
 use presupuestos\model\ReportsModel;
 
-require __DIR__ . '/../../bootstrap.php';
 
 class ReportsController{
     /**
@@ -29,7 +28,7 @@ class ReportsController{
 
             $files = $_FILES ?? [];
             $semanaId = (int)$_POST['semana_id'];
-
+            
             // Procesa Excel usando ReportsModel adaptado
             $results = ReportsModel::processWeek1Excels($files, $semanaId);
 
@@ -49,6 +48,9 @@ class ReportsController{
                 'tipo'   => 'simple',
                 'titulo' => 'Error al subir',
                 'texto'  => $e->getMessage(),
+                "archivo" => $e->getFile(),
+                "linea"  => $e->getLine(),
+                "traza"  => $e->getTraceAsString(),
                 'icono'  => 'error',
             ], JSON_UNESCAPED_UNICODE);
             exit;
