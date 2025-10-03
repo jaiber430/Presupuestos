@@ -50,6 +50,7 @@ class ReportsModel extends MainModel{
 				break;
 			}
 		}
+		
 		if (!$hasAny) throw new Exception('Debes seleccionar al menos un archivo Excel.');
 
 		foreach ($mapping as $key => $table) {
