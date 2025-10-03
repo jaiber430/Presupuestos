@@ -32,6 +32,8 @@ return [
     //Gestión de Roles
     'gestionar/usuarios'=> fn()=> (new DashboardController())-> index('usuarios'),
     'usuarios/update-post'=> fn()=> (new UserController())-> update($user_id= $_POST['id'], $_POST),
+    //Para probar
+    'subirArchivo'=> fn()=> (new DashboardController())->index("subirArchivo"),
     
     /*
     

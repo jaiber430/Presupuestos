@@ -85,10 +85,7 @@ class AnioFiscalController{
             echo json_encode([
                 "tipo"   => "simple",
                 "titulo" => "Error",
-                "texto"  => $e->getMessage(),
-                "archivo" => $e->getFile(),
-                "linea"  => $e->getLine(),
-                "traza"  => $e->getTraceAsString(),
+                "texto"  => $e->getMessage(),                
                 "icono"  => "error"
             ], JSON_PRETTY_PRINT);
         }

@@ -1,8 +1,8 @@
-<div class="container-fluid mt-4 reports-page">
+<div class="container-fluid  reports-page">
     <!-- Contenido en dos columnas: izquierda (tabla) | derecha (gráfico) -->
     <div class="row g-4 reports-layout">
         <!-- Columna Tabla -->
-        <div class="col-12 col-xl-6 order-2 order-lg-1">
+        <div class="col-12 col-xl order-2 order-lg-1">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-white py-3 border-bottom">
                     <h5 class="card-title mb-0 fw-bold text-primary">
@@ -37,16 +37,16 @@
                                     <tr class="border-bottom">
                                         <td class="ps-4 fw-bold text-dark">
                                             <i class="fas fa-calendar-alt me-2 text-primary"></i>
-                                            Semana <?= $semana['numero_semana'] ?>
+                                            Semana <?= $semana['numeroSemana'] ?>
                                         </td>
                                         <td>
-                                            <span class="text-muted"><?= date("d/m/Y", strtotime($semana['fecha_inicio'])) ?></span>
+                                            <span class="text-muted"><?= date("d/m/Y", strtotime($semana['fechaInicio'])) ?></span>
                                         </td>
                                         <td>
-                                            <span class="text-muted"><?= date("d/m/Y", strtotime($semana['fecha_fin'])) ?></span>
+                                            <span class="text-muted"><?= date("d/m/Y", strtotime($semana['fechaFin'])) ?></span>
                                         </td>
                                         <td class="text-center">
-                                            <?php if (!empty($semana['archivo_cdp']) || !empty($semana['archivo_rp']) || !empty($semana['archivo_pagos'])): ?>
+                                            <?php if (!empty($semana['archivoCdp']) || !empty($semana['archivoRp']) || !empty($semana['archivoPagos'])): ?>
                                                 <span class="badge bg-success rounded-pill">
                                                     <i class="fas fa-check me-1"></i>Cargado
                                                 </span>
@@ -59,17 +59,17 @@
                                         <td class="text-center pe-4">
                                             <div class="d-flex gap-2 justify-content-center">
                                                 <button class="btn btn-outline-primary btn-sm btn-ver-detalles"
-                                                    data-week="Semana <?= $semana['numero_semana'] ?>"
-                                                    data-semana-id="<?= $semana['id'] ?>"
+                                                    data-week="Semana <?= $semana['numeroSemana'] ?>"
+                                                    data-semana-id="<?= $semana['idSemana'] ?>"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#modalDetalles"
                                                     title="Ver detalles">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <?php if (empty($semana['archivo_cdp']) && empty($semana['archivo_rp']) && empty($semana['archivo_pagos'])): ?>
+                                                <?php if (empty($semana['archivoCdp']) && empty($semana['archivoRp']) && empty($semana['archivoPagos'])): ?>
                                                     <button class="btn btn-primary btn-sm btn-open-modal"
-                                                        data-week="Semana <?= $semana['numero_semana'] ?>"
-                                                        data-semana-id="<?= $semana['id'] ?>"
+                                                        data-week="Semana <?= $semana['numeroSemana'] ?>"
+                                                        data-semana-id="<?= $semana['idSemana'] ?>"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#modalReporte"
                                                         title="Subir reporte">
@@ -82,8 +82,8 @@
                                                     </button>
                                                 <?php endif; ?>
                                                 <button class="btn btn-outline-danger btn-sm btn-delete-week"
-                                                    data-week="Semana <?= $semana['numero_semana'] ?>"
-                                                    data-semana-id="<?= $semana['id'] ?>"
+                                                    data-week="Semana <?= $semana['numeroSemana'] ?>"
+                                                    data-semana-id="<?= $semana['idSemana'] ?>"
                                                     title="Eliminar semana">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
@@ -104,7 +104,7 @@
             </div>
         </div>
         <!-- Columna Gráficas -->
-        <div class="col-12 col-xl-6 order-1 order-lg-2">
+        <!-- <div class="col-12 col-xl-6 order-1 order-lg-2">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-white py-3 border-bottom">
                     <div class="d-flex flex-wrap align-items-center justify-content-between">
@@ -129,8 +129,8 @@
                             </select>
                         </div>
                     </div>
-                </div>
-                <div class="card-body">
+                </div> -->
+                <!-- <div class="card-body">
                     <div id="chart-presupuesto" class="chart-container">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h6 class="mb-0 fw-semibold text-dark">
@@ -160,7 +160,7 @@
                         <p class="text-muted small mb-3">Top dependencias según valor comprometido</p>
                         <canvas id="canvas-dependencias" class="main-chart" height="300"></canvas>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>
@@ -200,7 +200,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <!-- <div class="col-md-4">
                                 <div class="card border h-100">
                                     <div class="card-body text-center">
                                         <i class="fas fa-file-invoice-dollar fa-3x text-warning mb-3"></i>
@@ -219,7 +219,7 @@
                                         <input type="file" class="form-control" id="file-pagos" name="pagos" accept=".xlsx, .xls">
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                         </div>
                         <div class="modal-footer border-0 pt-4">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">

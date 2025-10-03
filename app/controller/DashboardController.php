@@ -40,6 +40,9 @@ class DashboardController{
         // var_dump($_SESSION[APP_SESSION_NAME]);
         // exit;
         //Obtengo las semana por centro y qué está activa
+        // echo "<pre>";
+        // var_dump( $semanas);
+        // exit;
         $semanaActiva = AnioFiscalController::getSemanaActiva($semanas);
 
         $views = [
@@ -48,6 +51,7 @@ class DashboardController{
             "usuarios"        => __DIR__ . '/../view/content/role/manage.php',
             "page_not_found"  => __DIR__ . '/../app/view/errors/404.php',
             "sin-rol"         => __DIR__ . '/../app/view/errors/sin_rol.php',
+            "subirArchivo"=> __DIR__ . '/app/view/cargarExcel.php',
         ];
 
         $userRol = UserController::verifyAccount($_SESSION[APP_SESSION_NAME]['idUsuarioSession']);
@@ -68,6 +72,7 @@ class DashboardController{
             "usuarios"  => ["js/role/manage.js"]
         ];
 
+       
         $view    = $views[$page] ?? $views["dashboard"];
         $styles  = $stylesByView[$page] ?? [];
         $scripts = $scriptsByView[$page] ?? [];
