@@ -1,5 +1,7 @@
 <?php
 namespace presupuestos\helpers;
+require __DIR__ . '/../../bootstrap.php';
+
 class Auth{   
     public static function check(){               
         if (!isset($_SESSION[APP_SESSION_NAME])) {

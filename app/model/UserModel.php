@@ -73,8 +73,8 @@ class UserModel extends MainModel {
     public function verifyAccount(int $userId): ?string{
         $query = "SELECT r.nombre AS rol
               FROM user u
-              JOIN rol r ON u.rol_id = r.id
-              WHERE u.id = :id";
+              JOIN rol r ON u.rolIdFk = r.idRol
+              WHERE u.idUser = :id";
         $params = [':id' => $userId];
         $stmt = parent::executeQuery($query, $params);
 
@@ -107,9 +107,9 @@ class UserModel extends MainModel {
 
     public static function getAllByCentro($centroId) {
         try {
-            $query = "SELECT u.id, u.nombres, u.apellidos, u.email, u.es_verificado, r.nombre as nombre_rol
+            $query = "SELECT u.idUser, u.nombres, u.apellidos, u.email, u.esVerificado, r.nombre as nombre_rol
                     FROM user u
-                    JOIN rol r ON u.rol_id = r.id
+                    JOIN rol r ON u.rolIdFk = r.idRol
                     WHERE centro_id = ?";
             $stmt = parent::executeQuery($query, [$centroId]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
