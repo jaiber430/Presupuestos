@@ -1,8 +1,6 @@
 <?php
 namespace presupuestos\controller\Auth;
 
-require_once __DIR__ . '../../../../config/app.php';
-
 use presupuestos\model\UserModel;
 use presupuestos\helpers\ValidationHelper;
 use presupuestos\helpers\PasswordHelper;
@@ -29,7 +27,7 @@ class AuthController {
     public function getCentros() {
         if (isset($_GET['departamento'])) {
             $getCentro = new MainModel();
-            $queryCentro = "SELECT * FROM centros WHERE id_departamento = :departamento";
+            $queryCentro = "SELECT * FROM centros WHERE idDepartamento = :departamento";
             
             $stmt = $getCentro::executeQuery($queryCentro, [
                 'departamento' => (int) $_GET['departamento']
@@ -91,25 +89,23 @@ class AuthController {
             $centroId= $dataUser['centroIdFk'];
 
             //Obtengo todas las semanas
-            $semanas = AnioFiscalModel::obtenerSemanasPorCentro($centroId);
+            $semanas= AnioFiscalModel::obtenerSemanasPorCentro($centroId);
 
             //Obtengo el año fiscal activo
-            $anioFiscalActivo = AnioFiscalModel::getPresupuestoActivo($centroId);
+            $anioFiscalActivo= AnioFiscalModel::getPresupuestoActivo($centroId);
 
             //Obtengo las semana por centro y la qué está activa
-            $semanaActiva = AnioFiscalController::getSemanaActiva($semanas);
+            $semanaActiva= AnioFiscalController::getSemanaActiva($semanas);
 
-            // Guardar sesión
             //Guardar la semana activa, y el año fiscal activo
             $_SESSION[APP_SESSION_NAME] = [
-                'idUsuario'       => $dataUser['idUser'],
-                'email'    => $dataUser['email'],
-                'name'     => $dataUser['nombres'],
-                'lastName' => $dataUser['apellidos'],
-                'centroId'     => $dataUser['centroIdFk'],
-                "idROl"=> $dataUser['rolIdFk'],
-                "semanaActiva"=> $semanaActiva,
-                "anioFiscalActivo"=> $anioFiscalActivo, 
+                'idUsuarioSession'       => $dataUser['idUser'],
+                'usuarioLogueadoSession' => $dataUser['nombres'] . ' ' . $dataUser['apellidos'],
+                'emailLoginSession'    => $dataUser['email'],
+                'idCentroIdSession'     => $dataUser['centroIdFk'],
+                'idRolSession' => $dataUser['rolIdFk'],
+                'idSemanaActivaSession' => $semanaActiva['idSemana'],
+                'idAnioFiscalActivoSession' => $anioFiscalActivo,
             ];
           
             echo json_encode([

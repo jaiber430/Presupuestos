@@ -10,19 +10,19 @@ use Exception;
 class AnioFiscalModel extends MainModel{
 
     public static function insert($params){
-        $query = "INSERT INTO anios_fiscales 
-                 (subdirector_id, creado_por, anio_fiscal, valor_anio_fiscal, presupuesto_actual, fecha_inicio, fecha_cierre, estado, id_centro) 
+        $query = "INSERT INTO aniosfiscales 
+                 (subdirectorIdFk, creadoPorFk, anioFiscal, valorAnioFiscal, presupuestoActual, fechaInicio, fechaCierre, estado, centroIdFk) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         return self::executeQuery($query, $params);
     }
 
     public static function updatePresupuesto($id, $nuevoMonto){
-        $query = "UPDATE anios_fiscales SET presupuesto_actual = ? WHERE id = ?";
+        $query = "UPDATE aniosfiscales SET presupuestoActual = ? WHERE idAniFiscal = ?";
         return self::executeQuery($query, [$nuevoMonto, $id]);
     }
 
     public static function getPresupuestoActual($id){
-        $query = "SELECT presupuestoactual FROM aniosfiscales WHERE id = ?";
+        $query = "SELECT presupuestoActual FROM aniosfiscales WHERE idAniFiscal = ?";
         $stmt  = self::executeQuery($query, [$id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -35,7 +35,7 @@ class AnioFiscalModel extends MainModel{
     }
 
     public static function desactivarOtros($id_excluir, $year){
-        $query = "UPDATE aniosfiscales SET estado = 0 WHERE id != ? AND anio_fiscal != ? AND estado = 1";
+        $query = "UPDATE aniosfiscales SET estado = 0 WHERE idAniFiscal != ? AND anioFiscal != ? AND estado = 1";
         return self::executeQuery($query, [$id_excluir, $year]);
     }
 
@@ -58,14 +58,14 @@ class AnioFiscalModel extends MainModel{
     }
 
     public static function verificarSemanaExistente(int $numeroSemana, int $centroId): bool{
-        $sql = "SELECT COUNT(*) FROM semanascarga WHERE numeroSemana = ? AND centroId = ?";
+        $sql = "SELECT COUNT(*) FROM semanascarga WHERE numeroSemana = ? AND centroIdFk = ?";
         $stmt = self::executeQuery($sql, [$numeroSemana, $centroId]);
         return $stmt->fetchColumn() > 0;
     }
 
     public static function insertarSemanaCarga(int $numeroSemana, string $fechaInicio, string $fechaFin, int $centroId): void{
 
-        $sql = "INSERT INTO semanascarga (numero_semana, fecha_inicio, fecha_fin, centro_id) VALUES (?, ?, ?, ?)";
+        $sql = "INSERT INTO semanascarga (numeroSemana, fechaInicio, fechaFin, centroIdFk) VALUES (?, ?, ?, ?)";
         self::executeQuery($sql, [$numeroSemana, $fechaInicio, $fechaFin, $centroId]);
     }
 
@@ -113,7 +113,7 @@ class AnioFiscalModel extends MainModel{
         $sql = "SELECT idSemana, numeroSemana, fechaInicio, fechaFin, 
                    archivoCdp, archivoRp, archivoPagos, fechaSubida 
             FROM semanascarga 
-            WHERE centroIdFK = ? 
+            WHERE centroIdFk = ? 
             ORDER BY numeroSemana ASC";
         $stmt = self::executeQuery($sql, [$centroId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
