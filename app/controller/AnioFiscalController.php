@@ -7,8 +7,7 @@ use presupuestos\model\MainModel;
 use presupuestos\helpers\HtmlResponse;
 use Exception;
 
-
-
+require_once __DIR__ . '../../../bootstrap.php';
 
 class AnioFiscalController{
 
@@ -31,15 +30,15 @@ class AnioFiscalController{
 
         $anioFiscal    = (int) $_POST['year_fiscal'];
         $presupuesto   = $_POST['valor_presupuesto'];
-        $presupuesto = str_replace(['$', '.'], '', $presupuesto);
-        $presupuesto = (float) $presupuesto;
+        $presupuesto   = str_replace(['$', '.'], '', $presupuesto);
+        $presupuesto   = (float) $presupuesto;
         $estado        = ($_POST['estado'] ?? '') === 'activo' ? 1 : 0;
         $fechaInicio   = $_POST['fecha_inicio'];
         $fechaCierre   = $_POST['fecha_cierre'];
         $subdirectorId = (int) $_POST['subdirector_id'];
 
-        $usuarioId = $_SESSION[APP_SESSION_NAME]['idUsuario'];
-        $centroId  = $_SESSION[APP_SESSION_NAME]['centroId'];
+        $usuarioId = $_SESSION[APP_SESSION_NAME]['idUsuarioSession'];
+        $centroId  = $_SESSION[APP_SESSION_NAME]['idCentroIdSession'];
 
         if (!$usuarioId || !$centroId) {
             echo json_encode([
@@ -80,20 +79,23 @@ class AnioFiscalController{
                 "texto"  => "Año fiscal creado correctamente con " . count($semanas) . " semanas generadas",
                 "icono"  => "success",
                 "url"    => "dashboard",
-                "semana_activa" => $semanaActiva 
+                "semana_activa" => $semanaActiva
             ]);
-
         } catch (Exception $e) {
             echo json_encode([
                 "tipo"   => "simple",
                 "titulo" => "Error",
                 "texto"  => $e->getMessage(),
+                "archivo" => $e->getFile(),
+                "linea"  => $e->getLine(),
+                "traza"  => $e->getTraceAsString(),
                 "icono"  => "error"
-            ]);
+            ], JSON_PRETTY_PRINT);
         }
     }
 
-    public static function generarSemanas($fechaInicio, $fechaFin){
+    public static function generarSemanas($fechaInicio, $fechaFin)
+    {
         $inicio = new \DateTime($fechaInicio);
         $fin = new \DateTime($fechaFin);
 
@@ -128,6 +130,7 @@ class AnioFiscalController{
     }
 
     public static function getSemanaActiva(array $semanas): ?array{
+
         $hoy = new \DateTime();
         $hoyStr = $hoy->format('Y-m-d');
 
@@ -137,10 +140,11 @@ class AnioFiscalController{
             }
         }
 
-        return null; 
+        return null;
     }
 
-    public static function modificar(){
+    public static function modificar()
+    {
         try {
             if (empty($_POST['anio_fiscal_id']) || empty($_POST['tipo_modificacion']) || empty($_POST['monto'])) {
                 throw new Exception("Datos incompletos");
@@ -191,7 +195,8 @@ class AnioFiscalController{
         }
     }
 
-    private static function calcularNuevoPresupuesto($anterior, $monto, $tipo){
+    private static function calcularNuevoPresupuesto($anterior, $monto, $tipo)
+    {
         switch ($tipo) {
             case 'incremento':
                 return $anterior + $monto;

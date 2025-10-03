@@ -67,8 +67,7 @@ class ReportsModel extends MainModel{
 		return $results;
 	}
 
-	private static function getTableColumns(string $table): array
-	{
+	private static function getTableColumns(string $table): array{
 		$stmt = self::executeQuery("SHOW COLUMNS FROM `$table`");
 		$cols = [];
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -77,8 +76,7 @@ class ReportsModel extends MainModel{
 		return $cols;
 	}
 
-	private static function validateExcelColumns(string $filePath, string $table)
-	{
+	private static function validateExcelColumns(string $filePath, string $table){
 		if (!is_readable($filePath)) return "No se puede leer el archivo para '$table'.";
 
 		$columns = self::getTableColumns($table);
@@ -111,8 +109,7 @@ class ReportsModel extends MainModel{
 		return true;
 	}
 
-	private static function normalizeText(string $text): string
-	{
+	private static function normalizeText(string $text): string{
 		$text = str_replace("\xEF\xBF\xBD", '', $text);
 		$text = str_replace(['Ñ', 'ñ'], 'n', $text);
 		$tildes = ['á', 'é', 'í', 'ó', 'ú', 'ü', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ü'];
@@ -120,8 +117,7 @@ class ReportsModel extends MainModel{
 		return str_replace($tildes, $sin, $text);
 	}
 
-	private static function toNumeric($value): int
-	{
+	private static function toNumeric($value): int{
 		if ($value === null) return 0;
 		$value = str_replace(['$', '.', ','], '', (string)$value);
 		$value = trim($value);
@@ -131,8 +127,8 @@ class ReportsModel extends MainModel{
 	/**
 	 * Inserta los datos del Excel a la tabla indicada (fila por fila)
 	 */
-	private static function importExcelToTable(string $filePath, string $table, int $semanaId): string
-	{
+	private static function importExcelToTable(string $filePath, string $table, int $semanaId): string{
+
 		$pdo = self::getConnection();
 		$columns = self::getTableColumns($table);
 
@@ -200,8 +196,7 @@ class ReportsModel extends MainModel{
 		return "Datos de '$table' insertados correctamente ($rowCount registros).";
 	}
 
-	public static function getDependencias(): array
-	{
+	public static function getDependencias(): array{
 		$stmt = self::executeQuery("SELECT codigo, nombre FROM dependencias ORDER BY nombre ASC");
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}

@@ -50,7 +50,7 @@
 </head>
 
 <body>
-    <!-- Cabecera principal - SOLO ELIMINÉ LA REDUNDANCIA Y ORGANICÉ VERTICALMENTE -->
+    <!-- Header principal-->
     <header class="header d-flex align-items-center justify-content-between px-4 py-3" role="banner">
         <div class="user-section d-flex align-items-center">
             <button class="btn btn-primary btn-menu-toggle me-3" id="toggleMenu" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebarMenu">
@@ -64,10 +64,7 @@
                 </div>
                 <div class="d-flex flex-column">
                     <span class="fw-semibold">
-                        <?=
-                        $_SESSION[APP_SESSION_NAME]['name'] . " " .
-                            $_SESSION[APP_SESSION_NAME]['lastName']
-                        ?>
+                        <?= $_SESSION[APP_SESSION_NAME]['usuarioLogueadoSession'] ?>
                     </span>
                     <span class="badge bg-secondary mt-1"><?= $userRol ?></span>
                 </div>
