@@ -91,10 +91,10 @@ class UserModel extends MainModel {
 
     public static function getSubdirector($centroId) {
         try {
-            $query = "SELECT id, nombres, apellidos
+            $query = "SELECT idUser, nombres, apellidos
                     FROM user 
-                    WHERE rol_id = 2
-                    AND centro_id = ?
+                    WHERE rolIdFk= 2
+                    AND centroIdFk = ?
                     LIMIT 1";
             $stmt = parent::executeQuery($query, [$centroId]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);

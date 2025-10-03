@@ -194,7 +194,7 @@
                                             readonly>
                                         <input type="hidden"
                                             name="subdirector_id"
-                                            value="<?= $subdirector['id'] ?>">
+                                            value="<?= $subdirector['idUser'] ?>">
                                     <?php else: ?>
                                         <div class="alert alert-warning" role="alert">
                                             No hay un subdirector asignado actualmente.

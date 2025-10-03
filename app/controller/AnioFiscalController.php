@@ -7,6 +7,7 @@ use presupuestos\model\MainModel;
 use presupuestos\helpers\HtmlResponse;
 use Exception;
 
+require_once __DIR__ . '../../../bootstrap.php';
 
 
 class AnioFiscalController{
