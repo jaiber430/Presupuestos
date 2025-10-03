@@ -7,7 +7,7 @@ use presupuestos\model\MainModel;
 use presupuestos\helpers\HtmlResponse;
 use Exception;
 
-require_once __DIR__ . '../../../bootstrap.php';
+
 
 
 class AnioFiscalController{
@@ -38,8 +38,8 @@ class AnioFiscalController{
         $fechaCierre   = $_POST['fecha_cierre'];
         $subdirectorId = (int) $_POST['subdirector_id'];
 
-        $usuarioId = $_SESSION[APP_SESSION_NAME]['id'];
-        $centroId  = $_SESSION[APP_SESSION_NAME]['centro_id'];
+        $usuarioId = $_SESSION[APP_SESSION_NAME]['idUsuario'];
+        $centroId  = $_SESSION[APP_SESSION_NAME]['centroId'];
 
         if (!$usuarioId || !$centroId) {
             echo json_encode([
