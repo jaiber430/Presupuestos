@@ -51,7 +51,7 @@ class DashboardController {
             "sin-rol"=> __DIR__ . '/../app/view/errors/sin_rol.php',
         ];
 
-        $userRol= UserController::verifyAccount($_SESSION[APP_SESSION_NAME]['id']);
+        $userRol= UserController::verifyAccount($_SESSION[APP_SESSION_NAME]['idUsuario']);
         
         if (empty($userRol)) {
             require_once __DIR__ . '/../view/content/sin_rol.php';
