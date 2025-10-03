@@ -8,7 +8,6 @@ use presupuestos\model\AnioFiscalModel;
 use presupuestos\controller\role\RoleController;
 use presupuestos\controller\role\PermisoController;
 
-require __DIR__ . '/../../bootstrap.php';
 
 class DashboardController {
     
@@ -17,25 +16,31 @@ class DashboardController {
         $title = ucfirst($page);
         $title= str_replace("/", " ", $title);
 
-        $centroId = $_SESSION[APP_SESSION_NAME]['centro_id'];
-        $subdirector = UserController::getSubdirector($centroId);
-        $anioFiscalActivo = AnioFiscalModel::getPresupuestoActivo($centroId);
-        $hayAnioFiscal = !empty($anioFiscalActivo);
+        $centroId = $_SESSION[APP_SESSION_NAME]['centroId'];
+        $subdirector = UserController::getSubdirector($centroId);        
 
         //obtengo los roles para listarlos en la vista
         $roleController = new RoleController();
         $roles = $roleController->list();
-
     
 
         //Obtengo todos los usuarios
         $users= UserController::listByCentro($centroId);
 
-        //Generación de las semanas por el rango de apertura y cierre del año fiscal
-        $semanas = AnioFiscalModel::obtenerSemanasPorCentro($centroId);
+        //Obtengo el año fiscal activo
+        $anioFiscalActivo = AnioFiscalModel::getPresupuestoActivo($centroId);
+        $hayAnioFiscal = !empty($anioFiscalActivo);
+        
         //Obtengo los permisos para listarlos en la lista que los necesite. 
         $permisoController = new PermisoController();
         $permisos = $permisoController->list();
+
+        //Obtengo todas las semanas
+        $semanas = AnioFiscalModel::obtenerSemanasPorCentro($centroId);
+
+        //Obtengo las semana por centro y qué está activa
+        $semanaActiva= AnioFiscalController::getSemanaActiva($semanas);
+        
         
 
         $views = [

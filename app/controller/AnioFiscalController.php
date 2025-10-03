@@ -7,12 +7,12 @@ use presupuestos\model\MainModel;
 use presupuestos\helpers\HtmlResponse;
 use Exception;
 
-require __DIR__ . '/../../bootstrap.php';
+require_once __DIR__ . '../../../bootstrap.php';
 
-class AnioFiscalController
-{
-    public static function crear()
-    {
+
+class AnioFiscalController{
+
+    public static function crear(){
         if (
             empty($_POST['year_fiscal']) ||
             empty($_POST['valor_presupuesto']) ||
@@ -68,16 +68,21 @@ class AnioFiscalController
             // Generar semanas
             $semanas = self::generarSemanas($fechaInicio, $fechaCierre);
 
-            // Llamar al método del modelo que maneja la transacción completa
+            // Llamar al modelo para guardar todo
             AnioFiscalModel::crearAnioFiscalConSemanas($datosAnioFiscal, $semanas, $centroId);
+
+            // Obtener semana activa
+            $semanaActiva = self::getSemanaActiva($semanas);
 
             echo json_encode([
                 "tipo"   => "redireccionar",
                 "titulo" => "Éxito",
                 "texto"  => "Año fiscal creado correctamente con " . count($semanas) . " semanas generadas",
                 "icono"  => "success",
-                "url"    => "dashboard"
+                "url"    => "dashboard",
+                "semana_activa" => $semanaActiva 
             ]);
+
         } catch (Exception $e) {
             echo json_encode([
                 "tipo"   => "simple",
@@ -88,8 +93,7 @@ class AnioFiscalController
         }
     }
 
-    public static function generarSemanas($fechaInicio, $fechaFin)
-    {
+    public static function generarSemanas($fechaInicio, $fechaFin){
         $inicio = new \DateTime($fechaInicio);
         $fin = new \DateTime($fechaFin);
 
@@ -123,8 +127,20 @@ class AnioFiscalController
         return $semanas;
     }
 
-    public static function modificar()
-    {
+    public static function getSemanaActiva(array $semanas): ?array{
+        $hoy = new \DateTime();
+        $hoyStr = $hoy->format('Y-m-d');
+
+        foreach ($semanas as $semana) {
+            if ($hoyStr >= $semana['fechaInicio'] && $hoyStr <= $semana['fechaFin']) {
+                return $semana;
+            }
+        }
+
+        return null; 
+    }
+
+    public static function modificar(){
         try {
             if (empty($_POST['anio_fiscal_id']) || empty($_POST['tipo_modificacion']) || empty($_POST['monto'])) {
                 throw new Exception("Datos incompletos");
@@ -175,8 +191,7 @@ class AnioFiscalController
         }
     }
 
-    private static function calcularNuevoPresupuesto($anterior, $monto, $tipo)
-    {
+    private static function calcularNuevoPresupuesto($anterior, $monto, $tipo){
         switch ($tipo) {
             case 'incremento':
                 return $anterior + $monto;

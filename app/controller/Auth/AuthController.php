@@ -11,6 +11,8 @@ use presupuestos\helpers\MailerHelper;
 use presupuestos\helpers\TokenHelper;
 use presupuestos\model\TokenModel;
 use presupuestos\model\MainModel;
+use presupuestos\controller\AnioFiscalController;
+use presupuestos\model\AnioFiscalModel;
 use PDO;
 
 class AuthController {
@@ -47,7 +49,6 @@ class AuthController {
 
         try {
 
-
             $email = trim($credentials['email']);
             $password = trim($credentials['password']);
 
@@ -71,7 +72,7 @@ class AuthController {
                 return;
             }
 
-            if($dataUser['es_verificado'] == 0){
+            if($dataUser['esVerificado'] == 0){
                 echo json_encode([
                     'state' => 0,
                     'message' => "El correo no se encuentra verificado"
@@ -87,15 +88,28 @@ class AuthController {
                 return;
             }
 
+            $centroId= $dataUser['centroIdFk'];
+
+            //Obtengo todas las semanas
+            $semanas = AnioFiscalModel::obtenerSemanasPorCentro($centroId);
+
+            //Obtengo el año fiscal activo
+            $anioFiscalActivo = AnioFiscalModel::getPresupuestoActivo($centroId);
+
+            //Obtengo las semana por centro y la qué está activa
+            $semanaActiva = AnioFiscalController::getSemanaActiva($semanas);
 
             // Guardar sesión
+            //Guardar la semana activa, y el año fiscal activo
             $_SESSION[APP_SESSION_NAME] = [
-                'id'       => $dataUser['id'],
+                'id'       => $dataUser['idUser'],
                 'email'    => $dataUser['email'],
                 'name'     => $dataUser['nombres'],
                 'lastName' => $dataUser['apellidos'],
-                'centro_id'     => $dataUser['centro_id'],
-                "idROl"=> $dataUser['rol_id']
+                'centroId'     => $dataUser['centroIdFk'],
+                "idROl"=> $dataUser['rolIdFk'],
+                "semanaActiva"=> $semanaActiva,
+                "anioFiscalActivo"=> $anioFiscalActivo, 
             ];
           
             echo json_encode([
