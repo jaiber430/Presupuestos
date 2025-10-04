@@ -14,8 +14,7 @@ class ChunkReadFilter implements IReadFilter{
 	private int $startRow = 0;
 	private int $chunkSize = 0;
 
-	public function setRows(int $startRow, int $chunkSize): void
-	{
+	public function setRows(int $startRow, int $chunkSize): void{
 		$this->startRow = $startRow;
 		$this->chunkSize = $chunkSize;
 	}
@@ -36,8 +35,12 @@ class ReportsModel extends MainModel{
 
 	public static function processWeek1Excels(array $files, int $semanaId, $centroId): array{
 		$results = [];
-		$numeroAleatorio= rand(1, 10000); // Entre 1 y 100
-		$cdpTemporal= "cdp". $numeroAleatorio;
+
+		//Generar tabla aleatoria
+		//$numeroAleatorio= rand(1, 10000); // Entre 1 y 100
+		//$cdpTemporal= "cdp". $numeroAleatorio;
+
+		
 		$mapping = [
 			'cdp'   => "cdp",
 			// 'pagos' => 'pagos',

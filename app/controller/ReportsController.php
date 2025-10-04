@@ -58,7 +58,6 @@ class ReportsController{
         }
     }
 
-
     /**
      * GET /reports/dependencias -> lista dependencias
      */
