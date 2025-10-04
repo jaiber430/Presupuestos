@@ -14,7 +14,7 @@ class ReportsController{
         Auth::check();
 
         try {
-            if (empty($_POST['week']) || empty($_POST['semana_id'])) {
+            if (empty($_POST['week']) || empty($_POST['semana_id']) || empty($_POST['centro_id'])) {
                 ob_clean();
                 header('Content-Type: application/json; charset=utf-8');
                 echo json_encode([
@@ -28,9 +28,10 @@ class ReportsController{
 
             $files = $_FILES ?? [];
             $semanaId = (int)$_POST['semana_id'];
-            
+            $centroId= (int)$_POST['centro_id'];
+           
             // Procesa Excel usando ReportsModel adaptado
-            $results = ReportsModel::processWeek1Excels($files, $semanaId);
+            $results = ReportsModel::processWeek1Excels($files, $semanaId, $centroId);
 
             ob_clean();
             header('Content-Type: application/json; charset=utf-8');

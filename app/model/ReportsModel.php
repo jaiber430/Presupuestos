@@ -34,13 +34,17 @@ class ReportsModel extends MainModel{
 		'reporte_presupuestal' => ['valorInicial', 'valorOperaciones', 'valorActual', 'saldoUtilizar']
 	];
 
-	public static function processWeek1Excels(array $files, int $semanaId): array{
+	public static function processWeek1Excels(array $files, int $semanaId, $centroId): array{
 		$results = [];
+		$numeroAleatorio= rand(1, 10000); // Entre 1 y 100
+		$cdpTemporal= "cdp". $numeroAleatorio;
 		$mapping = [
-			'cdp'   => 'cdptemporal',
+			'cdp'   => "cdp",
 			// 'pagos' => 'pagos',
 			// 'rp'    => 'reportepresupuestal',
 		];
+
+		//self::crearTable($cdpTemporal);
 
 		$hasAny = false;
 		foreach ($mapping as $key => $table) {
@@ -50,7 +54,7 @@ class ReportsModel extends MainModel{
 				break;
 			}
 		}
-		
+
 		if (!$hasAny) throw new Exception('Debes seleccionar al menos un archivo Excel.');
 
 		foreach ($mapping as $key => $table) {
@@ -62,7 +66,7 @@ class ReportsModel extends MainModel{
 
 		foreach ($mapping as $key => $table) {
 			if (!empty($files[$key]['tmp_name'])) {
-				$results[] = self::importExcelToTable($files[$key]['tmp_name'], $table, $semanaId);
+				$results[] = self::importExcelToTable($files[$key]['tmp_name'], $table, $semanaId, $centroId);
 			}
 		}
 
@@ -85,7 +89,7 @@ class ReportsModel extends MainModel{
 		$expected = count($columns);
 
 		// RESTAR 1 PORQUE TODAS LAS TABLAS TIENEN semana_id
-		$excelColumnsExpected = $expected - 1; // 23 columnas en el Excel
+		$excelColumnsExpected = $expected - 2; // 25 columnas en el Excel
 
 		$reader = IOFactory::createReaderForFile($filePath);
 		$reader->setReadDataOnly(true);
@@ -103,6 +107,7 @@ class ReportsModel extends MainModel{
 			$data = [];
 			foreach ($cellIterator as $cell) $data[] = $cell->getValue();
 			if (count($data) !== $excelColumnsExpected) {
+				
 				return "Error en '$table': fila $rowNumber no coincide con columnas del archivo ($excelColumnsExpected esperadas).";
 			}
 			$rowNumber++;
@@ -129,13 +134,12 @@ class ReportsModel extends MainModel{
 	/**
 	 * Inserta los datos del Excel a la tabla indicada (fila por fila)
 	 */
-	private static function importExcelToTable(string $filePath, string $table, int $semanaId): string{
-
+	private static function importExcelToTable(string $filePath, string $table, int $semanaId, int $centroId): string{
 		$pdo = self::getConnection();
 		$columns = self::getTableColumns($table);
 
-		// Filtrar columnas para el INSERT (excluir semana_id si existe)
-		$insertColumns = array_filter($columns, fn($col) => $col !== 'semana_id');
+		// Excluir id autoincrement y claves foráneas que llenamos manualmente
+		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idCdp', 'idSemanaFk', 'idCentroFk']));
 		$numericCols = self::$numericFields[$table] ?? [];
 
 		$reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($filePath);
@@ -143,9 +147,12 @@ class ReportsModel extends MainModel{
 		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
 
-		// CORREGIDO: Placeholders correctos incluyendo semana_id
-		$columnList = "`" . implode('`,`', $insertColumns) . "`, `semana_id`";
-		$placeholders = "(" . rtrim(str_repeat("?,", count($insertColumns) + 1), ",") . ")";
+		// Columnas finales: columnas del Excel + las foráneas fijas
+		$finalColumns = array_merge($insertColumns, ['idSemanaFk', 'idCentroFk']);
+		$columnList   = "`" . implode("`,`", $finalColumns) . "`";
+
+		// Placeholders según número de columnas
+		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumns)), ",") . ")";
 		$sql = "INSERT INTO `$table` ($columnList) VALUES $placeholders";
 		$stmt = $pdo->prepare($sql);
 
@@ -155,7 +162,7 @@ class ReportsModel extends MainModel{
 
 		foreach ($sheet->getRowIterator() as $row) {
 			if ($firstRow) {
-				$firstRow = false;
+				$firstRow = false; // saltar encabezado
 				continue;
 			}
 
@@ -166,7 +173,7 @@ class ReportsModel extends MainModel{
 				$data[] = $cell->getValue();
 			}
 
-			// Ajustar cantidad de valores
+			// Ajustar cantidad de valores para que coincidan con $insertColumns
 			if (count($data) < count($insertColumns)) {
 				$data = array_pad($data, count($insertColumns), null);
 			} elseif (count($data) > count($insertColumns)) {
@@ -184,8 +191,9 @@ class ReportsModel extends MainModel{
 				}
 			}
 
-			// Agregar el semana_id al final
+			// Agregar los campos fijos
 			$values[] = $semanaId;
+			$values[] = $centroId;
 
 			$stmt->execute($values);
 			$rowCount++;
@@ -194,6 +202,7 @@ class ReportsModel extends MainModel{
 		$pdo->commit();
 		$spreadsheet->disconnectWorksheets();
 		unset($spreadsheet);
+		
 
 		return "Datos de '$table' insertados correctamente ($rowCount registros).";
 	}
@@ -235,8 +244,7 @@ class ReportsModel extends MainModel{
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
 
-	public static function clearWeekData(string $week): void
-	{
+	public static function clearWeekData(string $week): void{
 		$tables = ['cdp', 'pagos', 'reporte_presupuestal'];
 		$pdo = self::getConnection();
 		try {
@@ -246,5 +254,45 @@ class ReportsModel extends MainModel{
 		} catch (\Throwable $e) {
 			throw new Exception('No se pudieron eliminar los datos: ' . $e->getMessage());
 		}
+	}
+
+	public static function crearTable(string $nombreTabla){
+		$pdo = self::getConnection();
+		$sql = "
+        	CREATE TABLE `$nombreTabla` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `numero_documento` INT(11) NULL DEFAULT NULL,
+            `fecha_registro` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `fecha_creacion` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `tipo_cdp` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `estado` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `dependencia` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `dependencia_descripcion` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `rubro` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `descripcion` TEXT NULL COLLATE 'utf8mb4_general_ci',
+            `fuente` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `recurso` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `sit` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `valor_inicial` DECIMAL(18,2) NULL DEFAULT NULL,
+            `valor_operaciones` DECIMAL(18,2) NULL DEFAULT NULL,
+            `valor_actual` DECIMAL(18,2) NULL DEFAULT NULL,
+            `saldo_por_comprometer` DECIMAL(18,2) NULL DEFAULT NULL,
+            `objeto` TEXT NULL COLLATE 'utf8mb4_general_ci',
+            `solicitud_CDP` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `compromiso` VARCHAR(500) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `cuentas_por_pagar` VARCHAR(500) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `obligaciones` VARCHAR(500) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `ordenes_de_pago` VARCHAR(500) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `reintegros` VARCHAR(500) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+            `idSemanaFk` INT NOT NULL,
+            `idCentroFk` INT NOT NULL
+        )
+        COLLATE='utf8mb4_general_ci'
+        ENGINE=InnoDB";
+
+		$stmt = $pdo->prepare($sql);
+
+		return $stmt->execute();
+
 	}
 }
