@@ -203,7 +203,7 @@ $(function() {
                 $centro.empty();                 
                 
                 $.each(data, function(index, centro) {
-                    $centro.append('<option value="'+ centro.id +'">'+ centro.centro +'</option>');
+                    $centro.append('<option value="'+ centro.idCentro +'">'+ centro.centro +'</option>');
                 });
 
             },error: function() {            
