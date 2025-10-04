@@ -36,6 +36,7 @@ class DashboardController{
 
         //Obtengo todas las semanas
         $semanas = AnioFiscalModel::obtenerSemanasPorCentro($idCentroIdSession);
+        
         // echo "<pre>";
         // var_dump($_SESSION[APP_SESSION_NAME]);
         // exit;
@@ -44,7 +45,7 @@ class DashboardController{
         // var_dump( $semanas);
         // exit;
         $semanaActiva = AnioFiscalController::getSemanaActiva($semanas);
-
+    
         $views = [
             "dashboards"      => __DIR__ . '/../view/content/dashboard.php',
             "dashboard"       => __DIR__ . '/../view/content/reports.php',

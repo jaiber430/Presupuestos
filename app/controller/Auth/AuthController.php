@@ -1,6 +1,5 @@
 <?php
 namespace presupuestos\controller\Auth;
-
 use presupuestos\model\UserModel;
 use presupuestos\helpers\ValidationHelper;
 use presupuestos\helpers\PasswordHelper;
@@ -12,6 +11,8 @@ use presupuestos\model\MainModel;
 use presupuestos\controller\AnioFiscalController;
 use presupuestos\model\AnioFiscalModel;
 use PDO;
+
+require_once __DIR__ . '../../../../config/app.php';
 
 class AuthController {
 
