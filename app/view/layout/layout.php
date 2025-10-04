@@ -95,25 +95,25 @@
             <div class="col-md">
                 <label class="form-label fw-bold">Vigencia Fiscal:</label>
                 <input type="number" class="form-control form-control-sm"
-                    value="<?= $anioFiscalActivo['anio_fiscal'] ?? '' ?>"
+                    value="<?= $anioFiscalActivo['anioFiscal'] ?? '' ?>"
                     readonly aria-label="Año fiscal actual">
             </div>
             <div class="col-md">
                 <label class="form-label fw-bold">Valor:</label>
                 <input type="text" class="form-control form-control-sm"
-                    value="<?= isset($anioFiscalActivo['valor_anio_fiscal']) ? '$' . number_format($anioFiscalActivo['valor_anio_fiscal'], 0, ',', '.') : '' ?>"
+                    value="<?= isset($anioFiscalActivo['valorAnioFiscal']) ? '$' . number_format($anioFiscalActivo['valorAnioFiscal'], 0, ',', '.') : '' ?>"
                     readonly aria-label="Valor del año fiscal">
             </div>
             <div class="col-md">
                 <label class="form-label fw-bold">Fecha inicio</label>
                 <input type="date" class="form-control form-control-sm"
-                    value="<?= $anioFiscalActivo['fecha_inicio'] ?? '' ?>"
+                    value="<?= $anioFiscalActivo['fechaInicio'] ?? '' ?>"
                     readonly aria-label="Fecha de inicio del año fiscal">
             </div>
             <div class="col-md">
                 <label class="form-label fw-bold">Fecha Fin</label>
                 <input type="date" class="form-control form-control-sm"
-                    value="<?= $anioFiscalActivo['fecha_cierre'] ?? '' ?>"
+                    value="<?= $anioFiscalActivo['fechaCierre'] ?? '' ?>"
                     readonly aria-label="Fecha de cierre del año fiscal">
             </div>
             <div class="col-md">

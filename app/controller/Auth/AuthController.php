@@ -1,5 +1,7 @@
 <?php
+
 namespace presupuestos\controller\Auth;
+
 use presupuestos\model\UserModel;
 use presupuestos\helpers\ValidationHelper;
 use presupuestos\helpers\PasswordHelper;
@@ -14,22 +16,25 @@ use PDO;
 
 require_once __DIR__ . '../../../../config/app.php';
 
-class AuthController {
+class AuthController
+{
 
-    public function showLogin(){
-        $getDepartaments= new MainModel();
-        $queryDepartaments= "SELECT * FROM departamentos ";
-        $stmt= $getDepartaments::executeQuery($queryDepartaments);
-        $departamentos= $stmt->fetchAll(PDO::FETCH_ASSOC);  
+    public function showLogin()
+    {
+        $getDepartaments = new MainModel();
+        $queryDepartaments = "SELECT * FROM departamentos ";
+        $stmt = $getDepartaments::executeQuery($queryDepartaments);
+        $departamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         require __DIR__ . '/../../view/Auth/login.php';
     }
 
-    public function getCentros() {
+    public function getCentros()
+    {
         if (isset($_GET['departamento'])) {
             $getCentro = new MainModel();
-            $queryCentro = "SELECT * FROM centros WHERE idDepartamento = :departamento";
-            
+            $queryCentro = "SELECT * FROM centros WHERE departamentoIdFK = :departamento";
+
             $stmt = $getCentro::executeQuery($queryCentro, [
                 'departamento' => (int) $_GET['departamento']
             ]);
@@ -41,7 +46,8 @@ class AuthController {
         }
     }
 
-    public function login(array $credentials){
+    public function login(array $credentials)
+    {
 
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-cache, must-revalidate');
@@ -51,7 +57,7 @@ class AuthController {
             $email = trim($credentials['email']);
             $password = trim($credentials['password']);
 
-            if($email === "" || $password === "") {
+            if ($email === "" || $password === "") {
                 echo json_encode([
                     'state' => 0,
                     'message' => "Todos los campos son obligatorios"
@@ -63,7 +69,7 @@ class AuthController {
             $userModel = new UserModel();
             $dataUser = $userModel->findByEmail($email);
 
-            if(!$dataUser){
+            if (!$dataUser) {
                 echo json_encode([
                     'state' => 0,
                     'message' => "Correo no registrado"
@@ -71,7 +77,7 @@ class AuthController {
                 return;
             }
 
-            if($dataUser['esVerificado'] == 0){
+            if ($dataUser['esVerificado'] == 0) {
                 echo json_encode([
                     'state' => 0,
                     'message' => "El correo no se encuentra verificado"
@@ -79,7 +85,7 @@ class AuthController {
                 return;
             }
 
-            if(!password_verify($password, $dataUser['password'])){
+            if (!password_verify($password, $dataUser['password'])) {
                 echo json_encode([
                     'state' => 0,
                     'message' => "Credenciales incorrectas"
@@ -87,16 +93,16 @@ class AuthController {
                 return;
             }
 
-            $centroId= $dataUser['centroIdFk'];
+            $centroId = $dataUser['centroIdFk'];
 
             //Obtengo todas las semanas
-            $semanas= AnioFiscalModel::obtenerSemanasPorCentro($centroId);
+            $semanas = AnioFiscalModel::obtenerSemanasPorCentro($centroId);
 
             //Obtengo el año fiscal activo
-            $anioFiscalActivo= AnioFiscalModel::getPresupuestoActivo($centroId);
+            $anioFiscalActivo = AnioFiscalModel::getPresupuestoActivo($centroId);
 
             //Obtengo las semana por centro y la qué está activa
-            $semanaActiva= AnioFiscalController::getSemanaActiva($semanas);
+            $semanaActiva = AnioFiscalController::getSemanaActiva($semanas);
 
             //Guardar la semana activa, y el año fiscal activo
             $_SESSION[APP_SESSION_NAME] = [
@@ -108,14 +114,13 @@ class AuthController {
                 'idSemanaActivaSession' => $semanaActiva['idSemana'],
                 'idAnioFiscalActivoSession' => $anioFiscalActivo,
             ];
-          
+
             echo json_encode([
                 'state' => 1,
                 'message' => "Login exitoso",
                 'redirect' => APP_URL . "dashboard"
             ]);
             return;
-
         } catch (ValidationException $e) {
             echo json_encode([
                 'state' => 0,
@@ -129,21 +134,22 @@ class AuthController {
         }
     }
 
-    public function register(array $data){
+    public function register(array $data)
+    {
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-cache, must-revalidate');
 
         try {
 
-            $names= trim($data['names'] ?? '');
-            $lastNames= trim($data['lastNames'] ?? '');
-            $idNumber= trim($data['idNumber'] ?? '');
-            $email= trim($data['emailSena']);
+            $names = trim($data['names'] ?? '');
+            $lastNames = trim($data['lastNames'] ?? '');
+            $idNumber = trim($data['idNumber'] ?? '');
+            $email = trim($data['emailSena']);
             $password = trim($data['password']);
-            $rePassword = trim($data['rePassword']);            
-            $idCentro= trim($data['idCentro']);          
+            $rePassword = trim($data['rePassword']);
+            $idCentro = trim($data['idCentro']);
 
-            if(!$names || !$lastNames || !$email|| !$password || !$rePassword || !$idCentro){
+            if (!$names || !$lastNames || !$email || !$password || !$rePassword || !$idCentro) {
                 echo json_encode([
                     'state' => 0,
                     'message' => "Todos los campos son obligatorios"
@@ -151,7 +157,7 @@ class AuthController {
                 return;
             }
 
-            if($password !== $rePassword){
+            if ($password !== $rePassword) {
                 echo json_encode([
                     'state' => 0,
                     'message' => "Las contraseñas no coinciden"
@@ -162,7 +168,7 @@ class AuthController {
             $email = ValidationHelper::normalizeEmail($email);
 
             $userModel = new UserModel();
-            if($userModel->findByEmail($email)){
+            if ($userModel->findByEmail($email)) {
                 echo json_encode([
                     'state' => 0,
                     'message' => "El correo ya está registrado"
@@ -172,13 +178,13 @@ class AuthController {
 
             #Ingresar la validación del Rol Por defecto está como 4. 
             $hashed = PasswordHelper::hashPassword($password);
-            $result= $userModel->create([
-                'names'=> $names,
-                'lastNames'=> $lastNames,
-                'idNumber'=> $idNumber,
+            $result = $userModel->create([
+                'names' => $names,
+                'lastNames' => $lastNames,
+                'idNumber' => $idNumber,
                 'email' => $email,
                 'password' => $hashed,
-                'centroId'=> $idCentro
+                'centroId' => $idCentro
             ]);
 
             if ($result['success']) {
@@ -207,24 +213,22 @@ class AuthController {
                         ? "Registro exitoso. Verifica tu correo para activar tu cuenta."
                         : "Registro exitoso, pero hubo un error enviando el correo: $sent"
                 ]);
-
             } else {
                 echo json_encode([
                     'state' => 0,
                     'message' => "Error: " . $result['error']
                 ]);
             }
-
-                            
-        } catch (\Exception $e){
+        } catch (\Exception $e) {
             echo json_encode([
                 'state' => 0,
-                'message' => "Error del sistema. Intenta más tarde.".$e->getMessage()
+                'message' => "Error del sistema. Intenta más tarde." . $e->getMessage()
             ]);
         }
     }
 
-    public function recoveryPassword(array $data){
+    public function recoveryPassword(array $data)
+    {
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-cache, must-revalidate');
 
@@ -234,7 +238,7 @@ class AuthController {
         $userModel = new UserModel();
         $dataUser = $userModel->findByEmail($email);
 
-        if(!$dataUser){
+        if (!$dataUser) {
             echo json_encode([
                 'state' => 0,
                 'message' => "Correo no registrado"
@@ -242,12 +246,12 @@ class AuthController {
             return;
         }
 
-        $mailer= new MailerHelper();
-        $tokenHelper= New TokenHelper();
-        $tokenModel= new TokenModel();
+        $mailer = new MailerHelper();
+        $tokenHelper = new TokenHelper();
+        $tokenModel = new TokenModel();
 
-        $token= $tokenHelper::generateToken();
-        $expiresAt= tokenHelper::expiration();
+        $token = $tokenHelper::generateToken();
+        $expiresAt = tokenHelper::expiration();
 
         $tokenModel->create($dataUser['id'], $token, 'recovery', $expiresAt);
 
@@ -259,29 +263,32 @@ class AuthController {
 
         echo json_encode([
             'state' => 1,
-            'redirect' => APP_URL."recovery?email={$dataUser['email']}"
-        ]);        
+            'redirect' => APP_URL . "recovery?email={$dataUser['email']}"
+        ]);
         return;
     }
 
-    public function showSendSuccessful(){
-        $email= $_GET['email'] ?? '';
+    public function showSendSuccessful()
+    {
+        $email = $_GET['email'] ?? '';
         require __DIR__ . '/../../view/Auth/send_successful.php';
         exit;
     }
 
-    public function showRecoveryPassword(){
-        
+    public function showRecoveryPassword()
+    {
+
         require __DIR__ . '/../../view/Auth/recovery_password.php';
     }
 
-    public function verify() {
+    public function verify()
+    {
         $token = $_GET['token'] ?? null;
         if (!$token) {
             require __DIR__ . "/../../view/errors/404.php";
             exit;
         }
-       
+
         $tokenModel = new TokenModel();
         $tokenData = $tokenModel->findByToken($token);
 
@@ -290,30 +297,31 @@ class AuthController {
             exit;
         }
 
-        if($tokenData['type']== 'verification'){
+        if ($tokenData['type'] == 'verification') {
             if (strtotime($tokenData['expires_at']) < time()) {
                 //$tokenModel->deleteByToken($token);
                 require __DIR__ . "/../../view/errors/invalid_token.php";
                 exit;
-            }else{
+            } else {
                 $userModel = new UserModel();
-                $userModel->verifyAccount((int)$tokenData['user_id']);                
+                $userModel->verifyAccount((int)$tokenData['user_id']);
                 //$tokenModel->deleteByToken($token);
 
-                $_SESSION["message"]= "Correo Actualizado Correctamente";
+                $_SESSION["message"] = "Correo Actualizado Correctamente";
                 header("Location: /login");
                 exit;
-            }            
-        }elseif($tokenData['type']=='recovery'){
+            }
+        } elseif ($tokenData['type'] == 'recovery') {
             if (strtotime($tokenData['expires_at']) < time()) {
                 $tokenModel->deleteByToken($token);
                 require __DIR__ . "/../../view/errors/404.php";
                 exit;
-            }            
-        }       
+            }
+        }
     }
 
-    public function logout() {
+    public function logout()
+    {
         session_start();
         session_unset();
         session_destroy();

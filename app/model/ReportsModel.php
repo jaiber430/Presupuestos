@@ -28,9 +28,9 @@ class ChunkReadFilter implements IReadFilter{
 class ReportsModel extends MainModel{
 
 	private static array $numericFields = [
-		'cdp' => ['valor_inicial', 'valor_operaciones', 'valor_actual', 'comprometer_saldo'],
-		'pagos' => ['valor_bruto', 'valor_deducciones', 'valor_neto', 'valor_pesos'],
-		'reporte_presupuestal' => ['valor_inicial', 'valor_operaciones', 'valor_actual', 'saldo_utilizar']
+		'cdp' => ['valorInicial', 'valorOperaciones', 'valorActual', 'comprometerSaldo'],
+		'pagos' => ['valorBruto', 'valorDeduccions', 'valorNeto', 'valorPesos', 'valorMoneda', 'valorReintegradoPesos', 'valorReintegradoMoneda'],
+		'reporte_presupuestal' => ['valorInicial', 'valorOperaciones', 'valorActual', 'saldoUtilizar']
 	];
 
 	public static function processWeek1Excels(array $files, int $semanaId, $centroId): array{
