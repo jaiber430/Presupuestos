@@ -124,7 +124,7 @@ class AuthController{
         } catch (\Exception $e) {
             echo json_encode([
                 'state' => 0,
-                'message'=> 'Error 505. Consulte con el administrador'. $e->getMessage(),
+                'message'=> 'Error 505. Consulte con el administrador',
             ]);
         }
     }
