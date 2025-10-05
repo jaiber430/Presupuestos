@@ -33,7 +33,7 @@ class ReportsModel extends MainModel{
 		'reporte_presupuestal' => ['valorInicial', 'valorOperaciones', 'valorActual', 'saldoUtilizar']
 	];
 
-	public static function processWeek1Excels(array $files, int $semanaId): array{
+	public static function processWeek1Excels(array $files, int $semanaId, int $centroId): array{
 		$results = [];
 
 		//Generar tabla aleatoria
@@ -65,7 +65,7 @@ class ReportsModel extends MainModel{
 		}
 
 		foreach ($mapping as $key => $table) {
-			$results[] = self::importExcelToTable($files[$key]['tmp_name'], $table, $semanaId);
+			$results[] = self::importExcelToTable($files[$key]['tmp_name'], $table, $semanaId, $centroId);
 		}
 
 		return $results;
@@ -112,51 +112,59 @@ class ReportsModel extends MainModel{
 	}
 
 
-	private static function importExcelToTable(string $filePath, string $table, int $semanaId): string
+	private static function importExcelToTable(string $filePath, string $table, int $semanaId, int $centroId): string
 	{
 		$pdo = self::getConnection();
 		$columns = self::getTableColumns($table);
 
+		// Excluir columnas automáticas y FK
 		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idCdp', 'idSemanaFk']));
-		$numericCols = self::$numericFields[$table] ?? [];
+		$numericCols = self::$numericFields[$table];
 
-		//Elegir columna que se van a incertar
+		// Mapeo del Excel hacia tus columnas del CDP
 		$excelMapping = [
-			'Numero Documento'            => 'numeroCdp',
-			'Fecha de Creacion'          => 'fecha',
-			'Objeto'         => 'objeto',
-			'Valor'          => 'valor',
-			'Dependencia'    => 'dependencia',
-			'Dependencia Descripcion' => 'descripcion'
+			'Numero Documento'         => 'numeroDocumento',
+			'Fecha de Registro'        => 'fechaRegistro',
+			'Fecha de Creacion'        => 'fechaCreacion',
+			'Tipo de CDP'              => 'tipoCdp',
+			'Estado'                   => 'estado',
+			'Dependencia'              => 'dependencia',
+			'Dependencia Descripcion'  => 'descripcion',
+			'Rubro'                    => 'rubro',
+			'Descripcion'              => 'descripcionRubro',
+			'Fuente'                   => 'fuente',
+			'Recurso'                  => 'recurso',
+			'Sit'                      => 'sit',
+			'Valor Inicial '           => 'valorInicial',
+			'Valor Operaciones '       => 'valorOperaciones',
+			'Valor Actual '            => 'valorActual',
+			'Saldo por Comprometer '   => 'saldoComprometer',
+			'Objeto'                   => 'objeto',
+			'Solicitud CDP'             => 'solicitudCdp',
+			'Compromisos'               => 'compromisos',
+			'Cuentas por Pagar'         => 'cuentasPagar',
+			'Obligaciones'              => 'obligaciones',
+			'Ordenes de Pago'           => 'ordenesPago',
+			'Reintegros'                => 'reintegros'
 		];
 
-		// 🔗 Relación con tabla secundaria
-		$relationTable = 'cdpdependencia';
-		$relationMapping = [
-			'idCdpFk'     => 'idCdp',  // Llave foránea
-			'dependencia' => 'Dependencia',
-			'descripcion' => 'Dependencia Descripcion'
-		];
-
-		// 📘 Cargar Excel
 		$reader = IOFactory::createReaderForFile($filePath);
 		$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
 
-		// ⚙️ Preparar sentencia de inserción principal
-		$finalColumns = array_merge($insertColumns, ['idSemanaFk']);
-		$columnList = "`" . implode("`,`", $finalColumns) . "`";
-		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumns)), ",") . ")";
+		// Preparar SQL principal
+		$finalColumnsCdp = array_merge($insertColumns, ['idSemanaFk']);
+		$columnList = "`" . implode("`,`", $finalColumnsCdp) . "`";
+		
+		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumnsCdp)), ",") . ")";
 		$sql = "INSERT INTO `$table` ($columnList) VALUES $placeholders";
 		$stmt = $pdo->prepare($sql);
 
-		// 🚦 Iniciar transacción
 		$pdo->beginTransaction();
 		$firstRow = true;
 		$rowCount = 0;
 
-		// 📊 Recorrer filas del Excel
 		foreach ($sheet->getRowIterator() as $row) {
 			$cellIterator = $row->getCellIterator();
 			$cellIterator->setIterateOnlyExistingCells(false);
@@ -166,21 +174,18 @@ class ReportsModel extends MainModel{
 				$data[] = trim((string)$cell->getValue());
 			}
 
-			// Saltar cabecera
 			if ($firstRow) {
 				$headers = $data;
 				$firstRow = false;
 				continue;
 			}
 
-			// Asociar cabeceras a valores
 			$rowData = array_combine($headers, $data);
-			if (!$rowData) continue; // si hay error en estructura
+			if (!$rowData) continue;
 
-			// 🧮 Preparar valores para la tabla principal
+			// Preparar datos para CDP
 			$values = [];
 			foreach ($insertColumns as $col) {
-				// Buscar si esa columna está en el mapeo
 				$excelCol = array_search($col, $excelMapping, true);
 				$val = $excelCol && isset($rowData[$excelCol]) ? $rowData[$excelCol] : null;
 
@@ -191,40 +196,42 @@ class ReportsModel extends MainModel{
 				}
 			}
 
-			// Añadir idSemanaFk
 			$values[] = $semanaId;
-
-			// 💾 Insertar en tabla principal
 			$stmt->execute($values);
 			$idCdp = $pdo->lastInsertId();
 
-			// 🔗 Insertar en tabla relacionada (cdpdependencia)
-			$relValues = [];
-			foreach ($relationMapping as $relCol => $excelCol) {
-				if ($excelCol === 'idCdp') {
-					$relValues[] = $idCdp;
-				} else {
-					$relValues[] = $rowData[$excelCol] ?? null;
-				}
-			}
+			// Relaciono la tabla cdpdependencia
+			$dependenciaCodigo = $rowData['Dependencia'];
+			$dependenciaDesc   = $rowData['Dependencia Descripcion'];
+			
+			if ($dependenciaCodigo) {
+				// Buscar dependencia
+				$sqlDep = "SELECT idDependencia FROM dependencias WHERE codigo = ?";
+				$stmtDep = $pdo->prepare($sqlDep);
+				$stmtDep->execute([$dependenciaCodigo]);
+				$idDependencia = $stmtDep->fetchColumn();
 
-			$relSql = "INSERT INTO `$relationTable` (" . implode(',', array_keys($relationMapping)) . ") VALUES (" . rtrim(str_repeat('?,', count($relValues)), ',') . ")";
-			$pdo->prepare($relSql)->execute($relValues);
+				// Si no existe, la creamos
+				if (!$idDependencia) {
+					$sqlInsertDep = "INSERT INTO dependencias (codigo, nombre, idCentroFk) VALUES (?, ?, ?)";
+					$pdo->prepare($sqlInsertDep)->execute([$dependenciaCodigo, $dependenciaDesc, $centroId]);
+					$idDependencia = $pdo->lastInsertId();
+				}
+
+				// Insertar relación cdp → dependencia
+				$sqlRel = "INSERT INTO cdpdependencia (idCdpFk, idDependenciaFk) VALUES (?, ?)";
+				$pdo->prepare($sqlRel)->execute([$idCdp, $idDependencia]);
+			}
 
 			$rowCount++;
 		}
 
-		// ✅ Confirmar transacción
 		$pdo->commit();
-
-		// 🧹 Liberar memoria
 		$spreadsheet->disconnectWorksheets();
 		unset($spreadsheet);
 
 		return "Datos insertados correctamente en '$table' ($rowCount registros).";
 	}
-
-
 
 	private static function getTableColumns(string $table): array{
 		$stmt = self::executeQuery("SHOW COLUMNS FROM `$table`");

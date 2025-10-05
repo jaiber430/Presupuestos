@@ -102,7 +102,7 @@ class AuthController{
             //Guardar la semana activa, y el año fiscal activo
             $_SESSION[APP_SESSION_NAME] = [
                 'idUsuarioSession'       => $dataUser['idUser'],
-                'usuarioLogueadoSession' => $dataUser['nombres'] . ' ' . $dataUser['apellidos'],
+                'usuarioLogueadoSession' => $dataUser['nombres'].' '.$dataUser['apellidos'],
                 'emailLoginSession'    => $dataUser['email'],
                 'idCentroIdSession'     => $dataUser['idCentroFk'],
                 'idRolSession' => $dataUser['idRolFk'],
