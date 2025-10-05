@@ -118,7 +118,6 @@ class AnioFiscalModel extends MainModel
     }
 
     
-
     public static function obtenerSemanasPorCentro(int $centroId): array
     {
         $sql = "SELECT idSemana, numeroSemana, fechaInicio, fechaFin, 
