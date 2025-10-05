@@ -294,7 +294,7 @@ class AuthController{
                 exit;
             } else {
                 $userModel = new UserModel();
-                $userModel->verifyAccount((int)$tokenData['user_id']);
+                $userModel->verifyAccount((int)$tokenData['idUser']);
                 //$tokenModel->deleteByToken($token);
 
                 $_SESSION["message"] = "Correo Actualizado Correctamente";
