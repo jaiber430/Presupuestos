@@ -28,7 +28,7 @@ return [
     'reports/delete-post'=> fn()=> (new ReportsController())->delete(),
     'dashboard/listar-post'=> fn()=> (new MenuController())->getByRole(),
     'dashboard/actualizar-permiso-post'=> fn()=> (new MenuController())->updatePermisses(),
-    'crear_anio_fiscal-post'=> fn() => AnioFiscalController::crear(),
+    'crear_anio_fiscal-post'=> fn() => AnioFiscalController::crearAnioFiscal(),
     //Gestión de Roles
     'gestionar/usuarios'=> fn()=> (new DashboardController())-> index('usuarios'),
     'usuarios/update-post'=> fn()=> (new UserController())-> update($user_id= $_POST['id'], $_POST),

@@ -14,13 +14,10 @@ use presupuestos\controller\AnioFiscalController;
 use presupuestos\model\AnioFiscalModel;
 use PDO;
 
-require_once __DIR__ . '../../../../config/app.php';
 
-class AuthController
-{
+class AuthController{
 
-    public function showLogin()
-    {
+    public function showLogin(){
         $getDepartaments = new MainModel();
         $queryDepartaments = "SELECT * FROM departamentos ";
         $stmt = $getDepartaments::executeQuery($queryDepartaments);
@@ -29,8 +26,7 @@ class AuthController
         require __DIR__ . '/../../view/Auth/login.php';
     }
 
-    public function getCentros()
-    {
+    public function getCentros(){
         if (isset($_GET['departamento'])) {
             $getCentro = new MainModel();
             $queryCentro = "SELECT * FROM centros WHERE departamentoIdFK = :departamento";
@@ -46,8 +42,7 @@ class AuthController
         }
     }
 
-    public function login(array $credentials)
-    {
+    public function login(array $credentials){
 
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-cache, must-revalidate');
@@ -93,14 +88,14 @@ class AuthController
                 return;
             }
 
-            $centroId = $dataUser['centroIdFk'];
-
+            $centroId = $dataUser['idCentroFk'];
             //Obtengo todas las semanas
             $semanas = AnioFiscalModel::obtenerSemanasPorCentro($centroId);
+            
 
             //Obtengo el año fiscal activo
             $anioFiscalActivo = AnioFiscalModel::getPresupuestoActivo($centroId);
-
+            
             //Obtengo las semana por centro y la qué está activa
             $semanaActiva = AnioFiscalController::getSemanaActiva($semanas);
 
@@ -109,9 +104,9 @@ class AuthController
                 'idUsuarioSession'       => $dataUser['idUser'],
                 'usuarioLogueadoSession' => $dataUser['nombres'] . ' ' . $dataUser['apellidos'],
                 'emailLoginSession'    => $dataUser['email'],
-                'idCentroIdSession'     => $dataUser['centroIdFk'],
-                'idRolSession' => $dataUser['rolIdFk'],
-                'idSemanaActivaSession' => $semanaActiva['idSemana'],
+                'idCentroIdSession'     => $dataUser['idCentroFk'],
+                'idRolSession' => $dataUser['idRolFk'],
+                'idSemanaActivaSession' => $semanaActiva['idSemana'] ?? null,
                 'idAnioFiscalActivoSession' => $anioFiscalActivo,
             ];
 
@@ -129,13 +124,12 @@ class AuthController
         } catch (\Exception $e) {
             echo json_encode([
                 'state' => 0,
-                'message' => "Error del sistema. Intenta más tarde."
+                'message'=> 'Error 505. Consulte con el administrador',
             ]);
         }
     }
 
-    public function register(array $data)
-    {
+    public function register(array $data){
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-cache, must-revalidate');
 
@@ -227,8 +221,7 @@ class AuthController
         }
     }
 
-    public function recoveryPassword(array $data)
-    {
+    public function recoveryPassword(array $data){
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-cache, must-revalidate');
 
@@ -268,21 +261,18 @@ class AuthController
         return;
     }
 
-    public function showSendSuccessful()
-    {
+    public function showSendSuccessful(){
         $email = $_GET['email'] ?? '';
         require __DIR__ . '/../../view/Auth/send_successful.php';
         exit;
     }
 
-    public function showRecoveryPassword()
-    {
+    public function showRecoveryPassword(){
 
         require __DIR__ . '/../../view/Auth/recovery_password.php';
     }
 
-    public function verify()
-    {
+    public function verify(){
         $token = $_GET['token'] ?? null;
         if (!$token) {
             require __DIR__ . "/../../view/errors/404.php";
@@ -320,8 +310,7 @@ class AuthController
         }
     }
 
-    public function logout()
-    {
+    public function logout(){
         session_start();
         session_unset();
         session_destroy();

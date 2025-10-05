@@ -51,7 +51,7 @@ class AnioFiscalModel extends MainModel{
     }
 
     public static function getPresupuestoActivo($id_centro){
-        $query = "SELECT * FROM aniosfiscales WHERE estado = 1 AND centroIdFK = ? LIMIT 1";
+        $query = "SELECT * FROM aniosfiscales WHERE estado = 1 AND idCentroFk = ? LIMIT 1";
         $stmt  = self::executeQuery($query, [$id_centro]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null;
