@@ -198,7 +198,7 @@ class AuthController
 
                 $user = $userModel->findByEmail($email);
 
-                $tokenModel->create($user['id'], $token, 'verification', $expiresAt);
+                $tokenModel->create($user['idUser'], $token, 'verification', $expiresAt);
 
 
                 $sent = $mailer->sendVerificationEmail([
