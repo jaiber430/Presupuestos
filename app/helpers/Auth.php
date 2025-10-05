@@ -1,6 +1,5 @@
 <?php
 namespace presupuestos\helpers;
-require __DIR__ . '/../../bootstrap.php';
 
 class Auth{   
     public static function check(){               

@@ -1,10 +1,4 @@
 <?php
-require_once "../config/app.php";
-
-if(isset($_SESSION[APP_SESSION_NAME])){
-	header("Location: ".APP_URL."dashboard");
-	exit;
-}
 
 $typeMessage= '';
 $contentMessage= '';

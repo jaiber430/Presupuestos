@@ -11,7 +11,7 @@ require_once __DIR__ . '../../../bootstrap.php';
 
 class AnioFiscalController{
 
-    public static function crear(){
+    public static function crearAnioFiscal(){
         if (
             empty($_POST['year_fiscal']) ||
             empty($_POST['valor_presupuesto']) ||
@@ -36,7 +36,7 @@ class AnioFiscalController{
         $fechaInicio   = $_POST['fecha_inicio'];
         $fechaCierre   = $_POST['fecha_cierre'];
         $subdirectorId = (int) $_POST['subdirector_id'];
-
+       
         $usuarioId = $_SESSION[APP_SESSION_NAME]['idUsuarioSession'];
         $centroId  = $_SESSION[APP_SESSION_NAME]['idCentroIdSession'];
 
@@ -85,7 +85,7 @@ class AnioFiscalController{
             echo json_encode([
                 "tipo"   => "simple",
                 "titulo" => "Error",
-                "texto"  => $e->getMessage(),                
+                "texto"  => "Error 505. Contacte con el administrador", //.$e->getMessage(),                            
                 "icono"  => "error"
             ], JSON_PRETTY_PRINT);
         }

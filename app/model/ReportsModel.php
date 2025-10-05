@@ -14,8 +14,7 @@ class ChunkReadFilter implements IReadFilter{
 	private int $startRow = 0;
 	private int $chunkSize = 0;
 
-	public function setRows(int $startRow, int $chunkSize): void
-	{
+	public function setRows(int $startRow, int $chunkSize): void{
 		$this->startRow = $startRow;
 		$this->chunkSize = $chunkSize;
 	}
@@ -34,10 +33,14 @@ class ReportsModel extends MainModel{
 		'reporte_presupuestal' => ['valorInicial', 'valorOperaciones', 'valorActual', 'saldoUtilizar']
 	];
 
-	public static function processWeek1Excels(array $files, int $semanaId, $centroId): array{
+	public static function processWeek1Excels(array $files, int $semanaId): array{
 		$results = [];
-		$numeroAleatorio= rand(1, 10000); // Entre 1 y 100
-		$cdpTemporal= "cdp". $numeroAleatorio;
+
+		//Generar tabla aleatoria
+		//$numeroAleatorio= rand(1, 10000); // Entre 1 y 100
+		//$cdpTemporal= "cdp". $numeroAleatorio;
+
+		//Un mapa de los archivos a procesar
 		$mapping = [
 			'cdp'   => "cdp",
 			// 'pagos' => 'pagos',
@@ -46,16 +49,13 @@ class ReportsModel extends MainModel{
 
 		//self::crearTable($cdpTemporal);
 
-		$hasAny = false;
+		//Verifico que todos los archivos lleguén. 
 		foreach ($mapping as $key => $table) {
-			if (!empty($files[$key]['tmp_name'])) {
-				echo $files[$key]['tmp_name'];
-				$hasAny = true;
-				break;
+			if (empty($files[$key]['tmp_name'])) {
+				throw new Exception("No se encontro '{$table}'.xlxs.");
 			}
 		}
 
-		if (!$hasAny) throw new Exception('Debes seleccionar al menos un archivo Excel.');
 
 		foreach ($mapping as $key => $table) {
 			if (!empty($files[$key]['tmp_name'])) {
@@ -65,55 +65,158 @@ class ReportsModel extends MainModel{
 		}
 
 		foreach ($mapping as $key => $table) {
-			if (!empty($files[$key]['tmp_name'])) {
-				$results[] = self::importExcelToTable($files[$key]['tmp_name'], $table, $semanaId, $centroId);
-			}
+			$results[] = self::importExcelToTable($files[$key]['tmp_name'], $table, $semanaId);
 		}
 
 		return $results;
 	}
 
-	private static function getTableColumns(string $table): array{
-		$stmt = self::executeQuery("SHOW COLUMNS FROM `$table`");
-		$cols = [];
-		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			if (strpos($row['Extra'] ?? '', 'auto_increment') === false) $cols[] = $row['Field'];
-		}
-		return $cols;
-	}
-
 	private static function validateExcelColumns(string $filePath, string $table){
 		if (!is_readable($filePath)) return "No se puede leer el archivo para '$table'.";
 
-		$columns = self::getTableColumns($table);
-		$expected = count($columns);
+		// Columnas mínimas según tipo de Excel
+		$requiredColumnsMap = [
+			'cdp' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Obligaciones', 'Ordenes de Pagos', 'Reintegros'],
 
-		// RESTAR 1 PORQUE TODAS LAS TABLAS TIENEN semana_id
-		$excelColumnsExpected = $expected - 2; // 25 columnas en el Excel
+			'pagos' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Tipo Documento Soporte', 'Numero Documento Soporte', 'Observaciones'],
+
+			'reportepresupuestal' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Tipo Doc Soporte Compromiso', 'Num Doc Soporte Compromiso', 'Objeto del Compromiso']
+		];
+
+		$requiredColumns = $requiredColumnsMap[$table];
 
 		$reader = IOFactory::createReaderForFile($filePath);
 		$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
 
-		$rowNumber = 1;
+		// Leer solo la primera fila (encabezados)
+		$header = [];
+		$firstRow = $sheet->getRowIterator(1)->current();
+		$cellIterator = $firstRow->getCellIterator();
+		$cellIterator->setIterateOnlyExistingCells(false);
+		foreach ($cellIterator as $cell) {
+			$header[] = trim((string)$cell->getValue());
+		}
+
+		// Validar columnas mínimas del Excel actual
+		foreach ($requiredColumns as $col) {
+			if (!in_array($col, $header)) {
+				return "El Excel de '$table' no parece ser correcto";
+			}
+		}
+
+		return true;
+	}
+
+	private static function importExcelToTable(string $filePath, string $table, int $semanaId): string{
+		$pdo = self::getConnection();
+		$columns = self::getTableColumns($table);
+
+		// Columnas que se insertan en la tabla principal. Se quitas la foraneas
+		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idCdp', 'idSemanaFk']));
+		$numericCols = self::$numericFields[$table] ?? [];
+
+		// Definir mapeo Excel -> tabla
+		$mapping = [
+			'main' => [
+				'columns' => $insertColumns, // columnas principales
+			],
+			'relations' => [
+				'cdpdependencia' => [
+					'idCdpFk' => 'idCdp', // columna de la tabla principal
+					'dependencia' => 'Dependencia',
+					'descripcion' => 'Dependencia Descripcion'
+				],
+			]
+		];
+
+		$reader = IOFactory::createReaderForFile($filePath);
+		$reader->setReadDataOnly(true);
+		$spreadsheet = $reader->load($filePath);
+		$sheet = $spreadsheet->getActiveSheet();
+
+		// Preparar insert en tabla principal
+		$finalColumns = array_merge($insertColumns, ['idSemanaFk']);
+		$columnList   = "`" . implode("`,`", $finalColumns) . "`";
+		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumns)), ",") . ")";
+		$sql = "INSERT INTO `$table` ($columnList) VALUES $placeholders";
+		$stmt = $pdo->prepare($sql);
+
+		$pdo->beginTransaction();
+		$firstRow = true;
+		$rowCount = 0;
+
 		foreach ($sheet->getRowIterator() as $row) {
-			if ($rowNumber === 1) {
-				$rowNumber++;
+			if ($firstRow) {
+				$firstRow = false;
 				continue;
 			}
+
 			$cellIterator = $row->getCellIterator();
 			$cellIterator->setIterateOnlyExistingCells(false);
 			$data = [];
 			foreach ($cellIterator as $cell) $data[] = $cell->getValue();
-			if (count($data) !== $excelColumnsExpected) {
-				
-				return "Error en '$table': fila $rowNumber no coincide con columnas del archivo ($excelColumnsExpected esperadas).";
+
+			// Ajustar cantidad de valores
+			if (count($data) < count($insertColumns)) $data = array_pad($data, count($insertColumns), null);
+			elseif (count($data) > count($insertColumns)) $data = array_slice($data, 0, count($insertColumns));
+
+			$values = [];
+			$excelRow = []; // asociativo para relaciones
+			foreach ($insertColumns as $i => $col) {
+				$val = $data[$i] ?? null;
+
+				// Limpiar -0
+				if (trim((string)$val) === '-0') $val = null;
+
+				if (in_array($col, $numericCols, true)) $values[] = self::toNumeric($val);
+				else $values[] = self::normalizeText(mb_convert_encoding(trim((string)$val), 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252'));
+
+				$excelRow[$col] = $val; // almacenar para relaciones
 			}
-			$rowNumber++;
+
+			$values[] = $semanaId;
+
+			// Insertar en tabla principal
+			$stmt->execute($values);
+			$idCdp = $pdo->lastInsertId();
+
+			// Insertar relaciones
+			foreach ($mapping['relations'] as $relTable => $relMap) {
+				$relValues = [];
+				$placeholders = [];
+				foreach ($relMap as $colTable => $colExcel) {
+					if ($colExcel === 'idCdp') $relValues[] = $idCdp; 
+					else $relValues[] = $excelRow[$colExcel] ?? null;
+					$placeholders[] = "?";
+				}
+				$sqlRel = "INSERT INTO `$relTable` (" . implode(',', array_keys($relMap)) . ") VALUES (" . implode(',', $placeholders) . ")";
+				$pdo->prepare($sqlRel)->execute($relValues);
+			}
+
+			$rowCount++;
 		}
 
-		return true;
+		$pdo->commit();
+		$spreadsheet->disconnectWorksheets();
+		unset($spreadsheet);
+
+		return "Datos de '$table' insertados correctamente ($rowCount registros).";
+	}
+
+
+	private static function getTableColumns(string $table): array{
+		$stmt = self::executeQuery("SHOW COLUMNS FROM `$table`");
+		$cols = [];
+
+		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+			if (strpos($row['Extra'] ?? '', 'auto_increment') === false) {
+				$cols[] = $row['Field'];
+			}
+		}
+
+		return $cols;
 	}
 
 	private static function normalizeText(string $text): string{
@@ -129,83 +232,7 @@ class ReportsModel extends MainModel{
 		$value = str_replace(['$', '.', ','], '', (string)$value);
 		$value = trim($value);
 		return is_numeric($value) ? (int)$value : 0;
-	}
-
-	/**
-	 * Inserta los datos del Excel a la tabla indicada (fila por fila)
-	 */
-	private static function importExcelToTable(string $filePath, string $table, int $semanaId, int $centroId): string{
-		$pdo = self::getConnection();
-		$columns = self::getTableColumns($table);
-
-		// Excluir id autoincrement y claves foráneas que llenamos manualmente
-		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idCdp', 'idSemanaFk', 'idCentroFk']));
-		$numericCols = self::$numericFields[$table] ?? [];
-
-		$reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($filePath);
-		$reader->setReadDataOnly(true);
-		$spreadsheet = $reader->load($filePath);
-		$sheet = $spreadsheet->getActiveSheet();
-
-		// Columnas finales: columnas del Excel + las foráneas fijas
-		$finalColumns = array_merge($insertColumns, ['idSemanaFk', 'idCentroFk']);
-		$columnList   = "`" . implode("`,`", $finalColumns) . "`";
-
-		// Placeholders según número de columnas
-		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumns)), ",") . ")";
-		$sql = "INSERT INTO `$table` ($columnList) VALUES $placeholders";
-		$stmt = $pdo->prepare($sql);
-
-		$pdo->beginTransaction();
-		$firstRow = true;
-		$rowCount = 0;
-
-		foreach ($sheet->getRowIterator() as $row) {
-			if ($firstRow) {
-				$firstRow = false; // saltar encabezado
-				continue;
-			}
-
-			$cellIterator = $row->getCellIterator();
-			$cellIterator->setIterateOnlyExistingCells(false);
-			$data = [];
-			foreach ($cellIterator as $cell) {
-				$data[] = $cell->getValue();
-			}
-
-			// Ajustar cantidad de valores para que coincidan con $insertColumns
-			if (count($data) < count($insertColumns)) {
-				$data = array_pad($data, count($insertColumns), null);
-			} elseif (count($data) > count($insertColumns)) {
-				$data = array_slice($data, 0, count($insertColumns));
-			}
-
-			$values = [];
-			foreach ($insertColumns as $i => $col) {
-				$val = $data[$i] ?? null;
-				if (in_array($col, $numericCols, true)) {
-					$values[] = self::toNumeric($val);
-				} else {
-					$val = mb_convert_encoding(trim((string)$val), 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252');
-					$values[] = self::normalizeText($val);
-				}
-			}
-
-			// Agregar los campos fijos
-			$values[] = $semanaId;
-			$values[] = $centroId;
-
-			$stmt->execute($values);
-			$rowCount++;
-		}
-
-		$pdo->commit();
-		$spreadsheet->disconnectWorksheets();
-		unset($spreadsheet);
-		
-
-		return "Datos de '$table' insertados correctamente ($rowCount registros).";
-	}
+	}	
 
 	public static function getDependencias(): array{
 		$stmt = self::executeQuery("SELECT codigo, nombre FROM dependencias ORDER BY nombre ASC");

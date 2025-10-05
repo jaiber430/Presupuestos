@@ -73,7 +73,7 @@ class UserModel extends MainModel {
     public function verifyAccount(int $userId): ?string{
         $query = "SELECT r.nombre AS rol
               FROM user u
-              JOIN rol r ON u.rolIdFk = r.idRol
+              JOIN rol r ON u.idRolFk = r.idRol
               WHERE u.idUser = :id";
         $params = [':id' => $userId];
         $stmt = parent::executeQuery($query, $params);
@@ -88,13 +88,12 @@ class UserModel extends MainModel {
         return null; 
     }
 
-
     public static function getSubdirector($centroId) {
         try {
             $query = "SELECT idUser, nombres, apellidos
                     FROM user 
-                    WHERE rolIdFk= 2
-                    AND centroIdFk = ?
+                    WHERE idRolFk= 2
+                    AND idCentroFk = ?
                     LIMIT 1";
             $stmt = parent::executeQuery($query, [$centroId]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -105,6 +104,7 @@ class UserModel extends MainModel {
         }
     }
 
+    //probablemente toca eliminar
     public static function getAllByCentro($centroId) {
         try {
             $query = "SELECT u.idUser, u.nombres, u.apellidos, u.email, u.esVerificado, r.nombre as nombre_rol
