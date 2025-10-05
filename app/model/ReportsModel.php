@@ -71,139 +71,159 @@ class ReportsModel extends MainModel{
 		return $results;
 	}
 
-	private static function validateExcelColumns(string $filePath, string $table){
+	private static function validateExcelColumns(string $filePath, string $table)
+	{
 		if (!is_readable($filePath)) return "No se puede leer el archivo para '$table'.";
 
-		// Columnas mínimas según tipo de Excel
 		$requiredColumnsMap = [
-			'cdp' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Obligaciones', 'Ordenes de Pagos', 'Reintegros'],
-
+			'cdp' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Obligaciones', 'Ordenes de Pago', 'Reintegros'],
 			'pagos' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Tipo Documento Soporte', 'Numero Documento Soporte', 'Observaciones'],
-
 			'reportepresupuestal' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Tipo Doc Soporte Compromiso', 'Num Doc Soporte Compromiso', 'Objeto del Compromiso']
 		];
 
 		$requiredColumns = $requiredColumnsMap[$table];
+		if (!$requiredColumns) return "No hay columnas definidas para la tabla '$table'.";
 
-		$reader = IOFactory::createReaderForFile($filePath);
+		$reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($filePath);
 		$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
 
-		// Leer solo la primera fila (encabezados)
+		// Leer la primera fila (encabezados)
 		$header = [];
-		$firstRow = $sheet->getRowIterator(1)->current();
-		$cellIterator = $firstRow->getCellIterator();
-		$cellIterator->setIterateOnlyExistingCells(false);
-		foreach ($cellIterator as $cell) {
-			$header[] = trim((string)$cell->getValue());
+		foreach ($sheet->getColumnIterator() as $column) {
+			$cell = $sheet->getCell($column->getColumnIndex() . '1');
+			$value = trim((string)$cell->getValue());
+			if ($value !== '') $header[] = $value;
 		}
 
-		// Validar columnas mínimas del Excel actual
+		// Buscar columnas faltantes
+		$missing = [];
 		foreach ($requiredColumns as $col) {
-			if (!in_array($col, $header)) {
-				return "El Excel de '$table' no parece ser correcto";
-			}
+			if (!in_array($col, $header)) $missing[] = $col;
+		}
+
+		if (!empty($missing)) {
+			return "El Excel de '$table' no parece ser correcto";//. Faltan: " //. implode(', ', $missing) .
+				//". Encabezados encontrados: " . implode(' | ', $header);
 		}
 
 		return true;
 	}
 
-	private static function importExcelToTable(string $filePath, string $table, int $semanaId): string{
+
+	private static function importExcelToTable(string $filePath, string $table, int $semanaId): string
+	{
 		$pdo = self::getConnection();
 		$columns = self::getTableColumns($table);
 
-		// Columnas que se insertan en la tabla principal. Se quitas la foraneas
 		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idCdp', 'idSemanaFk']));
 		$numericCols = self::$numericFields[$table] ?? [];
 
-		// Definir mapeo Excel -> tabla
-		$mapping = [
-			'main' => [
-				'columns' => $insertColumns, // columnas principales
-			],
-			'relations' => [
-				'cdpdependencia' => [
-					'idCdpFk' => 'idCdp', // columna de la tabla principal
-					'dependencia' => 'Dependencia',
-					'descripcion' => 'Dependencia Descripcion'
-				],
-			]
+		//Elegir columna que se van a incertar
+		$excelMapping = [
+			'Numero Documento'            => 'numeroCdp',
+			'Fecha de Creacion'          => 'fecha',
+			'Objeto'         => 'objeto',
+			'Valor'          => 'valor',
+			'Dependencia'    => 'dependencia',
+			'Dependencia Descripcion' => 'descripcion'
 		];
 
+		// 🔗 Relación con tabla secundaria
+		$relationTable = 'cdpdependencia';
+		$relationMapping = [
+			'idCdpFk'     => 'idCdp',  // Llave foránea
+			'dependencia' => 'Dependencia',
+			'descripcion' => 'Dependencia Descripcion'
+		];
+
+		// 📘 Cargar Excel
 		$reader = IOFactory::createReaderForFile($filePath);
 		$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
 
-		// Preparar insert en tabla principal
+		// ⚙️ Preparar sentencia de inserción principal
 		$finalColumns = array_merge($insertColumns, ['idSemanaFk']);
-		$columnList   = "`" . implode("`,`", $finalColumns) . "`";
+		$columnList = "`" . implode("`,`", $finalColumns) . "`";
 		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumns)), ",") . ")";
 		$sql = "INSERT INTO `$table` ($columnList) VALUES $placeholders";
 		$stmt = $pdo->prepare($sql);
 
+		// 🚦 Iniciar transacción
 		$pdo->beginTransaction();
 		$firstRow = true;
 		$rowCount = 0;
 
+		// 📊 Recorrer filas del Excel
 		foreach ($sheet->getRowIterator() as $row) {
+			$cellIterator = $row->getCellIterator();
+			$cellIterator->setIterateOnlyExistingCells(false);
+			$data = [];
+
+			foreach ($cellIterator as $cell) {
+				$data[] = trim((string)$cell->getValue());
+			}
+
+			// Saltar cabecera
 			if ($firstRow) {
+				$headers = $data;
 				$firstRow = false;
 				continue;
 			}
 
-			$cellIterator = $row->getCellIterator();
-			$cellIterator->setIterateOnlyExistingCells(false);
-			$data = [];
-			foreach ($cellIterator as $cell) $data[] = $cell->getValue();
+			// Asociar cabeceras a valores
+			$rowData = array_combine($headers, $data);
+			if (!$rowData) continue; // si hay error en estructura
 
-			// Ajustar cantidad de valores
-			if (count($data) < count($insertColumns)) $data = array_pad($data, count($insertColumns), null);
-			elseif (count($data) > count($insertColumns)) $data = array_slice($data, 0, count($insertColumns));
-
+			// 🧮 Preparar valores para la tabla principal
 			$values = [];
-			$excelRow = []; // asociativo para relaciones
-			foreach ($insertColumns as $i => $col) {
-				$val = $data[$i] ?? null;
+			foreach ($insertColumns as $col) {
+				// Buscar si esa columna está en el mapeo
+				$excelCol = array_search($col, $excelMapping, true);
+				$val = $excelCol && isset($rowData[$excelCol]) ? $rowData[$excelCol] : null;
 
-				// Limpiar -0
-				if (trim((string)$val) === '-0') $val = null;
-
-				if (in_array($col, $numericCols, true)) $values[] = self::toNumeric($val);
-				else $values[] = self::normalizeText(mb_convert_encoding(trim((string)$val), 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252'));
-
-				$excelRow[$col] = $val; // almacenar para relaciones
+				if (in_array($col, $numericCols, true)) {
+					$values[] = self::toNumeric($val);
+				} else {
+					$values[] = self::normalizeText(mb_convert_encoding($val ?? '', 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252'));
+				}
 			}
 
+			// Añadir idSemanaFk
 			$values[] = $semanaId;
 
-			// Insertar en tabla principal
+			// 💾 Insertar en tabla principal
 			$stmt->execute($values);
 			$idCdp = $pdo->lastInsertId();
 
-			// Insertar relaciones
-			foreach ($mapping['relations'] as $relTable => $relMap) {
-				$relValues = [];
-				$placeholders = [];
-				foreach ($relMap as $colTable => $colExcel) {
-					if ($colExcel === 'idCdp') $relValues[] = $idCdp; 
-					else $relValues[] = $excelRow[$colExcel] ?? null;
-					$placeholders[] = "?";
+			// 🔗 Insertar en tabla relacionada (cdpdependencia)
+			$relValues = [];
+			foreach ($relationMapping as $relCol => $excelCol) {
+				if ($excelCol === 'idCdp') {
+					$relValues[] = $idCdp;
+				} else {
+					$relValues[] = $rowData[$excelCol] ?? null;
 				}
-				$sqlRel = "INSERT INTO `$relTable` (" . implode(',', array_keys($relMap)) . ") VALUES (" . implode(',', $placeholders) . ")";
-				$pdo->prepare($sqlRel)->execute($relValues);
 			}
+
+			$relSql = "INSERT INTO `$relationTable` (" . implode(',', array_keys($relationMapping)) . ") VALUES (" . rtrim(str_repeat('?,', count($relValues)), ',') . ")";
+			$pdo->prepare($relSql)->execute($relValues);
 
 			$rowCount++;
 		}
 
+		// ✅ Confirmar transacción
 		$pdo->commit();
+
+		// 🧹 Liberar memoria
 		$spreadsheet->disconnectWorksheets();
 		unset($spreadsheet);
 
-		return "Datos de '$table' insertados correctamente ($rowCount registros).";
+		return "Datos insertados correctamente en '$table' ($rowCount registros).";
 	}
+
 
 
 	private static function getTableColumns(string $table): array{
