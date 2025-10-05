@@ -70,22 +70,18 @@ class AnioFiscalController{
             // Llamar al modelo para guardar todo
             AnioFiscalModel::crearAnioFiscalConSemanas($datosAnioFiscal, $semanas, $centroId);
 
-            // Obtener semana activa
-            $semanaActiva = self::getSemanaActiva($semanas);
-
             echo json_encode([
                 "tipo"   => "redireccionar",
                 "titulo" => "Éxito",
                 "texto"  => "Año fiscal creado correctamente con " . count($semanas) . " semanas generadas",
                 "icono"  => "success",
                 "url"    => "dashboard",
-                "semana_activa" => $semanaActiva
             ]);
         } catch (Exception $e) {
             echo json_encode([
                 "tipo"   => "simple",
                 "titulo" => "Error",
-                "texto"  => "Error 505. Contacte con el administrador", //.$e->getMessage(),                            
+                "texto"  => "Error 505. Contacte con el administrador",//.$e->getMessage(),                            
                 "icono"  => "error"
             ], JSON_PRETTY_PRINT);
         }
