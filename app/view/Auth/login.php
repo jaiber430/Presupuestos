@@ -116,7 +116,7 @@ if(isset($_SESSION['message'])){
 								<?php															
 									foreach($departamentos as $departamento){
 										echo "
-											<option value='{$departamento['id']}'>{$departamento['departamento']}</option>
+											<option value='{$departamento['idDepartamentos']}'>{$departamento['departamento']}</option>
 										
 										";
 									}	

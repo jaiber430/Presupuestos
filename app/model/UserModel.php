@@ -18,8 +18,8 @@ class UserModel extends MainModel {
     }
 
     public function create(array $data): array {
-		$query = "INSERT INTO user (nombres, apellidos, numero_documento, email, password, centro_id)
-				VALUES (:names, :lastNames, :idNumber,  :email, :password, :centro_id)";
+		$query = "INSERT INTO user (nombres, apellidos, numeroDocumento, email, password, rolIdFK, centroIdFK)
+				VALUES (:names, :lastNames, :idNumber,  :email, :password, NULL, :centro_id)";
 		
 		$params = [
 				'names' => $data['names'],
