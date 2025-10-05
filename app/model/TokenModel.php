@@ -7,10 +7,10 @@ use PDO;
 class TokenModel extends MainModel {
 
     public function create(int $userId, string $token, string $type, string $expiresAt): bool {
-        $query = "INSERT INTO tokens (user_id, token, type, expires_at) 
-                  VALUES (:user_id, :token, :type, :expires_at)";
+        $query = "INSERT INTO tokens (idUserFK, token, type, expiresAt) 
+                  VALUES (:idUserFK, :token, :type, :expires_at)";
         $params = [
-            ':user_id' => $userId,
+            ':idUserFK' => $userId,
             ':token' => $token,
             ':type' => $type,
             ':expires_at' => $expiresAt
@@ -33,7 +33,7 @@ class TokenModel extends MainModel {
     }
 
     public function deleteExpired(): bool {
-        $query = "DELETE FROM tokens WHERE expires_at < NOW()";
+        $query = "DELETE FROM tokens WHERE expiresAt < NOW()";
         $stmt = $this->executeQuery($query);
         return $stmt->rowCount() > 0;
     }

@@ -110,7 +110,7 @@ class UserModel extends MainModel {
             $query = "SELECT u.idUser, u.nombres, u.apellidos, u.email, u.esVerificado, r.nombre as nombre_rol
                     FROM user u
                     JOIN rol r ON u.rolIdFk = r.idRol
-                    WHERE centro_id = ?";
+                    WHERE idCentroFK = ?";
             $stmt = parent::executeQuery($query, [$centroId]);
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

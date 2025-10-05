@@ -29,7 +29,7 @@ class AuthController{
     public function getCentros(){
         if (isset($_GET['departamento'])) {
             $getCentro = new MainModel();
-            $queryCentro = "SELECT * FROM centros WHERE departamentoIdFK = :departamento";
+            $queryCentro = "SELECT * FROM centros WHERE idDepartamentoFK = :departamento";
 
             $stmt = $getCentro::executeQuery($queryCentro, [
                 'departamento' => (int) $_GET['departamento']
@@ -288,7 +288,7 @@ class AuthController{
         }
 
         if ($tokenData['type'] == 'verification') {
-            if (strtotime($tokenData['expires_at']) < time()) {
+            if (strtotime($tokenData['expiresAt']) < time()) {
                 //$tokenModel->deleteByToken($token);
                 require __DIR__ . "/../../view/errors/invalid_token.php";
                 exit;
@@ -302,7 +302,7 @@ class AuthController{
                 exit;
             }
         } elseif ($tokenData['type'] == 'recovery') {
-            if (strtotime($tokenData['expires_at']) < time()) {
+            if (strtotime($tokenData['expiresAt']) < time()) {
                 $tokenModel->deleteByToken($token);
                 require __DIR__ . "/../../view/errors/404.php";
                 exit;
