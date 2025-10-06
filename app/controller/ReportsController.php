@@ -28,10 +28,9 @@ class ReportsController{
 
             $files = $_FILES;
             $semanaId = (int)$_POST['semana_id'];
-
-           
+            $centroId= $_SESSION[APP_SESSION_NAME]['idCentroIdSession'];         
             // Procesa Excel usando ReportsModel adaptado
-            $results = ReportsModel::processWeek1Excels($files, $semanaId);
+            $results = ReportsModel::processWeek1Excels($files, $semanaId, $centroId);
 
             ob_clean();
             header('Content-Type: application/json; charset=utf-8');

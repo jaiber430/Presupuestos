@@ -10,11 +10,13 @@ use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
 require_once __DIR__ . '/MainModel.php';
 
 
-class ChunkReadFilter implements IReadFilter{
+class ChunkReadFilter implements IReadFilter
+{
 	private int $startRow = 0;
 	private int $chunkSize = 0;
 
-	public function setRows(int $startRow, int $chunkSize): void{
+	public function setRows(int $startRow, int $chunkSize): void
+	{
 		$this->startRow = $startRow;
 		$this->chunkSize = $chunkSize;
 	}
@@ -25,7 +27,8 @@ class ChunkReadFilter implements IReadFilter{
 	}
 }
 
-class ReportsModel extends MainModel{
+class ReportsModel extends MainModel
+{
 
 	private static array $numericFields = [
 		'cdp' => ['valorInicial', 'valorOperaciones', 'valorActual', 'comprometerSaldo'],
@@ -33,30 +36,24 @@ class ReportsModel extends MainModel{
 		'reporte_presupuestal' => ['valorInicial', 'valorOperaciones', 'valorActual', 'saldoUtilizar']
 	];
 
-	public static function processWeek1Excels(array $files, int $semanaId): array{
+	public static function processWeek1Excels(array $files, int $semanaId, int $centroId): array
+	{
 		$results = [];
 
-		//Generar tabla aleatoria
-		//$numeroAleatorio= rand(1, 10000); // Entre 1 y 100
-		//$cdpTemporal= "cdp". $numeroAleatorio;
-
-		//Un mapa de los archivos a procesar
+		// Mapeo de archivos y tablas
 		$mapping = [
-			'cdp'   => "cdp",
-			// 'pagos' => 'pagos',
-			// 'rp'    => 'reportepresupuestal',
+			'cdp' => 'cdp',
+			'rp'  => 'reportepresupuestal',
 		];
 
-		//self::crearTable($cdpTemporal);
-
-		//Verifico que todos los archivos lleguén. 
+		// Verificar que todos los archivos estén presentes
 		foreach ($mapping as $key => $table) {
 			if (empty($files[$key]['tmp_name'])) {
-				throw new Exception("No se encontro '{$table}'.xlxs.");
+				throw new Exception("No se encontró '{$table}'.xlsx.");
 			}
 		}
 
-
+		// Validar columnas de cada Excel
 		foreach ($mapping as $key => $table) {
 			if (!empty($files[$key]['tmp_name'])) {
 				$valid = self::validateExcelColumns($files[$key]['tmp_name'], $table);
@@ -64,12 +61,20 @@ class ReportsModel extends MainModel{
 			}
 		}
 
+		// Importar cada archivo según su tipo
 		foreach ($mapping as $key => $table) {
-			$results[] = self::importExcelToTable($files[$key]['tmp_name'], $table, $semanaId);
+			$filePath = $files[$key]['tmp_name'];
+
+			if ($key === 'cdp') {
+				$results[] = self::importExcelToTableCdp($filePath, $table, $semanaId, $centroId);
+			} elseif ($key === 'rp') {
+				$results[] = self::importExcelToTableRp($filePath, $table);
+			}
 		}
 
 		return $results;
 	}
+
 
 	private static function validateExcelColumns(string $filePath, string $table)
 	{
@@ -77,8 +82,9 @@ class ReportsModel extends MainModel{
 
 		$requiredColumnsMap = [
 			'cdp' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Obligaciones', 'Ordenes de Pago', 'Reintegros'],
+			'reportepresupuestal' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Tipo Documento Soporte', 'Numero Documento Soporte', 'Observaciones'],
 			'pagos' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Tipo Documento Soporte', 'Numero Documento Soporte', 'Observaciones'],
-			'reportepresupuestal' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Tipo Doc Soporte Compromiso', 'Num Doc Soporte Compromiso', 'Objeto del Compromiso']
+			
 		];
 
 		$requiredColumns = $requiredColumnsMap[$table];
@@ -104,59 +110,67 @@ class ReportsModel extends MainModel{
 		}
 
 		if (!empty($missing)) {
-			return "El Excel de '$table' no parece ser correcto";//. Faltan: " //. implode(', ', $missing) .
-				//". Encabezados encontrados: " . implode(' | ', $header);
+			return "El Excel de '$table' no parece ser correcto";// Faltan: ". implode(', ', $missing) .
+			//". Encabezados encontrados: " . implode(' | ', $header);
 		}
 
 		return true;
 	}
 
 
-	private static function importExcelToTable(string $filePath, string $table, int $semanaId): string
+	private static function importExcelToTableCdp(string $filePath, string $table, int $semanaId, int $centroId): string
 	{
 		$pdo = self::getConnection();
 		$columns = self::getTableColumns($table);
 
+		// Excluir columnas automáticas y FK
 		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idCdp', 'idSemanaFk']));
-		$numericCols = self::$numericFields[$table] ?? [];
+		$numericCols = self::$numericFields[$table];
 
-		//Elegir columna que se van a incertar
+		// Mapeo del Excel hacia tus columnas del CDP
 		$excelMapping = [
-			'Numero Documento'            => 'numeroCdp',
-			'Fecha de Creacion'          => 'fecha',
-			'Objeto'         => 'objeto',
-			'Valor'          => 'valor',
-			'Dependencia'    => 'dependencia',
-			'Dependencia Descripcion' => 'descripcion'
+			'Numero Documento'         => 'numeroDocumento',
+			'Fecha de Registro'        => 'fechaRegistro',
+			'Fecha de Creacion'        => 'fechaCreacion',
+			'Tipo de CDP'              => 'tipoCdp',
+			'Estado'                   => 'estado',
+			'Dependencia'              => 'dependencia',
+			'Dependencia Descripcion'  => 'descripcion',
+			'Rubro'                    => 'rubro',
+			'Descripcion'              => 'descripcionRubro',
+			'Fuente'                   => 'fuente',
+			'Recurso'                  => 'recurso',
+			'Sit'                      => 'sit',
+			'Valor Inicial '           => 'valorInicial',
+			'Valor Operaciones '       => 'valorOperaciones',
+			'Valor Actual '            => 'valorActual',
+			'Saldo por Comprometer '   => 'saldoComprometer',
+			'Objeto'                   => 'objeto',
+			'Solicitud CDP'             => 'solicitudCdp',
+			'Compromisos'               => 'compromisos',
+			'Cuentas por Pagar'         => 'cuentasPagar',
+			'Obligaciones'              => 'obligaciones',
+			'Ordenes de Pago'           => 'ordenesPago',
+			'Reintegros'                => 'reintegros'
 		];
 
-		// 🔗 Relación con tabla secundaria
-		$relationTable = 'cdpdependencia';
-		$relationMapping = [
-			'idCdpFk'     => 'idCdp',  // Llave foránea
-			'dependencia' => 'Dependencia',
-			'descripcion' => 'Dependencia Descripcion'
-		];
-
-		// 📘 Cargar Excel
 		$reader = IOFactory::createReaderForFile($filePath);
 		$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
 
-		// ⚙️ Preparar sentencia de inserción principal
-		$finalColumns = array_merge($insertColumns, ['idSemanaFk']);
-		$columnList = "`" . implode("`,`", $finalColumns) . "`";
-		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumns)), ",") . ")";
+		// Preparar SQL principal
+		$finalColumnsCdp = array_merge($insertColumns, ['idSemanaFk']);
+		$columnList = "`" . implode("`,`", $finalColumnsCdp) . "`";
+
+		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumnsCdp)), ",") . ")";
 		$sql = "INSERT INTO `$table` ($columnList) VALUES $placeholders";
 		$stmt = $pdo->prepare($sql);
 
-		// 🚦 Iniciar transacción
 		$pdo->beginTransaction();
 		$firstRow = true;
 		$rowCount = 0;
 
-		// 📊 Recorrer filas del Excel
 		foreach ($sheet->getRowIterator() as $row) {
 			$cellIterator = $row->getCellIterator();
 			$cellIterator->setIterateOnlyExistingCells(false);
@@ -166,21 +180,21 @@ class ReportsModel extends MainModel{
 				$data[] = trim((string)$cell->getValue());
 			}
 
-			// Saltar cabecera
+			// No leo la fila que todos los campos están vacios
+			if (empty(array_filter($data, fn($v) => trim((string)$v) !== ''))) continue;
+
 			if ($firstRow) {
 				$headers = $data;
 				$firstRow = false;
 				continue;
 			}
 
-			// Asociar cabeceras a valores
 			$rowData = array_combine($headers, $data);
-			if (!$rowData) continue; // si hay error en estructura
+			if (!$rowData) continue;
 
-			// 🧮 Preparar valores para la tabla principal
+			// Preparar datos para CDP
 			$values = [];
 			foreach ($insertColumns as $col) {
-				// Buscar si esa columna está en el mapeo
 				$excelCol = array_search($col, $excelMapping, true);
 				$val = $excelCol && isset($rowData[$excelCol]) ? $rowData[$excelCol] : null;
 
@@ -191,42 +205,164 @@ class ReportsModel extends MainModel{
 				}
 			}
 
-			// Añadir idSemanaFk
 			$values[] = $semanaId;
-
-			// 💾 Insertar en tabla principal
 			$stmt->execute($values);
 			$idCdp = $pdo->lastInsertId();
 
-			// 🔗 Insertar en tabla relacionada (cdpdependencia)
-			$relValues = [];
-			foreach ($relationMapping as $relCol => $excelCol) {
-				if ($excelCol === 'idCdp') {
-					$relValues[] = $idCdp;
-				} else {
-					$relValues[] = $rowData[$excelCol] ?? null;
-				}
-			}
+			// Relaciono la tabla cdpdependencia
+			$dependenciaCodigo = $rowData['Dependencia'];
+			$dependenciaDesc   = $rowData['Dependencia Descripcion'];
 
-			$relSql = "INSERT INTO `$relationTable` (" . implode(',', array_keys($relationMapping)) . ") VALUES (" . rtrim(str_repeat('?,', count($relValues)), ',') . ")";
-			$pdo->prepare($relSql)->execute($relValues);
+			if ($dependenciaCodigo) {
+				// Buscar dependencia
+				$sqlDep = "SELECT idDependencia FROM dependencias WHERE codigo = ?";
+				$stmtDep = $pdo->prepare($sqlDep);
+				$stmtDep->execute([$dependenciaCodigo]);
+				$idDependencia = $stmtDep->fetchColumn();
+
+				// Si no existe, la creamos
+				if (!$idDependencia) {
+					$sqlInsertDep = "INSERT INTO dependencias (codigo, nombre, idCentroFk) VALUES (?, ?, ?)";
+					$pdo->prepare($sqlInsertDep)->execute([$dependenciaCodigo, $dependenciaDesc, $centroId]);
+					$idDependencia = $pdo->lastInsertId();
+				}
+
+				// Insertar relación cdp → dependencia
+				$sqlRel = "INSERT INTO cdpdependencia (idCdpFk, idDependenciaFk) VALUES (?, ?)";
+				$pdo->prepare($sqlRel)->execute([$idCdp, $idDependencia]);
+			}
 
 			$rowCount++;
 		}
 
-		// ✅ Confirmar transacción
 		$pdo->commit();
-
-		// 🧹 Liberar memoria
 		$spreadsheet->disconnectWorksheets();
 		unset($spreadsheet);
 
 		return "Datos insertados correctamente en '$table' ($rowCount registros).";
 	}
 
+	private static function importExcelToTableRp(string $filePath, string $table)
+	{
+		$pdo = self::getConnection();
+		$columns = self::getTableColumns($table);
+
+		// Excluir columnas automáticas y FK
+		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idPresupuestal', 'idCdpFk']));
+
+		// Mapeo del Excel hacia tus columnas del RP
+		$excelMapping = [
+			'Numero Documento'         => 'numeroDocumento',
+			'Fecha de Registro'        => 'fechaRegistro',
+			'Fecha de Creacion'        => 'fechaCreacion',
+			'Estado'                   => 'estado',
+			'Dependencia'              => 'dependencia',
+			'Dependencia Descripcion'  => 'descripcion',
+			'Rubro'                    => 'rubro',
+			'Descripcion'              => 'descripcionRubro',
+			'Fuente'                   => 'fuente',
+			'Recurso'                  => 'recurso',
+			'Situacion'                => 'situacion',
+			'Valor Inicial'            => 'valorInicial',
+			'Valor Operaciones'        => 'valorOperaciones',
+			'Valor Actual'             => 'valorActual',
+			'Saldo por Utilizar'       => 'saldoUtilizar',
+			'Tipo Identificacion'      => 'tipoIdentificacion',
+			'Identificacion'           => 'identificacion',
+			'Nombre Razon Social'      => 'nombreRazonSocial',
+			'Medio de Pago'            => 'medioPago',
+			'Tipo Cuenta'              => 'tipoCuenta',
+			'Numero Cuenta'            => 'numeroCuenta',
+			'Estado Cuenta'            => 'estadoCuenta',
+			'Entidad Nit'              => 'entidadNit',
+			'Entidad Descripcion'      => 'entidadDescripcion',
+			'CDP'                      => 'numeroDocumento',
+			'Compromisos'              => 'compromisos',
+			'Cuentas por Pagar'        => 'cuentasPagar',
+			'Obligaciones'             => 'obligaciones',
+			'Ordenes de Pago'          => 'ordenesPago',
+			'Reintegros'               => 'reintegros',
+			'Fecha Documento Soporte'  => 'fechaSoporte',
+			'Tipo Documento Soporte'   => 'tipoDocumentoSoporte',
+			'Numero Documento Soporte' => 'numeroDocumentoSoporte',
+			'Observaciones'            => 'observaciones'
+		];
+
+		$reader = IOFactory::createReaderForFile($filePath);
+		$reader->setReadDataOnly(true);
+		$spreadsheet = $reader->load($filePath);
+		$sheet = $spreadsheet->getActiveSheet();
+
+		// Preparar SQL principal
+		$finalColumns = array_merge($insertColumns, ['idCdpFk']);
+		$columnList = "`" . implode("`,`", $finalColumns) . "`";
+		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumns)), ",") . ")";
+		$sql = "INSERT INTO `$table` ($columnList) VALUES $placeholders";
+		$stmt = $pdo->prepare($sql);
+
+		$pdo->beginTransaction();
+		$firstRow = true;
+		$rowCount = 0;
+
+		foreach ($sheet->getRowIterator() as $row) {
+			$cellIterator = $row->getCellIterator();
+			$cellIterator->setIterateOnlyExistingCells(false);
+			$data = [];
+
+			foreach ($cellIterator as $cell) {
+				$data[] = trim((string)$cell->getValue());
+			}
+
+			// Saltar fila vacía
+			if (empty(array_filter($data, fn($v) => trim((string)$v) !== ''))) continue;
+
+			if ($firstRow) {
+				$headers = $data;
+				$firstRow = false;
+				continue;
+			}
+
+			$rowData = array_combine($headers, $data);
+			if (!$rowData) continue;
+
+			// Preparar valores para RP
+			$values = [];
+			foreach ($insertColumns as $col) {
+				$excelCol = array_search($col, $excelMapping, true);
+				$val = $excelCol && isset($rowData[$excelCol]) ? $rowData[$excelCol] : null;
+
+				$values[] = is_numeric($val) ? self::toNumeric($val) : self::normalizeText(mb_convert_encoding($val ?? '', 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252'));
+			}
+
+			// Obtener idCdpFk a partir del CDP y la dependencia
+			$cdpNumero      = $rowData['CDP'] ?? null;
+			$dependenciaCod = $rowData['Dependencia'] ?? null;
+			$idCdpFk        = null;
+
+			if ($cdpNumero && $dependenciaCod) {
+				$sqlCdpDep = "SELECT idCdpFk FROM cdpdependencia cd
+                  JOIN dependencias d ON cd.idDependenciaFk = d.idDependencia
+                  JOIN cdp c ON cd.idCdpFk = c.idCdp
+                  WHERE c.numeroDocumento = ? AND d.codigo = ?";
+				$stmtCdpDep = $pdo->prepare($sqlCdpDep);
+				$stmtCdpDep->execute([$cdpNumero, $dependenciaCod]);
+				$idCdpFk = $stmtCdpDep->fetchColumn();
+			}
 
 
-	private static function getTableColumns(string $table): array{
+			$values[] = $idCdpFk;
+			$stmt->execute($values);
+		}
+
+		$pdo->commit();
+		$spreadsheet->disconnectWorksheets();
+		unset($spreadsheet);
+
+		return "Datos insertados correctamente en '$table' ($rowCount registros).";
+	}
+
+	private static function getTableColumns(string $table): array
+	{
 		$stmt = self::executeQuery("SHOW COLUMNS FROM `$table`");
 		$cols = [];
 
@@ -239,7 +375,8 @@ class ReportsModel extends MainModel{
 		return $cols;
 	}
 
-	private static function normalizeText(string $text): string{
+	private static function normalizeText(string $text): string
+	{
 		$text = str_replace("\xEF\xBF\xBD", '', $text);
 		$text = str_replace(['Ñ', 'ñ'], 'n', $text);
 		$tildes = ['á', 'é', 'í', 'ó', 'ú', 'ü', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ü'];
@@ -247,19 +384,22 @@ class ReportsModel extends MainModel{
 		return str_replace($tildes, $sin, $text);
 	}
 
-	private static function toNumeric($value): int{
+	private static function toNumeric($value): int
+	{
 		if ($value === null) return 0;
 		$value = str_replace(['$', '.', ','], '', (string)$value);
 		$value = trim($value);
 		return is_numeric($value) ? (int)$value : 0;
-	}	
+	}
 
-	public static function getDependencias(): array{
+	public static function getDependencias(): array
+	{
 		$stmt = self::executeQuery("SELECT codigo, nombre FROM dependencias ORDER BY nombre ASC");
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
 
-	public static function consultarCDP(array $filters): array{
+	public static function consultarCDP(array $filters): array
+	{
 		$sql = "SELECT 
                     c.codigo_cdp AS numero_cdp,
                     c.fecha_registro AS fecha_registro,
@@ -291,7 +431,8 @@ class ReportsModel extends MainModel{
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
 
-	public static function clearWeekData(string $week): void{
+	public static function clearWeekData(string $week): void
+	{
 		$tables = ['cdp', 'pagos', 'reporte_presupuestal'];
 		$pdo = self::getConnection();
 		try {
@@ -303,7 +444,8 @@ class ReportsModel extends MainModel{
 		}
 	}
 
-	public static function crearTable(string $nombreTabla){
+	public static function crearTable(string $nombreTabla)
+	{
 		$pdo = self::getConnection();
 		$sql = "
         	CREATE TABLE `$nombreTabla` (
@@ -340,6 +482,5 @@ class ReportsModel extends MainModel{
 		$stmt = $pdo->prepare($sql);
 
 		return $stmt->execute();
-
 	}
 }
