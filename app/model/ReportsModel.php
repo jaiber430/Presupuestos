@@ -46,7 +46,8 @@ class ReportsModel extends MainModel
 		$mapping = [
 			'cdp' => 'cdp',
 			'rp'  => 'reportepresupuestal',
-			'pagos' => 'pagos'
+			'pagos' => 'pagos',
+			// 'pagos'=> 'pagos'
 		];
 
 		// Verificar que todos los archivos estén presentes
@@ -71,9 +72,9 @@ class ReportsModel extends MainModel
 			if ($key === 'cdp') {
 				$results[] = self::importExcelToTableCdpOptimized($filePath, $table, $semanaId, $centroId);
 			} elseif ($key === 'rp') {
-				$results[] = self::importExcelToTableRpOptimized($filePath, $table);
-			} elseif ($key == 'pagos') {
-				$results[] = self::importExcelToTablePagosOptimized($filePath, $table);
+				$results[] = self::importExcelToTableRp($filePath, $table);
+			}elseif($key== 'pagos'){
+				$results[] = self::importExcelToTablePagos($filePath, $table);
 			}
 		}
 
@@ -431,6 +432,37 @@ class ReportsModel extends MainModel
 			}
 
 			gc_collect_cycles();
+			$rowData = array_combine($headers, $data);
+			if (!$rowData) continue;
+
+			// Preparar valores para RP
+			$values = [];
+			foreach ($insertColumns as $col) {
+				$excelCol = array_search($col, $excelMapping, true);
+				$val = $excelCol && isset($rowData[$excelCol]) ? $rowData[$excelCol] : null;
+
+				$values[] = is_numeric($val) ? self::toNumeric($val) : self::normalizeText(mb_convert_encoding($val ?? '', 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252'));
+			}
+
+			// Obtener idCdpFk a partir del CDP y la dependencia
+			$cdpNumero      = $rowData['CDP'] ?? null;
+			$dependenciaCod = $rowData['Dependencia'] ?? null;
+			$idCdpFk        = null;
+
+			if ($cdpNumero && $dependenciaCod) {
+				$sqlCdpDep = "SELECT idCdpFk FROM cdpdependencia cd
+                  JOIN dependencias d ON cd.idDependenciaFk = d.idDependencia
+                  JOIN cdp c ON cd.idCdpFk = c.idCdp
+                  WHERE c.numeroDocumento = ? AND d.codigo = ?";
+				$stmtCdpDep = $pdo->prepare($sqlCdpDep);
+				$stmtCdpDep->execute([$cdpNumero, $dependenciaCod]);
+				$idCdpFk = $stmtCdpDep->fetchColumn();
+			}
+
+			
+			$values[] = $idCdpFk;
+			$stmt->execute($values);
+			$rowCount++;
 		}
 
 		return "Filas insertadas en '$table' ($totalRows registros).";
@@ -442,6 +474,14 @@ class ReportsModel extends MainModel
 		$pdo->setAttribute(PDO::ATTR_TIMEOUT, 600);
 
 		$columns = self::getTableColumns($table);
+		return "Filas incertadas en '$table' ($rowCount registros).";
+	}
+
+	private static function importExcelToTablePagos(string $filePath, string $table): string {
+		$pdo = self::getConnection();
+		$columns = self::getTableColumns($table);
+
+		// Excluir columnas automáticas y FK
 		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idPresupuestal', 'idPresupuestalFk']));
 
 		// Mapeo del Excel hacia tus columnas del RP
@@ -507,12 +547,18 @@ class ReportsModel extends MainModel
 		$reader->setReadFilter($chunkFilter);
 
 		// Preparar SQL statements
+
+		$reader = IOFactory::createReaderForFile($filePath);
+		$reader->setReadDataOnly(true);
+		$spreadsheet = $reader->load($filePath);
+		$sheet = $spreadsheet->getActiveSheet();
+
+		// Preparar SQL principal
 		$finalColumns = array_merge($insertColumns, ['idPresupuestalFk']);
 		$columnList = "`" . implode("`,`", $finalColumns) . "`";
 		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumns)), ",") . ")";
 		$sql = "INSERT INTO `$table` ($columnList) VALUES $placeholders";
 		$stmt = $pdo->prepare($sql);
-
 		$sqlRp = "SELECT idPresupuestal FROM reportepresupuestal WHERE compromisos = ?";
 		$stmtRp = $pdo->prepare($sqlRp);
 
@@ -597,6 +643,68 @@ class ReportsModel extends MainModel
 		}
 
 		return "Filas insertadas en '$table' ($totalRows registros).";
+		$pdo->beginTransaction();
+		$firstRow = true;
+		$rowCount = 0;
+
+		foreach ($sheet->getRowIterator() as $row) {
+			$cellIterator = $row->getCellIterator();
+			$cellIterator->setIterateOnlyExistingCells(false);
+			$data = [];
+
+			foreach ($cellIterator as $cell) {
+				$data[] = trim((string)$cell->getValue());
+			}
+
+			// Saltar fila vacía
+			if (empty(array_filter($data, fn($v) => trim((string)$v) !== ''))) continue;
+
+			if ($firstRow) {
+				$headers = $data;
+				$firstRow = false;
+				continue;
+			}
+
+			$rowData = array_combine($headers, $data);
+			if (!$rowData) continue;
+
+			// Preparar valores para PAGOS
+			$values = [];
+			foreach ($insertColumns as $col) {
+				$excelCol = array_search($col, $excelMapping, true);
+				$val = $excelCol && isset($rowData[$excelCol]) ? $rowData[$excelCol] : null;
+
+				$values[] = is_numeric($val) ? self::toNumeric($val) : self::normalizeText(mb_convert_encoding($val ?? '', 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252'));
+			}
+
+			// Obtener idCdpFk a partir del CDP y la dependencia
+			//$cdpNumero      = $rowData['CDP'] ?? null;
+			//$dependenciaCod = $rowData['Dependencia'] ?? null;
+			//$idCdpFk        = null;
+
+			// Obtenemos el id de la tabla rp a travez del compromiso
+			$compromiso = $rowData['Compromisos'] ?? null;
+			$idPresupuestalFk = null;
+
+			if ($compromiso) {
+				$sqlRp = "SELECT idPresupuestal 
+              FROM reportepresupuestal 
+              WHERE compromisos = ?";
+				$stmtRp = $pdo->prepare($sqlRp);
+				$stmtRp->execute([$compromiso]);
+				$idPresupuestalFk = $stmtRp->fetchColumn();
+			}
+
+			$values[] = $idPresupuestalFk;
+			$stmt->execute($values);
+			$rowCount++;
+		}
+
+		$pdo->commit();
+		$spreadsheet->disconnectWorksheets();
+		unset($spreadsheet);
+
+		return "Filas incertadas en '$table' ($rowCount registros).";
 	}
 
 	private static function getTableColumns(string $table): array
