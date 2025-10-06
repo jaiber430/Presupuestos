@@ -12,6 +12,7 @@ use presupuestos\model\TokenModel;
 use presupuestos\model\MainModel;
 use presupuestos\controller\AnioFiscalController;
 use presupuestos\model\AnioFiscalModel;
+use presupuestos\helpers\ResponseHelper;
 use PDO;
 
 
@@ -238,7 +239,7 @@ class AuthController{
             ]);
             return;
         }
-    
+
         $mailer = new MailerHelper();
         $tokenHelper = new TokenHelper();
         $tokenModel = new TokenModel();
@@ -254,10 +255,12 @@ class AuthController{
             'email' => $dataUser['email'] ?? $email
         ], $token);
 
-        echo json_encode([
-            'state' => 1,
-            'redirect' => APP_URL . "login"
-        ]);
+        if($sent== true){
+            ResponseHelper::success("Correo de recuperación enviado correctamente.");
+        } else {
+            ResponseHelper::error("Error al enviar el correo: $sent");
+        }
+        
         return;
     }
 
