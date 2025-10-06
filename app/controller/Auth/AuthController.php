@@ -238,7 +238,7 @@ class AuthController{
             ]);
             return;
         }
-
+    
         $mailer = new MailerHelper();
         $tokenHelper = new TokenHelper();
         $tokenModel = new TokenModel();
@@ -246,7 +246,7 @@ class AuthController{
         $token = $tokenHelper::generateToken();
         $expiresAt = tokenHelper::expiration();
 
-        $tokenModel->create($dataUser['id'], $token, 'recovery', $expiresAt);
+        $tokenModel->create($dataUser['idUser'], $token, 'recovery', $expiresAt);
 
         $sent = $mailer->sendRecoveryEmail([
             'name' => $dataUser['nombres'],
@@ -256,7 +256,7 @@ class AuthController{
 
         echo json_encode([
             'state' => 1,
-            'redirect' => APP_URL . "recovery?email={$dataUser['email']}"
+            'redirect' => APP_URL . "login"
         ]);
         return;
     }
