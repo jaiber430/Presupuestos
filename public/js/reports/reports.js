@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const opt = document.createElement('option');
                     opt.value = dep.codigo;
                     opt.textContent = `${dep.codigo} - ${dep.nombre}`;
-                    dependenciaDataList.appendChild(opt); 
+                    dependenciaDataList.appendChild(opt);
                 });
                 depsCargadas = true;
             }
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ============================
     let miniChart = null;
     let cdpIndividualChart = null;
-    
+
     const miniContainer = () => document.getElementById('mini-presupuesto-container');
     const cdpContainer = () => document.getElementById('cdp-individual-container');
     const miniCanvas = () => document.getElementById('mini-presupuesto-chart');
@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Ocultar gráfica de CDP individual y mostrar la general
         if (cdpContainer()) cdpContainer().style.display = 'none';
         if (miniContainer()) miniContainer().style.display = 'block';
-        
+
         if (!miniCanvas()) return;
         if (miniChart) { miniChart.destroy(); miniChart = null; }
         if (!rows || rows.length === 0) {
@@ -331,13 +331,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // ============================
     const renderCdpIndividualChart = (rowData) => {
         if (!rowData || !cdpCanvas()) return;
-        
+
         // Destruir gráfica anterior si existe
         if (cdpIndividualChart) {
             cdpIndividualChart.destroy();
             cdpIndividualChart = null;
         }
-        
+
         const inicial = limpiarNumero(rowData.valor_inicial);
         const saldo = limpiarNumero(rowData.saldo_por_comprometer);
         const operaciones = limpiarNumero(rowData.valor_operaciones);
@@ -370,7 +370,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     ],
                     borderColor: [
                         '#2c3e50',
-                        '#d35400', 
+                        '#d35400',
                         '#27ae60',
                         '#c0392b',
                         '#8e44ad'
@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function () {
             hideCdpBtn().onclick = () => {
                 if (cdpContainer()) cdpContainer().style.display = 'none';
                 if (miniContainer()) miniContainer().style.display = 'block';
-                
+
                 // Remover clase activa de todos los CDP
                 document.querySelectorAll('.cdp-clickable').forEach(cdp => {
                     cdp.classList.remove('cdp-active');
@@ -445,19 +445,45 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // ============================
-    // BUSCAR Y RENDER TABLA
+    // BUSCAR Y RENDER TABLA CON TODOS LOS FILTROS
     // ============================
-    const buscarYRender = async (depValue) => {
+    const buscarYRender = async () => {
+        // Obtener valores de todos los filtros
+        const depValue = dependenciaInput.value.trim();
+        const conceptoValue = document.getElementById('filtro-concepto').value;
+        const pagosValue = document.getElementById('filtro-pagos').value;
+        const contratoValue = document.getElementById('filtro-contrato').value;
+        const valorMin = document.getElementById('filtro-valor-min').value;
+        const valorMax = document.getElementById('filtro-valor-max').value;
+
+        // Construir parámetros de búsqueda
         const params = new URLSearchParams();
         if (depValue) params.set('dependencia', depValue);
+        if (conceptoValue) params.set('concepto', conceptoValue);
+        if (pagosValue) params.set('estado_pagos', pagosValue);
+        if (contratoValue) params.set('estado_contrato', contratoValue);
+        if (valorMin) params.set('valor_min', valorMin);
+        if (valorMax) params.set('valor_max', valorMax);
+
         try {
             const resp = await fetch(`${BASE_URL}reports/consulta?${params.toString()}`);
             const data = await resp.json();
             tbodyDetalles.innerHTML = '';
             if (!Array.isArray(data) || data.length === 0) {
-                tbodyDetalles.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-5">Sin resultados</td></tr>`;
+                tbodyDetalles.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-5">Sin resultados para los filtros aplicados</td></tr>`;
                 return [];
             }
+
+            // Actualizar contador de resultados
+            const contador = document.getElementById('contador-resultados');
+            const filasMostradas = document.getElementById('filas-mostradas');
+            if (contador) contador.textContent = data.length;
+            if (filasMostradas) filasMostradas.textContent = data.length;
+
+            // Calcular total presupuesto para el footer
+            const totalPresupuesto = data.reduce((sum, row) => sum + limpiarNumero(row.valor_inicial), 0);
+            const totalPresupuestoFooter = document.getElementById('total-presupuesto-footer');
+            if (totalPresupuestoFooter) totalPresupuestoFooter.textContent = formatoMoneda(totalPresupuesto);
 
             data.forEach(row => {
                 const inicial = limpiarNumero(row.valor_inicial);
@@ -469,11 +495,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 else if (comprometido > 0) clase = 'naranja';
 
                 const tr = document.createElement('tr');
-                const safe = (txt) => (txt ?? '').toString().replace(/</g, '<').replace(/>/g, '>');
-                
+                const safe = (txt) => (txt ?? '').toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
                 // Hacer el CDP clickeable
                 const cdpCell = `<td class="cdp-clickable" data-row='${JSON.stringify(row).replace(/'/g, "\\'")}'>${safe(row.numero_cdp)}</td>`;
-                
+
                 tr.innerHTML = `
                     ${cdpCell}
                     <td>${safe(row.fecha_registro)}</td>
@@ -492,17 +518,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Agregar event listeners a los CDP clickeables
             document.querySelectorAll('.cdp-clickable').forEach(cell => {
-                cell.addEventListener('click', function() {
+                cell.addEventListener('click', function () {
                     const rowData = JSON.parse(this.getAttribute('data-row'));
-                    
+
                     // Remover clase activa de todos los CDP
                     document.querySelectorAll('.cdp-clickable').forEach(cdp => {
                         cdp.classList.remove('cdp-active');
                     });
-                    
+
                     // Agregar clase activa al CDP clickeado
                     this.classList.add('cdp-active');
-                    
+
                     // Renderizar gráfica individual en el modal
                     renderCdpIndividualChart(rowData);
                 });
@@ -535,6 +561,48 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // ============================
+    // CARGAR CONCEPTOS PARA FILTRO
+    // ============================
+    const cargarConceptos = async () => {
+        try {
+            const resp = await fetch(`${BASE_URL}reports/conceptos`);
+            const data = await resp.json();
+            const selectConcepto = document.getElementById('filtro-concepto');
+
+            if (Array.isArray(data) && selectConcepto) {
+                selectConcepto.innerHTML = '<option value="">Todos los conceptos</option>';
+                data.forEach(concepto => {
+                    const option = document.createElement('option');
+                    option.value = concepto;
+                    option.textContent = concepto;
+                    selectConcepto.appendChild(option);
+                });
+            }
+        } catch (e) {
+            console.error('Error al cargar conceptos:', e);
+        }
+    };
+
+    // ============================
+    // LIMPIAR FILTROS
+    // ============================
+    const btnLimpiarFiltros = document.getElementById('btn-limpiar-filtros');
+    if (btnLimpiarFiltros) {
+        btnLimpiarFiltros.addEventListener('click', () => {
+            // Limpiar todos los campos de filtro
+            dependenciaInput.value = '';
+            document.getElementById('filtro-concepto').value = '';
+            document.getElementById('filtro-pagos').value = '';
+            document.getElementById('filtro-contrato').value = '';
+            document.getElementById('filtro-valor-min').value = '';
+            document.getElementById('filtro-valor-max').value = '';
+
+            // Ejecutar búsqueda sin filtros
+            btnBuscar.click();
+        });
+    }
+
+    // ============================
     // EVENTOS MODAL DETALLES
     // ============================
     triggersDetalles.forEach(btn => {
@@ -545,6 +613,7 @@ document.addEventListener('DOMContentLoaded', function () {
             weekLabelDetalles.textContent = w;
 
             await cargarDependencias();
+            await cargarConceptos(); // Cargar conceptos para el filtro
             const dataGlobal = await cargarDatosGlobales();
 
             tbodyDetalles.innerHTML = '';
@@ -561,21 +630,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
     btnBuscar.addEventListener('click', async (e) => {
         e.preventDefault();
-        const depValue = dependenciaInput.value.trim() || '';
 
         // Al buscar, mostrar gráfica general y ocultar individual
         if (cdpContainer()) cdpContainer().style.display = 'none';
         if (miniContainer()) miniContainer().style.display = 'block';
 
-        if (!depValue) {
-            const dataGlobal = await cargarDatosGlobales();
-            renderMiniChart(dataGlobal, 'Todas las dependencias');
-            return;
+        const data = await buscarYRender();
+        const depValue = dependenciaInput.value.trim();
+        const nombreDep = depValue ? obtenerNombreDependencia(depValue) : 'Todas las dependencias';
+
+        // Construir etiqueta descriptiva con todos los filtros aplicados
+        let filtrosAplicados = [];
+        const conceptoValue = document.getElementById('filtro-concepto').value;
+        const pagosValue = document.getElementById('filtro-pagos').value;
+        const contratoValue = document.getElementById('filtro-contrato').value;
+        const valorMin = document.getElementById('filtro-valor-min').value;
+        const valorMax = document.getElementById('filtro-valor-max').value;
+
+        if (conceptoValue) filtrosAplicados.push(`Concepto: ${conceptoValue}`);
+        if (pagosValue) filtrosAplicados.push(`Pagos: ${pagosValue === 'con_pagos' ? 'Con pagos' : 'Sin pagos'}`);
+        if (contratoValue) filtrosAplicados.push(`Contrato: ${contratoValue === 'con_contrato' ? 'Con contrato' : 'Sin contrato'}`);
+        if (valorMin || valorMax) {
+            const rango = `${valorMin || '0'} - ${valorMax || '∞'}`;
+            filtrosAplicados.push(`Valor: ${rango}`);
         }
 
-        const data = await buscarYRender(depValue);
-        const nombreDep = obtenerNombreDependencia(depValue);
-        renderMiniChart(data, nombreDep);
+        const labelTexto = filtrosAplicados.length > 0
+            ? `${nombreDep} | ${filtrosAplicados.join(' | ')}`
+            : nombreDep;
+
+        renderMiniChart(data, labelTexto);
     });
 
     // ============================
