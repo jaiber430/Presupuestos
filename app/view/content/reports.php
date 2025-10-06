@@ -251,7 +251,7 @@
                         </h5>
                         <small class="opacity-75">Análisis detallado del presupuesto y compromisos</small>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <button type="button class=" btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar">X</button>
                 </div>
             </div>
             <div class="modal-body p-4">
@@ -350,95 +350,113 @@
                     </div>
                 </div>
 
-                <!-- NUEVO LAYOUT: Tabla + Gráfica en columnas -->
-                <div class="row g-3">
-                    <!-- Columna Izquierda: Tabla con scroll -->
-                    <div class="col-12 col-lg-7">
-                        <div class="card shadow-sm border-0 h-100">
-                            <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0 fw-semibold text-primary">
-                                    <i class="fas fa-table me-2"></i>Resultados de la Búsqueda
-                                    <span class="badge bg-primary ms-2" id="contador-resultados">0</span>
-                                </h6>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-outline-primary btn-sm" id="btn-exportar">
-                                        <i class="fas fa-download me-1"></i>Exportar
-                                    </button>
-                                    <button class="btn btn-outline-secondary btn-sm" id="btn-refrescar">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </button>
-                                </div>
+                <!-- NUEVO LAYOUT: Tabla que ocupa todo el ancho -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-semibold text-primary">
+                            <i class="fas fa-table me-2"></i>Resultados de la Búsqueda
+                            <span class="badge bg-primary ms-2" id="contador-resultados">0</span>
+                        </h6>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-primary btn-sm" id="btn-exportar">
+                                <i class="fas fa-download me-1"></i>Exportar
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" id="btn-refrescar">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Contenedor con scroll vertical limitado -->
+                    <div class="table-responsive" style="max-height: 50vh; overflow-y: auto;">
+                        <table class="table table-hover table-striped align-middle mb-0">
+                            <thead class="table-dark sticky-top">
+                                <tr>
+                                    <th width="120" class="text-center">
+                                        <i class="fas fa-hashtag me-1"></i>CDP
+                                    </th>
+                                    <th width="110" class="text-center">
+                                        <i class="fas fa-calendar me-1"></i>Fecha
+                                    </th>
+                                    <th width="200">
+                                        <i class="fas fa-tag me-1"></i>Concepto
+                                    </th>
+                                    <th width="150">
+                                        <i class="fas fa-folder me-1"></i>Rubro
+                                    </th>
+                                    <th width="200">
+                                        <i class="fas fa-align-left me-1"></i>Descripción
+                                    </th>
+                                    <th width="100" class="text-center">
+                                        <i class="fas fa-fountain me-1"></i>Fuente
+                                    </th>
+                                    <th width="140" class="text-end">
+                                        <i class="fas fa-money-bill me-1"></i>Valor Actual
+                                    </th>
+                                    <th width="140" class="text-end">
+                                        <i class="fas fa-wallet me-1"></i>Saldo
+                                    </th>
+                                    <th width="140" class="text-end">
+                                        <i class="fas fa-hand-holding-usd me-1"></i>Comprometido
+                                    </th>
+                                    <th width="120" class="text-center">
+                                        <i class="fas fa-percentage me-1"></i>% Compromiso
+                                    </th>
+                                    <th width="250">
+                                        <i class="fas fa-bullseye me-1"></i>Objeto
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-detalles-body" class="font-monospace">
+                                <tr>
+                                    <td colspan="11" class="text-center text-muted py-5">
+                                        <i class="fas fa-search fa-2x mb-3 d-block"></i>
+                                        Utilice los filtros para realizar una búsqueda
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-light py-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Mostrando <span id="filas-mostradas">0</span> registros
+                                </small>
                             </div>
-                            <!-- Contenedor con scroll vertical limitado -->
-                            <div class="table-responsive" style="max-height: 60vh; overflow-y: auto;">
-                                <table class="table table-hover table-striped align-middle mb-0">
-                                    <thead class="table-dark sticky-top">
-                                        <tr>
-                                            <th width="120" class="text-center">
-                                                <i class="fas fa-hashtag me-1"></i>CDP
-                                            </th>
-                                            <th width="110" class="text-center">
-                                                <i class="fas fa-calendar me-1"></i>Fecha
-                                            </th>
-                                            <th width="200">
-                                                <i class="fas fa-tag me-1"></i>Concepto
-                                            </th>
-                                            <th width="150">
-                                                <i class="fas fa-folder me-1"></i>Rubro
-                                            </th>
-                                            <th width="200">
-                                                <i class="fas fa-align-left me-1"></i>Descripción
-                                            </th>
-                                            <th width="100" class="text-center">
-                                                <i class="fas fa-fountain me-1"></i>Fuente
-                                            </th>
-                                            <th width="140" class="text-end">
-                                                <i class="fas fa-money-bill me-1"></i>Valor Actual
-                                            </th>
-                                            <th width="140" class="text-end">
-                                                <i class="fas fa-wallet me-1"></i>Saldo
-                                            </th>
-                                            <th width="140" class="text-end">
-                                                <i class="fas fa-hand-holding-usd me-1"></i>Comprometido
-                                            </th>
-                                            <th width="120" class="text-center">
-                                                <i class="fas fa-percentage me-1"></i>% Compromiso
-                                            </th>
-                                            <th width="250">
-                                                <i class="fas fa-bullseye me-1"></i>Objeto
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tabla-detalles-body" class="font-monospace">
-                                        <tr>
-                                            <td colspan="11" class="text-center text-muted py-5">
-                                                <i class="fas fa-search fa-2x mb-3 d-block"></i>
-                                                Utilice los filtros para realizar una búsqueda
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="card-footer bg-light py-3">
-                                <div class="row align-items-center">
-                                    <div class="col-md-6">
-                                        <small class="text-muted">
-                                            <i class="fas fa-info-circle me-1"></i>
-                                            Mostrando <span id="filas-mostradas">0</span> registros
-                                        </small>
-                                    </div>
-                                    <div class="col-md-6 text-end">
-                                        <small class="text-muted">
-                                            Total presupuesto: <span class="fw-bold text-success" id="total-presupuesto-footer">$0</span>
-                                        </small>
-                                    </div>
-                                </div>
+                            <div class="col-md-6 text-end">
+                                <small class="text-muted">
+                                    Total presupuesto: <span class="fw-bold text-success" id="total-presupuesto-footer">$0</span>
+                                </small>
                             </div>
                         </div>
                     </div>
-                    <!-- Columna Derecha: Mini Gráfica (al lado de la tabla) -->
-                    <div class="col-12 col-lg-5">
-                        <!-- Contenedor para gráfica de CDP individual -->
+                </div>
+
+                <!-- Gráficas debajo de la tabla -->
+                <div class="row g-3">
+                    <!-- Gráfica general -->
+                    <div class="col-12 col-lg-6">
+                        <div id="mini-presupuesto-container" class="card border shadow-sm">
+                            <div class="card-header bg-white border-bottom py-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 fw-semibold text-primary">
+                                        <i class="fas fa-chart-pie me-2"></i>Resumen General
+                                    </h6>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary p-1" id="mini-hide-btn" title="Ocultar">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted" id="mini-presupuesto-label"></small>
+                            </div>
+                            <div class="card-body p-3">
+                                <canvas id="mini-presupuesto-chart" height="280"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráfica de CDP individual -->
+                    <div class="col-12 col-lg-6">
                         <div id="cdp-individual-container" class="card border shadow-sm" style="display:none;">
                             <div class="card-header bg-white border-bottom py-3">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -453,24 +471,6 @@
                             </div>
                             <div class="card-body p-3">
                                 <canvas id="cdp-individual-chart" height="280"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Contenedor original para gráfica general -->
-                        <div id="mini-presupuesto-container" class="card border shadow-sm">
-                            <div class="card-header bg-white border-bottom py-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0 fw-semibold text-primary">
-                                        <i class="fas fa-chart-pie me-2"></i>Resumen
-                                    </h6>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary p-1" id="mini-hide-btn" title="Ocultar">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <small class="text-muted" id="mini-presupuesto-label"></small>
-                            </div>
-                            <div class="card-body p-3">
-                                <canvas id="mini-presupuesto-chart" height="280"></canvas>
                             </div>
                         </div>
                     </div>
@@ -675,11 +675,6 @@
     }
 
     @media (max-width: 991.98px) {
-
-        .modal-body .col-lg-7,
-        .modal-body .col-lg-5 {
-            width: 100% !important;
-        }
 
         #mini-presupuesto-container,
         #cdp-individual-container {

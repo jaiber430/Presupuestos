@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const opt = document.createElement('option');
                     opt.value = dep.codigo;
                     opt.textContent = `${dep.codigo} - ${dep.nombre}`;
-                    dependenciaDataList.appendChild(opt);
+                    dependenciaDataList.appendChild(opt); 
                 });
                 depsCargadas = true;
             }
