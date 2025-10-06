@@ -211,17 +211,17 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col-md-4">
-                            <div class="card border h-100">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-receipt fa-3x text-info mb-3"></i>
-                                    <h6 class="card-title fw-semibold">Pagos</h6>
-                                    <p class="text-muted small mb-3">Registro de pagos ejecutados</p>
-                                    <input type="file" class="form-control" id="file-pagos" name="pagos" accept=".xlsx, .xls">
+                        <!--
+                            <div class="col-md-4">
+                                <div class="card border h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-receipt fa-3x text-info mb-3"></i>
+                                        <h6 class="card-title fw-semibold">Pagos</h6>
+                                        <p class="text-muted small mb-3">Registro de pagos ejecutados</p>
+                                        <input type="file" class="form-control" id="file-pagos" name="pagos" accept=".xlsx, .xls">
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            </div> -->
                     </div>
                     <div class="modal-footer border-0 pt-4">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
