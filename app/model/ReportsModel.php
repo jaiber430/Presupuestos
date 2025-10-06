@@ -44,6 +44,7 @@ class ReportsModel extends MainModel
 		$mapping = [
 			'cdp' => 'cdp',
 			'rp'  => 'reportepresupuestal',
+			'pagos'=> 'pagos'
 		];
 
 		// Verificar que todos los archivos estén presentes
@@ -69,6 +70,8 @@ class ReportsModel extends MainModel
 				$results[] = self::importExcelToTableCdp($filePath, $table, $semanaId, $centroId);
 			} elseif ($key === 'rp') {
 				$results[] = self::importExcelToTableRp($filePath, $table);
+			}elseif($key== 'pagos'){
+				$results[] = self::importExcelToTablePagos($filePath, $table);
 			}
 		}
 
@@ -83,7 +86,7 @@ class ReportsModel extends MainModel
 		$requiredColumnsMap = [
 			'cdp' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Obligaciones', 'Ordenes de Pago', 'Reintegros'],
 			'reportepresupuestal' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Tipo Documento Soporte', 'Numero Documento Soporte', 'Observaciones'],
-			'pagos' => ['Numero Documento', 'Fecha de Registro', 'Fecha de Creacion', 'Tipo Documento Soporte', 'Numero Documento Soporte', 'Observaciones'],
+			'pagos' => ['Numero Documento', 'Fecha de Registro', 'Fecha de pago', 'Compromisos', 'Cuentas por Pagar', 'Cuentas por Pagar'],
 			
 		];
 
@@ -349,16 +352,155 @@ class ReportsModel extends MainModel
 				$idCdpFk = $stmtCdpDep->fetchColumn();
 			}
 
-
+			
 			$values[] = $idCdpFk;
 			$stmt->execute($values);
+			$rowCount++;
 		}
 
 		$pdo->commit();
 		$spreadsheet->disconnectWorksheets();
 		unset($spreadsheet);
 
-		return "Datos insertados correctamente en '$table' ($rowCount registros).";
+		return "Filas incertadas en '$table' ($rowCount registros).";
+	}
+
+	private static function importExcelToTablePagos(string $filePath, string $table): string {
+		$pdo = self::getConnection();
+		$columns = self::getTableColumns($table);
+
+		// Excluir columnas automáticas y FK
+		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idPresupuestal', 'idPresupuestalFk']));
+
+		// Mapeo del Excel hacia tus columnas del RP
+		$excelMapping = [
+			'Numero Documento'               => 'numeroDocumento',
+			'Fecha de Registro'              => 'fechaRegistro',
+			'Fecha de pago'                  => 'fechaPago',
+			'Estado'                         => 'estado',
+			'Valor Bruto'                    => 'valorBruto',
+			'Valor Deducciones'              => 'valorDeducciones',
+			'Valor Neto'                     => 'valorNeto',
+			'Tipo Beneficiario'              => 'tipoBeneficiario',
+			'Vigencia Presupuestal'          => 'vigenciaPresupuestal',
+			'Tipo Identificacion'            => 'tipoIdentificacion',
+			'Identificacion'                 => 'identificacion',
+			'Nombre Razon Social'            => 'nombreRazonSocial',
+			'Medio de Pago'                  => 'medioPago',
+			'Tipo Cuenta'                    => 'tipoCuenta',
+			'Numero Cuenta'                  => 'numeroCuenta',
+			'Estado Cuenta'                  => 'estadoCuenta',
+			'Entidad Nit'                    => 'entidadNit',
+			'Entidad Descripcion'            => 'entidadDescripcion',
+			'Dependencia'                    => 'dependencia',
+			'Dependencia Descripcion'        => 'dependenciaDescripcion',
+			'Rubro'                          => 'rubro',
+			'Descripcion'                    => 'descripcionRubro',
+			'Fuente'                         => 'fuente',
+			'Recurso'                        => 'recurso',
+			'Sit'                            => 'situacion',
+			'Valor Pesos'                    => 'valorPesos',
+			'Valor Moneda'                   => 'valorMoneda',
+			'Valor Reintegrado Pesos'        => 'valorReintegradoPesos',
+			'Valor Reintegrado Moneda'       => 'valorReintegradoMoneda',
+			'Tesoreria Pagadora'             => 'tesoreriaPagadora',
+			'Identificacion Pagaduria'       => 'identificacionPagaduria',
+			'Cuenta Pagaduria'               => 'cuentaPagaduria',
+			'Endosada'                       => 'endosada',
+			'Tipo Identificacion.1'          => 'tipoIdentificacionEndoso',
+			'Identificacion.1'               => 'identificacionEndoso',
+			'Razon social'                   => 'razonSocialEndoso',
+			'Numero Cuenta.1'                => 'numeroCuentaEndoso',
+			'Concepto Pago'                  => 'conceptoPago',
+			'Solicitud CDP'                  => 'solicitudCdp',
+			'CDP'                            => 'cdp',
+			'Compromisos'                    => 'compromisos',
+			'Cuentas por Pagar'              => 'cuentasPorPagar',
+			'Fecha Cuentas por Pagar'        => 'fechaCuentasPorPagar',
+			'Obligaciones'                   => 'obligaciones',
+			'Ordenes de Pago'                => 'ordenesDePago',
+			'Reintegros'                     => 'reintegros',
+			'Fecha Doc Soporte Compromiso'   => 'fechaDocSoporteCompromiso',
+			'Tipo Doc Soporte Compromiso'    => 'tipoDocSoporteCompromiso',
+			'Num Doc Soporte Compromiso'     => 'numDocSoporteCompromiso',
+			'Objeto del Compromiso'          => 'objetoCompromiso'
+		];
+
+
+		$reader = IOFactory::createReaderForFile($filePath);
+		$reader->setReadDataOnly(true);
+		$spreadsheet = $reader->load($filePath);
+		$sheet = $spreadsheet->getActiveSheet();
+
+		// Preparar SQL principal
+		$finalColumns = array_merge($insertColumns, ['idPresupuestalFk']);
+		$columnList = "`" . implode("`,`", $finalColumns) . "`";
+		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumns)), ",") . ")";
+		$sql = "INSERT INTO `$table` ($columnList) VALUES $placeholders";
+		$stmt = $pdo->prepare($sql);
+
+		$pdo->beginTransaction();
+		$firstRow = true;
+		$rowCount = 0;
+
+		foreach ($sheet->getRowIterator() as $row) {
+			$cellIterator = $row->getCellIterator();
+			$cellIterator->setIterateOnlyExistingCells(false);
+			$data = [];
+
+			foreach ($cellIterator as $cell) {
+				$data[] = trim((string)$cell->getValue());
+			}
+
+			// Saltar fila vacía
+			if (empty(array_filter($data, fn($v) => trim((string)$v) !== ''))) continue;
+
+			if ($firstRow) {
+				$headers = $data;
+				$firstRow = false;
+				continue;
+			}
+
+			$rowData = array_combine($headers, $data);
+			if (!$rowData) continue;
+
+			// Preparar valores para PAGOS
+			$values = [];
+			foreach ($insertColumns as $col) {
+				$excelCol = array_search($col, $excelMapping, true);
+				$val = $excelCol && isset($rowData[$excelCol]) ? $rowData[$excelCol] : null;
+
+				$values[] = is_numeric($val) ? self::toNumeric($val) : self::normalizeText(mb_convert_encoding($val ?? '', 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252'));
+			}
+
+			// Obtener idCdpFk a partir del CDP y la dependencia
+			//$cdpNumero      = $rowData['CDP'] ?? null;
+			//$dependenciaCod = $rowData['Dependencia'] ?? null;
+			//$idCdpFk        = null;
+
+			// Obtenemos el id de la tabla rp a travez del compromiso
+			$compromiso = $rowData['Compromisos'] ?? null;
+			$idPresupuestalFk = null;
+
+			if ($compromiso) {
+				$sqlRp = "SELECT idPresupuestal 
+              FROM reportepresupuestal 
+              WHERE compromisos = ?";
+				$stmtRp = $pdo->prepare($sqlRp);
+				$stmtRp->execute([$compromiso]);
+				$idPresupuestalFk = $stmtRp->fetchColumn();
+			}
+
+			$values[] = $idPresupuestalFk;
+			$stmt->execute($values);
+			$rowCount++;
+		}
+
+		$pdo->commit();
+		$spreadsheet->disconnectWorksheets();
+		unset($spreadsheet);
+
+		return "Filas incertadas en '$table' ($rowCount registros).";
 	}
 
 	private static function getTableColumns(string $table): array
