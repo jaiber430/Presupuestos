@@ -272,7 +272,7 @@
                                         <div class="row g-3 align-items-end">
                                             <div class="col-md-4">
                                                 <label class="form-label fw-semibold text-dark mb-2">
-                                                    <i class="fas fa-building me-1 text-muted"></i>Dependencia
+                                                    <i class="fas fa-building me-1 text-muted"></i>Buscar por
                                                 </label>
                                                 <div class="input-group input-group-sm">
                                                     <span class="input-group-text bg-light border-end-0">
@@ -286,7 +286,7 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="form-label fw-semibold text-dark mb-2">
-                                                    <i class="fas fa-tags me-1 text-muted"></i>Concepto
+                                                    <i class="fas fa-tags me-1 text-muted"></i>Filtrar por
                                                 </label>
                                                 <select id="filtro-concepto" class="form-select form-select-sm">
                                                     <option value="">Todos los conceptos</option>
