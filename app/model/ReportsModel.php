@@ -630,39 +630,88 @@ class ReportsModel extends MainModel
 		return is_numeric($value) ? (int)$value : 0;
 	}
 
+	/**
+	 * Obtener dependencias
+	 */
 	public static function getDependencias(): array
 	{
 		$stmt = self::executeQuery("SELECT codigo, nombre FROM dependencias ORDER BY nombre ASC");
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
 
+	/**
+	 * Obtener números CDP únicos desde numeroDocumento
+	 */
+	public static function getCDPs(): array
+	{
+		$stmt = self::executeQuery("SELECT DISTINCT numeroDocumento FROM cdp WHERE numeroDocumento IS NOT NULL AND numeroDocumento != '' ORDER BY numeroDocumento");
+		return $stmt->fetchAll(PDO::FETCH_COLUMN);
+	}
+
+	/**
+	 * Obtener conceptos internos únicos (texto antes de :)
+	 */
+	public static function getConceptos(): array
+	{
+		$stmt = self::executeQuery("SELECT DISTINCT 
+					CASE 
+						WHEN observaciones LIKE '%:%' THEN 
+							TRIM(SUBSTRING_INDEX(observaciones, ':', 1))
+						ELSE 
+							TRIM(observaciones)
+					END as concepto
+				FROM reportepresupuestal 
+				WHERE observaciones IS NOT NULL 
+				AND observaciones != '' 
+				ORDER BY concepto");
+		return $stmt->fetchAll(PDO::FETCH_COLUMN);
+	}
+
+	/**
+	 * Consulta con filtros actualizados - JOIN CORREGIDO
+	 */
 	public static function consultarCDP(array $filters): array
 	{
 		$sql = "SELECT 
-                    c.codigo_cdp AS numero_cdp,
-                    c.fecha_registro AS fecha_registro,
-                    d.codigo AS dependencia,
-                    d.nombre AS dependencia_descripcion,
-                    SUBSTRING_INDEX(c.objeto, ':', 1) AS concepto_interno,
-                    c.rubro, c.descripcion, c.fuente,
-                    c.valor_inicial, c.valor_operaciones, c.valor_actual,
-                    c.comprometer_saldo AS saldo_por_comprometer,
-                    c.objeto
-                FROM cdp c
-                INNER JOIN dependencias d ON c.dependencia = d.codigo
-                WHERE 1=1";
+                c.numeroDocumento AS numero_cdp,
+                c.fechaRegistro AS fecha_registro,
+                d.codigo AS dependencia,
+                d.nombre AS dependencia_descripcion,
+                SUBSTRING_INDEX(c.objeto, ':', 1) AS concepto_interno,
+                c.rubro, c.descripcionRubro, c.fuente,
+                c.valorInicial AS valor_inicial, 
+                c.valorOperaciones AS valor_operaciones, 
+                c.valorActual AS valor_actual,
+                c.saldoComprometer AS saldo_por_comprometer,
+                c.objeto
+            FROM cdp c
+            INNER JOIN cdpdependencia cd ON c.idCdp = cd.idCdpFk
+            INNER JOIN dependencias d ON cd.idDependenciaFk = d.idDependencia
+            WHERE 1=1";
 
 		$params = [];
-		if (!empty($filters['codigo_cdp'])) {
-			$sql .= " AND c.codigo_cdp = :codigo";
-			$params[':codigo'] = $filters['codigo_cdp'];
-		} elseif (!empty($filters['dependencia'])) {
-			$sql .= " AND c.dependencia = :dep";
-			$params[':dep'] = $filters['dependencia'];
+		
+		// Filtro por dependencia
+		if (!empty($filters['dependencia'])) {
+			$sql .= " AND d.codigo = :dependencia";
+			$params[':dependencia'] = $filters['dependencia'];
+		}
+		
+		// Filtro por número CDP
+		if (!empty($filters['numero_cdp'])) {
+			$sql .= " AND c.numeroDocumento = :numero_cdp";
+			$params[':numero_cdp'] = $filters['numero_cdp'];
+		}
+		
+		// Filtro por concepto interno
+		if (!empty($filters['concepto_interno'])) {
+			$sql .= " AND SUBSTRING_INDEX(c.objeto, ':', 1) = :concepto_interno";
+			$params[':concepto_interno'] = $filters['concepto_interno'];
 		}
 
-		if (empty($filters['codigo_cdp']) && empty($filters['dependencia'])) {
-			$sql .= " ORDER BY c.id DESC LIMIT 200";
+		// Si no hay filtros específicos, limitar resultados
+		if (empty($filters['dependencia']) && empty($filters['numero_cdp']) && empty($filters['concepto_interno'])) {
+			$sql .= " ORDER BY c.idCdp DESC LIMIT 200";
 		}
 
 		$stmt = self::executeQuery($sql, $params);
@@ -671,7 +720,7 @@ class ReportsModel extends MainModel
 
 	public static function clearWeekData(string $week): void
 	{
-		$tables = ['cdp', 'pagos', 'reporte_presupuestal'];
+		$tables = ['cdp', 'pagos', 'reportepresupuestal'];
 		$pdo = self::getConnection();
 		try {
 			$pdo->exec('SET FOREIGN_KEY_CHECKS=0');

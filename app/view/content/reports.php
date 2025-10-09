@@ -251,7 +251,7 @@
                         </h5>
                         <small class="opacity-75">Análisis detallado del presupuesto y compromisos</small>
                     </div>
-                    <button type="button class=" btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar">X</button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
             </div>
             <div class="modal-body p-4">
@@ -272,6 +272,17 @@
                                         <div class="row g-3 align-items-end">
                                             <div class="col-md-4">
                                                 <label class="form-label fw-semibold text-dark mb-2">
+                                                    <i class="fas fa-tags me-1 text-muted"></i>Filtrar por
+                                                </label>
+                                                <select id="filtro-concepto" class="form-select form-select-sm">
+                                                    <option value="">Todos los conceptos</option>
+                                                    <option value="1">Dependencia</option>
+                                                    <option value="2">Numero CDP</option>
+                                                    <option value="3">Concepto</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold text-dark mb-2">
                                                     <i class="fas fa-building me-1 text-muted"></i>Buscar por
                                                 </label>
                                                 <div class="input-group input-group-sm">
@@ -280,22 +291,11 @@
                                                     </span>
                                                     <input id="modal-dependency-input" list="dependencias-list"
                                                         class="form-control border-start-0"
-                                                        placeholder="Buscar dependencia..."
-                                                        autocomplete="off">
+                                                        placeholder="Seleccione un filtro primero..."
+                                                        autocomplete="off" disabled>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
-                                                <label class="form-label fw-semibold text-dark mb-2">
-                                                    <i class="fas fa-tags me-1 text-muted"></i>Filtrar por
-                                                </label>
-                                                <select id="filtro-concepto" class="form-select form-select-sm">
-                                                    <option value="">Todos los conceptos</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label fw-semibold text-dark mb-2">
-                                                    <i class="fas fa-cog me-1 text-muted"></i>Acciones
-                                                </label>
                                                 <div class="d-flex gap-2">
                                                     <button class="btn btn-success btn-sm flex-fill" id="btn-modal-buscar">
                                                         <i class="fas fa-search me-1"></i>Buscar
@@ -308,40 +308,6 @@
                                         </div>
                                     </div>
                                     <!-- Fila 2: Filtros Adicionales -->
-                                    <div class="col-12">
-                                        <div class="row g-3">
-                                            <div class="col-md-3">
-                                                <label class="form-label fw-semibold text-dark mb-2">
-                                                    <i class="fas fa-money-bill-wave me-1 text-muted"></i>Estado Pagos
-                                                </label>
-                                                <select id="filtro-pagos" class="form-select form-select-sm">
-                                                    <option value="">Todos</option>
-                                                    <option value="con_pagos" class="text-success">✓ Con pagos</option>
-                                                    <option value="sin_pagos" class="text-danger">✗ Sin pagos</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <label class="form-label fw-semibold text-dark mb-2">
-                                                    <i class="fas fa-file-contract me-1 text-muted"></i>Contrato
-                                                </label>
-                                                <select id="filtro-contrato" class="form-select form-select-sm">
-                                                    <option value="">Todos</option>
-                                                    <option value="con_contrato" class="text-success">✓ Con contrato</option>
-                                                    <option value="sin_contrato" class="text-danger">✗ Sin contrato</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label fw-semibold text-dark mb-2">
-                                                    <i class="fas fa-chart-line me-1 text-muted"></i>Rango de Valores
-                                                </label>
-                                                <div class="input-group input-group-sm">
-                                                    <input type="number" class="form-control" placeholder="Mínimo" id="filtro-valor-min">
-                                                    <span class="input-group-text bg-light">-</span>
-                                                    <input type="number" class="form-control" placeholder="Máximo" id="filtro-valor-max">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                             <!-- Columna Mini Gráfica (vacía aquí, se mueve abajo) -->
@@ -367,7 +333,7 @@
                         </div>
                     </div>
                     <!-- Contenedor con scroll vertical limitado -->
-                    <div class="table-responsive" style="max-height: 50vh; overflow-y: auto;">
+                    <div class="table-responsive">
                         <table class="table table-hover table-striped align-middle mb-0">
                             <thead class="table-dark sticky-top">
                                 <tr>
@@ -433,46 +399,48 @@
                     </div>
                 </div>
 
-                <!-- Gráficas debajo de la tabla -->
-                <div class="row g-3">
+                <!-- Gráfica centrada debajo de la tabla -->
+                <div class="chart-center-container">
                     <!-- Gráfica general -->
-                    <div class="col-12 col-lg-6">
-                        <div id="mini-presupuesto-container" class="card border shadow-sm">
-                            <div class="card-header bg-white border-bottom py-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0 fw-semibold text-primary">
-                                        <i class="fas fa-chart-pie me-2"></i>Resumen General
-                                    </h6>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary p-1" id="mini-hide-btn" title="Ocultar">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <small class="text-muted" id="mini-presupuesto-label"></small>
+                    <div id="mini-presupuesto-container" class="card border shadow-sm" style="display: none;">
+                        <div class="card-header bg-white border-bottom py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-semibold text-primary">
+                                    <i class="fas fa-chart-pie me-2"></i>Resumen General
+                                </h6>
+                                <button type="button" class="btn btn-sm btn-outline-secondary p-1" id="mini-hide-btn" title="Ocultar">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
-                            <div class="card-body p-3">
-                                <canvas id="mini-presupuesto-chart" height="280"></canvas>
-                            </div>
+                            <small class="text-muted" id="mini-presupuesto-label"></small>
+                        </div>
+                        <div class="card-body p-3">
+                            <canvas id="mini-presupuesto-chart" height="280"></canvas>
                         </div>
                     </div>
 
                     <!-- Gráfica de CDP individual -->
-                    <div class="col-12 col-lg-6">
-                        <div id="cdp-individual-container" class="card border shadow-sm" style="display:none;">
-                            <div class="card-header bg-white border-bottom py-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0 fw-semibold text-primary">
-                                        <i class="fas fa-chart-pie me-2"></i>Detalle CDP
-                                    </h6>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary p-1" id="cdp-hide-btn" title="Ocultar">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <small class="text-muted" id="cdp-individual-label"></small>
+                    <div id="cdp-individual-container" class="card border shadow-sm" style="display:none;">
+                        <div class="card-header bg-white border-bottom py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-semibold text-primary">
+                                    <i class="fas fa-chart-pie me-2"></i>Detalle CDP
+                                </h6>
+                                <button type="button" class="btn btn-sm btn-outline-secondary p-1" id="cdp-hide-btn" title="Ocultar">
+                                    <i class="fas fa-times"></i>
+                                </button>
                             </div>
-                            <div class="card-body p-3">
-                                <canvas id="cdp-individual-chart" height="280"></canvas>
-                            </div>
+                            <small class="text-muted" id="cdp-individual-label"></small>
                         </div>
+                        <div class="card-body p-3">
+                            <canvas id="cdp-individual-chart" height="280"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Indicador cuando no hay gráfica visible -->
+                    <div id="no-chart-indicator" class="chart-hidden-indicator">
+                        <i class="fas fa-chart-line fa-3x mb-3"></i>
+                        <p>La gráfica se mostrará aquí cuando aplique filtros</p>
                     </div>
                 </div>
             </div>
@@ -595,6 +563,12 @@
         border-left: 4px solid #00a859 !important;
     }
 
+    /* Tabla con scroll vertical - MOSTRAR TODAS LAS FILAS */
+    .table-responsive {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
     /* Mini gráfica: fondo blanco */
     #mini-presupuesto-container,
     #cdp-individual-container {
@@ -672,6 +646,24 @@
         background-color: #00a859 !important;
         color: white !important;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Contenedor de gráfica centrada */
+    .chart-center-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 1.5rem;
+        min-height: 300px;
+    }
+
+    /* Estilo para indicador de gráfica oculta */
+    .chart-hidden-indicator {
+        text-align: center;
+        padding: 2rem;
+        color: #6c757d;
+        font-style: italic;
+        display: block;
     }
 
     @media (max-width: 991.98px) {
