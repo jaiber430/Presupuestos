@@ -38,31 +38,73 @@ class ReportsModel extends MainModel
 
 	public static function processWeek1Excels(array $files, int $semanaId, int $centroId): array
 	{
+		set_time_limit(600);
+		ini_set('memory_limit', '1024M');
+
 		$results = [];
 
-		// Mapeo de archivos y tablas
 		$mapping = [
-			'cdp' => 'cdp',
-			'rp'  => 'reportepresupuestal',
-			'pagos'=> 'pagos'
+			'cdp'   => 'cdp',
+			'rp'    => 'reportepresupuestal',
+			'pagos' => 'pagos',
 		];
 
-		// Verificar que todos los archivos estén presentes
+		// Verificar archivos presentes
 		foreach ($mapping as $key => $table) {
 			if (empty($files[$key]['tmp_name'])) {
 				throw new Exception("No se encontró '{$table}'.xlsx.");
 			}
 		}
 
-		// Validar columnas de cada Excel
+		// 📂 Crear carpeta de almacenamiento
+		$baseDir = __DIR__ . '/../storage/uploads/';
+		$weekFolder = "semana_{$semanaId}_centro_{$centroId}";
+		$targetDir = "{$baseDir}{$weekFolder}/";
+
+		if (!is_dir($targetDir)) {
+			mkdir($targetDir, 0777, true);
+		}
+
+		// 📁 Guardar copias y preparar rutas
+		$filePaths = [];
 		foreach ($mapping as $key => $table) {
 			if (!empty($files[$key]['tmp_name'])) {
-				$valid = self::validateExcelColumns($files[$key]['tmp_name'], $table);
-				if ($valid !== true) throw new Exception($valid);
+				$fileName = "{$table}_" . date('Ymd_His') . ".xlsx";
+				$destPath = "{$targetDir}{$fileName}";
+
+				if (!move_uploaded_file($files[$key]['tmp_name'], $destPath)) {
+					throw new Exception("Error al guardar el archivo {$fileName}");
+				}
+
+				$filePaths[$key] = str_replace(__DIR__ . '/../', '', $destPath); // ruta relativa
+				$files[$key]['tmp_name'] = $destPath;
 			}
 		}
 
-		// Importar cada archivo según su tipo
+		// 🧾 Guardar las rutas en la tabla semanascarga
+		$pdo = self::getConnection();
+		$stmt = $pdo->prepare("
+			UPDATE semanascarga
+			SET archivoCdp = :cdp,
+				archivoRp = :rp,
+				archivoPagos = :pagos
+			WHERE idSemana = :id
+			");
+
+		$stmt->execute([
+			':cdp'   => $filePaths['cdp'] ?? null,
+			':rp'    => $filePaths['rp'] ?? null,
+			':pagos' => $filePaths['pagos'] ?? null,
+			':id'    => $semanaId,
+		]);
+
+		// Validar columnas
+		foreach ($mapping as $key => $table) {
+			$valid = self::validateExcelColumns($files[$key]['tmp_name'], $table);
+			if ($valid !== true) throw new Exception($valid);
+		}
+
+		// Importar datos
 		foreach ($mapping as $key => $table) {
 			$filePath = $files[$key]['tmp_name'];
 
@@ -70,7 +112,7 @@ class ReportsModel extends MainModel
 				$results[] = self::importExcelToTableCdp($filePath, $table, $semanaId, $centroId);
 			} elseif ($key === 'rp') {
 				$results[] = self::importExcelToTableRp($filePath, $table);
-			}elseif($key== 'pagos'){
+			} elseif ($key === 'pagos') {
 				$results[] = self::importExcelToTablePagos($filePath, $table);
 			}
 		}
@@ -93,7 +135,7 @@ class ReportsModel extends MainModel
 		$requiredColumns = $requiredColumnsMap[$table];
 		if (!$requiredColumns) return "No hay columnas definidas para la tabla '$table'.";
 
-		$reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($filePath);
+		$reader = IOFactory::createReaderForFile($filePath);
 		$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
