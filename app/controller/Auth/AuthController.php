@@ -207,6 +207,8 @@ class AuthController{
                     'message' => $sent === true
                         ? "Registro exitoso. Verifica tu correo para activar tu cuenta."
                         : "Registro exitoso, pero hubo un error enviando el correo: $sent"
+
+                        //Imprimir $sent para ver el error
                 ]);
             } else {
                 echo json_encode([
@@ -248,7 +250,7 @@ class AuthController{
         $expiresAt = tokenHelper::expiration();
 
         $tokenModel->create($dataUser['idUser'], $token, 'recovery', $expiresAt);
-
+      
         $sent = $mailer->sendRecoveryEmail([
             'name' => $dataUser['nombres'],
             'lastName' => $dataUser['apellidos'],

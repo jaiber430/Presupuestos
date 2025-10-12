@@ -120,7 +120,6 @@ class ReportsModel extends MainModel
 		return $results;
 	}
 
-
 	private static function validateExcelColumns(string $filePath, string $table)
 	{
 		if (!is_readable($filePath)) return "No se puede leer el archivo para '$table'.";
