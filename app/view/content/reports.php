@@ -370,11 +370,35 @@
                                     <th width="250">
                                         <i class="fas fa-bullseye me-1"></i>Objeto
                                     </th>
+                                    <?php if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4): ?>
+                                        <!-- Campos adicionales para rol 4 -->
+                                        <th width="120" class="text-center">
+                                            <i class="fas fa-file-alt me-1"></i>Documento
+                                        </th>
+                                        <th width="120" class="text-center">
+                                            <i class="fas fa-calendar-check me-1"></i>Fecha Doc
+                                        </th>
+                                        <th width="120" class="text-center">
+                                            <i class="fas fa-dollar-sign me-1"></i>Valor Doc
+                                        </th>
+                                        <th width="150" class="text-center">
+                                            <i class="fas fa-check-circle me-1"></i>Estado
+                                        </th>
+                                        <th width="100" class="text-center">
+                                            <i class="fas fa-paper-plane me-1"></i>Acción
+                                        </th>
+                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody id="tabla-detalles-body" class="font-monospace">
                                 <tr>
-                                    <td colspan="11" class="text-center text-muted py-5">
+                                    <?php
+                                    $colspan = 11;
+                                    if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4) {
+                                        $colspan = 16;
+                                    }
+                                    ?>
+                                    <td colspan="<?php echo $colspan; ?>" class="text-center text-muted py-5">
                                         <i class="fas fa-search fa-2x mb-3 d-block"></i>
                                         Utilice los filtros para realizar una búsqueda
                                     </td>

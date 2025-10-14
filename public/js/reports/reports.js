@@ -169,7 +169,9 @@ document.addEventListener('DOMContentLoaded', function () {
             tbodyDetalles.innerHTML = '';
             
             if (!Array.isArray(data) || data.length === 0) {
-                tbodyDetalles.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-5">Sin resultados para los filtros aplicados</td></tr>`;
+                // Determinar colspan según el rol del usuario
+                const colspan = (window.userRolId === 4) ? 16 : 11;
+                tbodyDetalles.innerHTML = `<tr><td colspan="${colspan}" class="text-center text-muted py-5">Sin resultados para los filtros aplicados</td></tr>`;
                 datosFiltradosActuales = [];
                 return [];
             }
@@ -204,7 +206,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Hacer el CDP clickeable
                 const cdpCell = `<td class="cdp-clickable" data-row='${JSON.stringify(row).replace(/'/g, "\\'")}'>${safe(row.numero_cdp)}</td>`;
 
-                tr.innerHTML = `
+                // Campos base para todos los usuarios
+                let rowHTML = `
                     ${cdpCell}
                     <td>${safe(row.fecha_registro)}</td>
                     <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.concepto_interno)}</textarea></td>
@@ -217,6 +220,30 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="${clase}">${porcentaje}%</td>
                     <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.objeto)}</textarea></td>
                 `;
+
+                // Campos adicionales solo para rol 4
+                if (window.userRolId === 4) {
+                    rowHTML += `
+                        <td class="cell-textarea"><textarea readonly spellcheck="false" placeholder="Documento..."></textarea></td>
+                        <td><input type="date" class="form-control form-control-sm"></td>
+                        <td><input type="number" class="form-control form-control-sm" placeholder="Valor..."></td>
+                        <td>
+                            <select class="form-select form-select-sm">
+                                <option value="">Seleccionar...</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_proceso">En proceso</option>
+                                <option value="completado">Completado</option>
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-warning btn-sm btn-enviar" title="Enviar">
+                                <i class="fas fa-paper-plane"></i> Enviar
+                            </button>
+                        </td>
+                    `;
+                }
+
+                tr.innerHTML = rowHTML;
                 tbodyDetalles.appendChild(tr);
             });
 
@@ -245,6 +272,55 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
             });
+
+            // Agregar event listeners a los botones Enviar (solo para rol 4)
+            if (window.userRolId === 4) {
+                document.querySelectorAll('.btn-enviar').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const row = this.closest('tr');
+                        const documento = row.querySelector('td:nth-child(12) textarea').value;
+                        const fechaDoc = row.querySelector('td:nth-child(13) input').value;
+                        const valorDoc = row.querySelector('td:nth-child(14) input').value;
+                        const estado = row.querySelector('td:nth-child(15) select').value;
+                        const cdp = row.querySelector('.cdp-clickable').textContent;
+
+                        // Validar campos obligatorios
+                        if (!documento || !fechaDoc || !valorDoc || !estado) {
+                            Swal.fire('Error', 'Todos los campos son obligatorios', 'warning');
+                            return;
+                        }
+
+                        // Mostrar confirmación
+                        Swal.fire({
+                            title: '¿Enviar información?',
+                            html: `
+                                <div class="text-start">
+                                    <p><strong>CDP:</strong> ${cdp}</p>
+                                    <p><strong>Documento:</strong> ${documento}</p>
+                                    <p><strong>Fecha:</strong> ${fechaDoc}</p>
+                                    <p><strong>Valor:</strong> ${formatoMoneda(valorDoc)}</p>
+                                    <p><strong>Estado:</strong> ${estado}</p>
+                                </div>
+                            `,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sí, enviar',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Aquí iría la lógica para enviar los datos al servidor
+                                Swal.fire('Éxito', 'Información enviada correctamente', 'success');
+                                
+                                // Deshabilitar el botón después de enviar
+                                this.disabled = true;
+                                this.innerHTML = '<i class="fas fa-check"></i> Enviado';
+                                this.classList.remove('btn-warning');
+                                this.classList.add('btn-success');
+                            }
+                        });
+                    });
+                });
+            }
 
             return data;
         } catch (err) {
@@ -777,7 +853,9 @@ document.addEventListener('DOMContentLoaded', function () {
             tbodyDetalles.innerHTML = '';
             
             if (!Array.isArray(data) || data.length === 0) {
-                tbodyDetalles.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-5">Sin resultados para los filtros aplicados</td></tr>`;
+                // Determinar colspan según el rol del usuario
+                const colspan = (window.userRolId === 4) ? 16 : 11;
+                tbodyDetalles.innerHTML = `<tr><td colspan="${colspan}" class="text-center text-muted py-5">Sin resultados para los filtros aplicados</td></tr>`;
                 datosFiltradosActuales = [];
                 return [];
             }
@@ -814,7 +892,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Hacer el CDP clickeable
                 const cdpCell = `<td class="cdp-clickable" data-row='${JSON.stringify(row).replace(/'/g, "\\'")}'>${safe(row.numero_cdp)}</td>`;
 
-                tr.innerHTML = `
+                // Campos base para todos los usuarios
+                let rowHTML = `
                     ${cdpCell}
                     <td>${safe(row.fecha_registro)}</td>
                     <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.concepto_interno)}</textarea></td>
@@ -827,6 +906,30 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="${clase}">${porcentaje}%</td>
                     <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.objeto)}</textarea></td>
                 `;
+
+                // Campos adicionales solo para rol 4
+                if (window.userRolId === 4) {
+                    rowHTML += `
+                        <td class="cell-textarea"><textarea readonly spellcheck="false" placeholder="Documento..."></textarea></td>
+                        <td><input type="date" class="form-control form-control-sm"></td>
+                        <td><input type="number" class="form-control form-control-sm" placeholder="Valor..."></td>
+                        <td>
+                            <select class="form-select form-select-sm">
+                                <option value="">Seleccionar...</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="en_proceso">En proceso</option>
+                                <option value="completado">Completado</option>
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-warning btn-sm btn-enviar" title="Enviar">
+                                <i class="fas fa-paper-plane"></i> Enviar
+                            </button>
+                        </td>
+                    `;
+                }
+
+                tr.innerHTML = rowHTML;
                 tbodyDetalles.appendChild(tr);
             });
 
@@ -847,6 +950,55 @@ document.addEventListener('DOMContentLoaded', function () {
                     renderCdpIndividualChart(rowData);
                 });
             });
+
+            // Agregar event listeners a los botones Enviar (solo para rol 4)
+            if (window.userRolId === 4) {
+                document.querySelectorAll('.btn-enviar').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const row = this.closest('tr');
+                        const documento = row.querySelector('td:nth-child(12) textarea').value;
+                        const fechaDoc = row.querySelector('td:nth-child(13) input').value;
+                        const valorDoc = row.querySelector('td:nth-child(14) input').value;
+                        const estado = row.querySelector('td:nth-child(15) select').value;
+                        const cdp = row.querySelector('.cdp-clickable').textContent;
+
+                        // Validar campos obligatorios
+                        if (!documento || !fechaDoc || !valorDoc || !estado) {
+                            Swal.fire('Error', 'Todos los campos son obligatorios', 'warning');
+                            return;
+                        }
+
+                        // Mostrar confirmación
+                        Swal.fire({
+                            title: '¿Enviar información?',
+                            html: `
+                                <div class="text-start">
+                                    <p><strong>CDP:</strong> ${cdp}</p>
+                                    <p><strong>Documento:</strong> ${documento}</p>
+                                    <p><strong>Fecha:</strong> ${fechaDoc}</p>
+                                    <p><strong>Valor:</strong> ${formatoMoneda(valorDoc)}</p>
+                                    <p><strong>Estado:</strong> ${estado}</p>
+                                </div>
+                            `,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sí, enviar',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Aquí iría la lógica para enviar los datos al servidor
+                                Swal.fire('Éxito', 'Información enviada correctamente', 'success');
+                                
+                                // Deshabilitar el botón después de enviar
+                                this.disabled = true;
+                                this.innerHTML = '<i class="fas fa-check"></i> Enviado';
+                                this.classList.remove('btn-warning');
+                                this.classList.add('btn-success');
+                            }
+                        });
+                    });
+                });
+            }
 
             return data;
         } catch (err) {
