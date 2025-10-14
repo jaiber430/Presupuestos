@@ -5,7 +5,6 @@ namespace presupuestos\controller;
 use presupuestos\helpers\Auth;
 use presupuestos\model\ReportsModel;
 
-
 class ReportsController{
     /**
      * POST /reports -> subir Excel semana 1 (cdp, rp, pagos)
@@ -64,7 +63,6 @@ class ReportsController{
      * GET /reports/dependencias -> lista dependencias
      */
     public function dependencias(){
-
         header('Content-Type: application/json; charset=utf-8');
         $deps = ReportsModel::getDependencias();
         echo json_encode($deps, JSON_UNESCAPED_UNICODE);
@@ -72,14 +70,34 @@ class ReportsController{
     }
 
     /**
-     * GET /reports/consulta?dependencia=...&codigo_cdp=...
+     * GET /reports/cdps -> lista números CDP únicos
+     */
+    public function cdps(){
+        header('Content-Type: application/json; charset=utf-8');
+        $cdps = ReportsModel::getCDPs();
+        echo json_encode($cdps, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    /**
+     * GET /reports/conceptos -> lista conceptos internos únicos
+     */
+    public function conceptos(){
+        header('Content-Type: application/json; charset=utf-8');
+        $conceptos = ReportsModel::getConceptos();
+        echo json_encode($conceptos, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    /**
+     * GET /reports/consulta?dependencia=...&numero_cdp=...&concepto_interno=...
      */
     public function consulta(){
-
         header('Content-Type: application/json; charset=utf-8');
         $filters = [
             'dependencia' => $_GET['dependencia'] ?? '',
-            'codigo_cdp'  => $_GET['codigo_cdp'] ?? '',
+            'numero_cdp'  => $_GET['numero_cdp'] ?? '',
+            'concepto_interno' => $_GET['concepto_interno'] ?? ''
         ];
         $rows = ReportsModel::consultarCDP($filters);
         echo json_encode($rows, JSON_UNESCAPED_UNICODE);
