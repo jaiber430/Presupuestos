@@ -36,44 +36,82 @@ class ReportsModel extends MainModel
 
 	public static function processWeek1Excels(array $files, int $semanaId, int $centroId): array
 	{
-		// Aumentar límites de ejecución
-		set_time_limit(600); // 10 minutos
-		ini_set('memory_limit', '1024M'); // 1GB de memoria
+		set_time_limit(0);
+		ini_set('memory_limit', '1024M');
 
 		$results = [];
 
-		// Mapeo de archivos y tablas
 		$mapping = [
-			'cdp' => 'cdp',
-			'rp'  => 'reportepresupuestal',
+			'cdp'   => 'cdp',
+			'rp'    => 'reportepresupuestal',
 			'pagos' => 'pagos',
 		];
 
-		// Verificar que todos los archivos estén presentes
+		// Verificar archivos presentes
 		foreach ($mapping as $key => $table) {
 			if (empty($files[$key]['tmp_name'])) {
 				throw new Exception("No se encontró '{$table}'.xlsx.");
 			}
 		}
 
-		// Validar columnas de cada Excel
+		// 📂 Crear carpeta de almacenamiento
+		$baseDir = __DIR__ . '/../storage/uploads/';
+		$weekFolder = "semana_{$semanaId}_centro_{$centroId}";
+		$targetDir = "{$baseDir}{$weekFolder}/";
+
+		if (!is_dir($targetDir)) {
+			mkdir($targetDir, 0777, true);
+		}
+
+		// 📁 Guardar copias y preparar rutas
+		$filePaths = [];
 		foreach ($mapping as $key => $table) {
 			if (!empty($files[$key]['tmp_name'])) {
-				$valid = self::validateExcelColumns($files[$key]['tmp_name'], $table);
-				if ($valid !== true) throw new Exception($valid);
+				$fileName = "{$table}_" . date('Ymd_His') . ".xlsx";
+				$destPath = "{$targetDir}{$fileName}";
+
+				if (!move_uploaded_file($files[$key]['tmp_name'], $destPath)) {
+					throw new Exception("Error al guardar el archivo {$fileName}");
+				}
+
+				$filePaths[$key] = str_replace(__DIR__ . '/../', '', $destPath); // ruta relativa
+				$files[$key]['tmp_name'] = $destPath;
 			}
 		}
 
-		// Importar cada archivo según su tipo
+		// 🧾 Guardar las rutas en la tabla semanascarga
+		$pdo = self::getConnection();
+		$stmt = $pdo->prepare("
+			UPDATE semanascarga
+			SET archivoCdp = :cdp,
+				archivoRp = :rp,
+				archivoPagos = :pagos
+			WHERE idSemana = :id
+			");
+
+		$stmt->execute([
+			':cdp'   => $filePaths['cdp'] ?? null,
+			':rp'    => $filePaths['rp'] ?? null,
+			':pagos' => $filePaths['pagos'] ?? null,
+			':id'    => $semanaId,
+		]);
+
+		// Validar columnas
+		foreach ($mapping as $key => $table) {
+			$valid = self::validateExcelColumns($files[$key]['tmp_name'], $table);
+			if ($valid !== true) throw new Exception($valid);
+		}
+
+		// Importar datos
 		foreach ($mapping as $key => $table) {
 			$filePath = $files[$key]['tmp_name'];
 
 			if ($key === 'cdp') {
 				$results[] = self::importExcelToTableCdpOptimized($filePath, $table, $semanaId, $centroId);
 			} elseif ($key === 'rp') {
-				$results[] = self::importExcelToTableRpOptimized($filePath, $table);
-			} elseif($key == 'pagos'){
-				$results[] = self::importExcelToTablePagosOptimized($filePath, $table);
+				$results[] = self::importExcelToTableRp($filePath, $table);
+			} elseif ($key === 'pagos') {
+				$results[] = self::importExcelToTablePagos($filePath, $table);
 			}
 		}
 
@@ -93,7 +131,7 @@ class ReportsModel extends MainModel
 		$requiredColumns = $requiredColumnsMap[$table];
 		if (!$requiredColumns) return "No hay columnas definidas para la tabla '$table'.";
 
-		$reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($filePath);
+		$reader = IOFactory::createReaderForFile($filePath);
 		$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
@@ -768,5 +806,98 @@ class ReportsModel extends MainModel
 
 		$stmt = $pdo->prepare($sql);
 		return $stmt->execute();
+	}
+
+	public static function fillInformePresupuestal(int $semanaId, int $centroId)
+	{
+		$pdo = self::getConnection();
+
+		$sql = "
+		INSERT INTO informepresupuestal (
+		cdp,
+		fechaRegistro,
+		idDependenciaFK,
+		rubro,
+		descripcion,
+		fuente,
+		valorInicial,
+		valorOperaciones,
+		valorActual,
+		saldoPorComprometer,
+		valorComprometido,
+		valorPagado,
+		porcentajeCompromiso,
+		objeto
+		)
+		SELECT
+		c.idCdp AS cdp,
+		c.fechaRegistro,
+		dep.codigo AS idDependenciaFK,
+		c.rubro,
+		c.descripcionRubro AS descripcion,
+		c.fuente,
+		c.valorInicial,
+		c.valorOperaciones,
+		c.valorActual,
+		c.valorActual - IFNULL(SUM(p.valorNeto), 0) AS saldoPorComprometer,
+		c.compromisos AS valorComprometido,
+		IFNULL(SUM(p.valorNeto), 0) AS valorPagado,
+		IF(c.compromisos > 0, (IFNULL(SUM(p.valorNeto), 0) / c.compromisos) * 100, 0) AS porcentajeCompromiso,
+		c.objeto
+		FROM cdp c
+		LEFT JOIN cdpdependencia cd ON cd.idCdpFk = c.idCdp
+		LEFT JOIN dependencias dep ON dep.idDependencia = cd.idDependenciaFk
+		LEFT JOIN pagos p ON p.cdp = c.idCdp
+		WHERE c.idSemanaFk = :semanaId
+		GROUP BY c.idCdp
+
+		ON DUPLICATE KEY UPDATE
+			fechaRegistro = VALUES(fechaRegistro),
+			idDependenciaFK = VALUES(idDependenciaFK),
+			rubro = VALUES(rubro),
+			descripcion = VALUES(descripcion),
+			fuente = VALUES(fuente),
+			valorInicial = VALUES(valorInicial),
+			valorOperaciones = VALUES(valorOperaciones),
+			valorActual = VALUES(valorActual),
+			saldoPorComprometer = VALUES(saldoPorComprometer),
+			valorComprometido = VALUES(valorComprometido),
+			valorPagado = VALUES(valorPagado),
+			porcentajeCompromiso = VALUES(porcentajeCompromiso),
+			objeto = VALUES(objeto);
+			";
+
+		$stmt = $pdo->prepare($sql);
+		$stmt->execute([
+			':semanaId' => $semanaId
+		]);
+	}
+
+
+	public static function updateInformeWithPagos()
+	{
+		$pdo = self::getConnection();
+
+		$sql = "
+			UPDATE informepresupuestal i
+			LEFT JOIN reportepresupuestal r ON i.cdp = r.idCdpFk
+			LEFT JOIN (
+				SELECT
+					cdp,
+					SUM(COALESCE(valorNeto, 0)) AS sum_pago
+				FROM pagos
+				GROUP BY cdp
+			) ps ON ps.cdp = i.cdp
+			SET
+				i.valorComprometido = COALESCE(r.compromisos, i.valorComprometido),
+				i.valorPagado = COALESCE(ps.sum_pago, 0),
+				i.porcentajeCompromiso = CASE
+					WHEN COALESCE(r.compromisos, 0) > 0
+					THEN (COALESCE(ps.sum_pago, 0) / r.compromisos) * 100
+					ELSE 0
+				END
+			";
+
+		$pdo->exec($sql);
 	}
 }
