@@ -22,19 +22,14 @@ class MailerHelper {
         $this->from = $user;
 
         $dsn = sprintf(
-            '%s://%s:%s@%s:%d?encryption=%s',
-            $transportType,
-            urlencode($user),
-            urlencode($pass),
-            $host,
-            $port,
-            $_ENV['MAILER_ENCRYPTION']
+            'smtps://%s:%s@smtp.gmail.com:465',
+            urlencode($_ENV['MAILER_USER']),
+            urlencode($_ENV['MAILER_PASS'])
         );
-
-
 
         $transport = Transport::fromDsn($dsn);
         $this->mailer = new Mailer($transport);
+
 
         $emailsPath = __DIR__ . '/../view/emails';
         if (!is_dir($emailsPath)) {
@@ -54,7 +49,7 @@ class MailerHelper {
             ]);
 
             $email = (new Email())
-                ->from($_ENV['MAIL_FROM_ADDRESS'])
+                ->from($_ENV['MAILER_USER'])
                 ->to($user['email'] ?? '')
                 ->subject('Recuperación de contraseña')
                 ->html($body);
@@ -77,7 +72,7 @@ class MailerHelper {
             ]);
 
             $email = (new Email())
-                ->from($_ENV['MAIL_FROM_ADDRESS'])
+                ->from($_ENV['MAILER_USER'])
                 ->to($user['email'])
                 ->subject('Verifica tu cuenta')
                 ->html($body);

@@ -1,13 +1,80 @@
 document.addEventListener('DOMContentLoaded', function () {
     // ============================
     // CONFIGURACIÓN INICIAL Y VARIABLES GLOBALES
+    // ESTILOS ADICIONALES PARA PANTALLA DE CARGA
+    // ============================
+    const addLoadingStyles = () => {
+        const styles = `
+            .swal2-popup {
+                border-radius: 15px;
+                padding: 2rem;
+            }
+            .upload-progress-container {
+                background: #f8f9fa;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 15px 0;
+            }
+            .progress {
+                border-radius: 10px;
+                overflow: hidden;
+            }
+            .progress-bar {
+                transition: width 0.6s ease;
+            }
+            .upload-status {
+                font-weight: 600;
+                color: #2c3e50;
+                margin-bottom: 5px;
+            }
+            .upload-details {
+                font-size: 0.9em;
+                color: #7f8c8d;
+            }
+            .cdp-clickable {
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+            }
+            .cdp-clickable:hover {
+                background-color: #e3f2fd !important;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .cdp-clickable::after {
+                content: '🔍';
+                position: absolute;
+                right: 5px;
+                top: 50%;
+                transform: translateY(-50%);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            .cdp-clickable:hover::after {
+                opacity: 1;
+            }
+            .cdp-active {
+                background-color: #bbdefb !important;
+                border: 2px solid #2196f3;
+            }
+        `;
+
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = styles;
+        document.head.appendChild(styleSheet);
+    };
+
+    addLoadingStyles();
+
+    // ============================
+    // MODAL SUBIR REPORTE
     // ============================
     const modal = document.getElementById('modalReporte');
     const weekLabel = document.getElementById('modal-week-label');
     const inputWeek = document.getElementById('input-week');
     const inputSemanaId = document.getElementById('input-semana-id');
     const triggers = document.querySelectorAll('.btn-open-modal');
-    
+
     const modalDetalles = document.getElementById('modalDetalles');
     const weekLabelDetalles = document.getElementById('modal-detalles-week-label');
     const triggersDetalles = document.querySelectorAll('.btn-ver-detalles');
@@ -16,13 +83,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnBuscar = document.getElementById('btn-modal-buscar');
     const tbodyDetalles = document.getElementById('tabla-detalles-body');
     const filtroConceptoSelect = document.getElementById('filtro-concepto');
-    
+
     const modalDetallesInstance = new bootstrap.Modal(modalDetalles);
-    
+
     let dependencias = [];
     let datosGlobales = null;
     let datosFiltradosActuales = [];
-    
+
     // ============================
     // FUNCIÓN PARA DETERMINAR RANGOS SEMANALES Y ACTIVAR VIERNES
     // ============================
@@ -31,12 +98,12 @@ document.addEventListener('DOMContentLoaded', function () {
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
             'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
-        
+
         const fecha = new Date();
         const mesActual = meses[fecha.getMonth()];
         const añoActual = fecha.getFullYear();
         const ultimoDiaMes = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate();
-        
+
         // Definir los rangos semanales
         const rangos = [
             { texto: `${mesActual} 1-7`, inicio: 1, fin: 7 },
@@ -44,25 +111,28 @@ document.addEventListener('DOMContentLoaded', function () {
             { texto: `${mesActual} 16-23`, inicio: 16, fin: 23 },
             { texto: `${mesActual} 24-${ultimoDiaMes}`, inicio: 24, fin: ultimoDiaMes }
         ];
-        
+
         return rangos;
     }
-    
+
+    // =================================================================
+    // Crear observacion solo el vuiernes de la semana actual
+    // =================================================================
     function esViernesEnRango(rango) {
         const hoy = new Date();
         const diaActual = hoy.getDate();
         const diaSemana = hoy.getDay(); // 0=domingo, 1=lunes, ..., 5=viernes, 6=sábado
-        
+
         // Verificar si hoy es viernes (5) y está dentro del rango
-        return diaSemana === 5 && diaActual >= rango.inicio && diaActual <= rango.fin;
+        return diaSemana === 2 && diaActual >= rango.inicio && diaActual <= rango.fin;
     }
-    
+
     function aplicarReadonlySegunViernes() {
         const rangos = obtenerRangosSemanales();
-        
+
         // Aplicar a todos los textareas de observación
         const textareasSemanas = document.querySelectorAll('textarea[placeholder*="semana"], textarea[placeholder*="Semana"]');
-        
+
         textareasSemanas.forEach((textarea, index) => {
             if (index < rangos.length) {
                 const rango = rangos[index];
@@ -285,12 +355,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Determinar qué campos son editables según el día actual
                     const camposSemanales = rangosSemanales.map((rango, index) => {
                         const esEditable = esViernesEnRango(rango);
-                        const placeholder = esEditable ? 
-                            `Observación ${rango.texto}` : 
+                        const placeholder = esEditable ?
+                            `Observación ${rango.texto}` :
                             `Observación ${rango.texto}`;
                         const readonlyAttr = esEditable ? '' : 'readonly';
                         const claseEditable = esEditable ? 'editable-hoy' : '';
-                        
+
                         return `<td class="cell-textarea">
                             <textarea ${readonlyAttr} spellcheck="false" placeholder="${placeholder}" class="${claseEditable}"></textarea>
                         </td>`;
@@ -336,13 +406,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             });
 
+            // ===============================================================
             // Agregar event listeners a los botones Enviar (solo para rol 4)
+            // ===============================================================
             if (window.userRolId === 4) {
                 document.querySelectorAll('.btn-enviar').forEach(btn => {
                     btn.addEventListener('click', function () {
                         const row = this.closest('tr');
                         const textareas = row.querySelectorAll('td:nth-child(n+12):nth-child(-n+15) textarea');
-                        
+
                         // Validar que al menos un campo tenga datos
                         let tieneDatos = false;
                         textareas.forEach(textarea => {
@@ -357,7 +429,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
 
                         const cdp = row.querySelector('.cdp-clickable').textContent;
-                        
+
                         // Recolectar datos de todas las semanas
                         const observaciones = [];
                         textareas.forEach((textarea, index) => {
@@ -378,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <p><strong>CDP:</strong> ${cdp}</p>
                                     <p><strong>Observaciones a enviar:</strong></p>
                                     <ul>
-                                        ${observaciones.map(obs => `<li>${obs.rango}: ${obs.observacion}</li>`).join('')}
+                                        ${observaciones.map(obs => `<li>${obs.rango.split(' ')[0]} : ${obs.observacion}</li>`).join('')}
                                     </ul>
                                 </div>
                             `,
@@ -897,33 +969,37 @@ document.addEventListener('DOMContentLoaded', function () {
     loadGlobalCharts();
 
     // ============================
-    // SELECTOR DE GRÁFICAS PRINCIPALES
+    // SELECTOR DE GRÁFICAS PRINCIPALES - CON VERIFICACIÓN
     // ============================
     const chartSelect = document.getElementById('chart-select');
-    const chartContainers = document.querySelectorAll('.chart-container');
 
-    chartSelect.addEventListener('change', function () {
-        const selectedChart = this.value;
-        chartContainers.forEach(container => {
-            container.style.display = 'none';
-        });
-        const selectedContainer = document.getElementById('chart-' + selectedChart);
-        if (selectedContainer) {
-            selectedContainer.style.display = 'block';
-        }
-    });
+    // Solo ejecutar si el elemento existe
+    if (chartSelect) {
+        const chartContainers = document.querySelectorAll('.chart-container');
 
-    // Forzar estado inicial
-    (() => {
-        const preset = 'presupuesto';
-        chartContainers.forEach(c => {
-            c.style.display = (c.id === 'chart-' + preset) ? 'block' : 'none';
+        chartSelect.addEventListener('change', function () {
+            const selectedChart = this.value;
+            chartContainers.forEach(container => {
+                container.style.display = 'none';
+            });
+            const selectedContainer = document.getElementById('chart-' + selectedChart);
+            if (selectedContainer) {
+                selectedContainer.style.display = 'block';
+            }
         });
-        chartSelect.value = preset;
-    })();
+
+        // Forzar estado inicial
+        (() => {
+            const preset = 'presupuesto';
+            chartContainers.forEach(c => {
+                c.style.display = (c.id === 'chart-' + preset) ? 'block' : 'none';
+            });
+            chartSelect.value = preset;
+        })();
+    }
 
     // ============================
-    // SUBIDA DE ARCHIVOS
+    // SUBIDA DE ARCHIVOS CON PANTALLA DE CARGA MEJORADA - VERSIÓN FUNCIONAL
     // ============================
     const formReporte = document.getElementById('formReporte');
     if (formReporte) {
@@ -947,6 +1023,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            // 🔄 PANTALLA DE CARGA SIMPLE
             let loadingAlert = Swal.fire({
                 title: 'Subiendo archivos...',
                 html: `
@@ -955,6 +1032,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <span class="visually-hidden">Subiendo...</span>
                         </div>
                         <p class="mb-1">Procesando archivos Excel</p>
+                        <p class="small text-muted">Esto puede tomar unos minutos</p>
                     </div>
                 `,
                 allowOutsideClick: false,
@@ -963,6 +1041,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             try {
+                // PREPARAR FORM DATA
                 const formData = new FormData();
                 formData.append('week', weekValue);
                 formData.append('semana_id', semanaIdValue);
@@ -970,14 +1049,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (fileRp) formData.append('rp', fileRp);
                 if (filePagos) formData.append('pagos', filePagos);
 
+                // 🔄 ENVIAR PETICIÓN REAL INMEDIATAMENTE
                 const response = await fetch(formReporte.action, {
                     method: 'POST',
                     body: formData
                 });
 
+                // Cerrar loading
                 Swal.close();
+
+                // Procesar respuesta
                 const result = await response.json();
 
+                // ✅ MOSTRAR RESULTADO FINAL
                 Swal.fire({
                     title: result.titulo,
                     text: result.texto,
@@ -1055,9 +1139,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (data.icono === 'success') {
                         if (tbodyDetalles) tbodyDetalles.innerHTML = '';
-                        chartGastos = disposeChart(chartGastos);
-                        chartPresupuesto = disposeChart(chartPresupuesto);
-                        chartDependencias = disposeChart(chartDependencias);
+
+                        // Solo destruir gráficas si existen
+                        if (chartGastos) chartGastos = disposeChart(chartGastos);
+                        if (chartPresupuesto) chartPresupuesto = disposeChart(chartPresupuesto);
+                        if (chartDependencias) chartDependencias = disposeChart(chartDependencias);
 
                         if (document.getElementById('total-presupuesto')) {
                             document.getElementById('total-presupuesto').textContent = formatoMoneda(0);
@@ -1084,7 +1170,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ============================
     // Aplicar el control de readonly cuando se carga la página
     aplicarReadonlySegunViernes();
-    
+
     // También aplicar cuando se abre el modal de detalles
     document.addEventListener('shown.bs.modal', function (e) {
         if (e.target.id === 'modalDetalles') {
