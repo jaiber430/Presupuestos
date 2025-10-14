@@ -378,16 +378,16 @@ $ultimo_dia = date('t');
                                     </th>
                                     <?php if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4): ?>
                                         <th width="150" class="text-center">
-                                            <i class="fas fa-file-alt me-1"></i>Observación Doc <?php echo $mes_actual . ' 1-7'; ?>
+                                            <i class="fas fa-file-alt me-1"></i>Observación <?php echo $mes_actual . ' 1-7'; ?>
                                         </th>
                                         <th width="150" class="text-center">
-                                            <i class="fas fa-calendar-check me-1"></i>Observación Fecha <?php echo $mes_actual . ' 8-15'; ?>
+                                            <i class="fas fa-calendar-check me-1"></i>Observación <?php echo $mes_actual . ' 8-15'; ?>
                                         </th>
                                         <th width="150" class="text-center">
-                                            <i class="fas fa-dollar-sign me-1"></i>Observación Valor <?php echo $mes_actual . ' 16-23'; ?>
+                                            <i class="fas fa-dollar-sign me-1"></i>Observación <?php echo $mes_actual . ' 16-23'; ?>
                                         </th>
                                         <th width="150" class="text-center">
-                                            <i class="fas fa-check-circle me-1"></i>Observación Estado <?php echo $mes_actual . ' 24-' . $ultimo_dia; ?>
+                                            <i class="fas fa-check-circle me-1"></i>Observación<?php echo $mes_actual . ' 24-' . $ultimo_dia; ?>
                                         </th>
                                         <th width="100" class="text-center">
                                             <i class="fas fa-save me-1"></i>Guardar
