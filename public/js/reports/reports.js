@@ -1,5 +1,71 @@
 document.addEventListener('DOMContentLoaded', function () {
     // ============================
+    // ESTILOS ADICIONALES PARA PANTALLA DE CARGA
+    // ============================
+    const addLoadingStyles = () => {
+        const styles = `
+            .swal2-popup {
+                border-radius: 15px;
+                padding: 2rem;
+            }
+            .upload-progress-container {
+                background: #f8f9fa;
+                border-radius: 10px;
+                padding: 20px;
+                margin: 15px 0;
+            }
+            .progress {
+                border-radius: 10px;
+                overflow: hidden;
+            }
+            .progress-bar {
+                transition: width 0.6s ease;
+            }
+            .upload-status {
+                font-weight: 600;
+                color: #2c3e50;
+                margin-bottom: 5px;
+            }
+            .upload-details {
+                font-size: 0.9em;
+                color: #7f8c8d;
+            }
+            .cdp-clickable {
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+            }
+            .cdp-clickable:hover {
+                background-color: #e3f2fd !important;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .cdp-clickable::after {
+                content: '🔍';
+                position: absolute;
+                right: 5px;
+                top: 50%;
+                transform: translateY(-50%);
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+            .cdp-clickable:hover::after {
+                opacity: 1;
+            }
+            .cdp-active {
+                background-color: #bbdefb !important;
+                border: 2px solid #2196f3;
+            }
+        `;
+        
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = styles;
+        document.head.appendChild(styleSheet);
+    };
+
+    addLoadingStyles();
+
+    // ============================
     // MODAL SUBIR REPORTE
     // ============================
     const modal = document.getElementById('modalReporte');
@@ -597,33 +663,37 @@ document.addEventListener('DOMContentLoaded', function () {
     loadGlobalCharts();
 
     // ============================
-    // SELECTOR DE GRÁFICAS PRINCIPALES
+    // SELECTOR DE GRÁFICAS PRINCIPALES - CON VERIFICACIÓN
     // ============================
     const chartSelect = document.getElementById('chart-select');
-    const chartContainers = document.querySelectorAll('.chart-container');
-
-    chartSelect.addEventListener('change', function () {
-        const selectedChart = this.value;
-        chartContainers.forEach(container => {
-            container.style.display = 'none';
+    
+    // Solo ejecutar si el elemento existe
+    if (chartSelect) {
+        const chartContainers = document.querySelectorAll('.chart-container');
+        
+        chartSelect.addEventListener('change', function () {
+            const selectedChart = this.value;
+            chartContainers.forEach(container => {
+                container.style.display = 'none';
+            });
+            const selectedContainer = document.getElementById('chart-' + selectedChart);
+            if (selectedContainer) {
+                selectedContainer.style.display = 'block';
+            }
         });
-        const selectedContainer = document.getElementById('chart-' + selectedChart);
-        if (selectedContainer) {
-            selectedContainer.style.display = 'block';
-        }
-    });
 
-    // Forzar estado inicial
-    (() => {
-        const preset = 'presupuesto';
-        chartContainers.forEach(c => {
-            c.style.display = (c.id === 'chart-' + preset) ? 'block' : 'none';
-        });
-        chartSelect.value = preset;
-    })();
+        // Forzar estado inicial
+        (() => {
+            const preset = 'presupuesto';
+            chartContainers.forEach(c => {
+                c.style.display = (c.id === 'chart-' + preset) ? 'block' : 'none';
+            });
+            chartSelect.value = preset;
+        })();
+    }
 
-    // ============================
-    // SUBIDA DE ARCHIVOS
+        // ============================
+    // SUBIDA DE ARCHIVOS CON PANTALLA DE CARGA MEJORADA - VERSIÓN FUNCIONAL
     // ============================
     const formReporte = document.getElementById('formReporte');
     if (formReporte) {
@@ -647,6 +717,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            // 🔄 PANTALLA DE CARGA SIMPLE
             let loadingAlert = Swal.fire({
                 title: 'Subiendo archivos...',
                 html: `
@@ -655,6 +726,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <span class="visually-hidden">Subiendo...</span>
                         </div>
                         <p class="mb-1">Procesando archivos Excel</p>
+                        <p class="small text-muted">Esto puede tomar unos minutos</p>
                     </div>
                 `,
                 allowOutsideClick: false,
@@ -663,6 +735,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             try {
+                // PREPARAR FORM DATA
                 const formData = new FormData();
                 formData.append('week', weekValue);
                 formData.append('semana_id', semanaIdValue);
@@ -670,14 +743,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (fileRp) formData.append('rp', fileRp);
                 if (filePagos) formData.append('pagos', filePagos);
 
+                // 🔄 ENVIAR PETICIÓN REAL INMEDIATAMENTE
                 const response = await fetch(formReporte.action, {
                     method: 'POST',
                     body: formData
                 });
 
+                // Cerrar loading
                 Swal.close();
+
+                // Procesar respuesta
                 const result = await response.json();
 
+                // ✅ MOSTRAR RESULTADO FINAL
                 Swal.fire({
                     title: result.titulo,
                     text: result.texto,
@@ -755,9 +833,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (data.icono === 'success') {
                         if (tbodyDetalles) tbodyDetalles.innerHTML = '';
-                        chartGastos = disposeChart(chartGastos);
-                        chartPresupuesto = disposeChart(chartPresupuesto);
-                        chartDependencias = disposeChart(chartDependencias);
+                        
+                        // Solo destruir gráficas si existen
+                        if (chartGastos) chartGastos = disposeChart(chartGastos);
+                        if (chartPresupuesto) chartPresupuesto = disposeChart(chartPresupuesto);
+                        if (chartDependencias) chartDependencias = disposeChart(chartDependencias);
 
                         if (document.getElementById('total-presupuesto')) {
                             document.getElementById('total-presupuesto').textContent = formatoMoneda(0);

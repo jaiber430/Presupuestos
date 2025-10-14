@@ -32,6 +32,9 @@ class ReportsController{
             // Procesa Excel usando ReportsModel adaptado
             $results = ReportsModel::processWeek1Excels($files, $semanaId, $centroId);
 
+            ReportsModel::fillInformePresupuestal($semanaId, $centroId);
+            ReportsModel::updateInformeWithPagos();
+
             ob_clean();
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode([

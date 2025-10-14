@@ -38,7 +38,7 @@ class ReportsModel extends MainModel
 
 	public static function processWeek1Excels(array $files, int $semanaId, int $centroId): array
 	{
-		set_time_limit(600);
+		set_time_limit(0);
 		ini_set('memory_limit', '1024M');
 
 		$results = [];
@@ -665,5 +665,98 @@ class ReportsModel extends MainModel
 		$stmt = $pdo->prepare($sql);
 
 		return $stmt->execute();
+	}
+
+	public static function fillInformePresupuestal(int $semanaId, int $centroId)
+	{
+		$pdo = self::getConnection();
+
+		$sql = "
+		INSERT INTO informepresupuestal (
+		cdp,
+		fechaRegistro,
+		idDependenciaFK,
+		rubro,
+		descripcion,
+		fuente,
+		valorInicial,
+		valorOperaciones,
+		valorActual,
+		saldoPorComprometer,
+		valorComprometido,
+		valorPagado,
+		porcentajeCompromiso,
+		objeto
+		)
+		SELECT
+		c.idCdp AS cdp,
+		c.fechaRegistro,
+		dep.codigo AS idDependenciaFK,
+		c.rubro,
+		c.descripcionRubro AS descripcion,
+		c.fuente,
+		c.valorInicial,
+		c.valorOperaciones,
+		c.valorActual,
+		c.valorActual - IFNULL(SUM(p.valorNeto), 0) AS saldoPorComprometer,
+		c.compromisos AS valorComprometido,
+		IFNULL(SUM(p.valorNeto), 0) AS valorPagado,
+		IF(c.compromisos > 0, (IFNULL(SUM(p.valorNeto), 0) / c.compromisos) * 100, 0) AS porcentajeCompromiso,
+		c.objeto
+		FROM cdp c
+		LEFT JOIN cdpdependencia cd ON cd.idCdpFk = c.idCdp
+		LEFT JOIN dependencias dep ON dep.idDependencia = cd.idDependenciaFk
+		LEFT JOIN pagos p ON p.cdp = c.idCdp
+		WHERE c.idSemanaFk = :semanaId
+		GROUP BY c.idCdp
+
+		ON DUPLICATE KEY UPDATE
+			fechaRegistro = VALUES(fechaRegistro),
+			idDependenciaFK = VALUES(idDependenciaFK),
+			rubro = VALUES(rubro),
+			descripcion = VALUES(descripcion),
+			fuente = VALUES(fuente),
+			valorInicial = VALUES(valorInicial),
+			valorOperaciones = VALUES(valorOperaciones),
+			valorActual = VALUES(valorActual),
+			saldoPorComprometer = VALUES(saldoPorComprometer),
+			valorComprometido = VALUES(valorComprometido),
+			valorPagado = VALUES(valorPagado),
+			porcentajeCompromiso = VALUES(porcentajeCompromiso),
+			objeto = VALUES(objeto);
+			";
+
+		$stmt = $pdo->prepare($sql);
+		$stmt->execute([
+			':semanaId' => $semanaId
+		]);
+	}
+
+
+	public static function updateInformeWithPagos()
+	{
+		$pdo = self::getConnection();
+
+		$sql = "
+			UPDATE informepresupuestal i
+			LEFT JOIN reportepresupuestal r ON i.cdp = r.idCdpFk
+			LEFT JOIN (
+				SELECT
+					cdp,
+					SUM(COALESCE(valorNeto, 0)) AS sum_pago
+				FROM pagos
+				GROUP BY cdp
+			) ps ON ps.cdp = i.cdp
+			SET
+				i.valorComprometido = COALESCE(r.compromisos, i.valorComprometido),
+				i.valorPagado = COALESCE(ps.sum_pago, 0),
+				i.porcentajeCompromiso = CASE
+					WHEN COALESCE(r.compromisos, 0) > 0
+					THEN (COALESCE(ps.sum_pago, 0) / r.compromisos) * 100
+					ELSE 0
+				END
+			";
+
+		$pdo->exec($sql);
 	}
 }
