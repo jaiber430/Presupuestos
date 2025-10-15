@@ -57,7 +57,7 @@
                 <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
 
-            <!-- SOLUCIÓN: Eliminé el icono duplicado y organicé verticalmente -->
+
             <div class="user-info d-flex align-items-center">
                 <div class="user-photo me-3">
                     <img src="<?= APP_URL ?>assets/img/default.png" alt="Foto de usuario" class="rounded-circle" width="45" height="45">
@@ -134,12 +134,18 @@
                         <i class="fas fa-home me-2" aria-hidden="true"></i>Inicio
                     </a>
                 </h2>
+                <h2 class="accordion-header" id="headingInicio">
+                    <a class="accordion-button single-link" href="#" data-bs-toggle="modal" data-bs-target="#rolesModal">
+                        <i class="fas fa-user" aria-hidden="true"></i> Permisos
+                    </a>
+                </h2>
             </div>
 
             <!-- Menú dinámico desde base de datos -->
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingPresupuesto">
                     <div class='permissions'></div>
+
                 </h2>
             </div>
 
@@ -264,14 +270,98 @@
     <!-- Modal para gestión de roles -->
     <div class="modal fade modal-roles" id="rolesModal" tabindex="-1"
         aria-labelledby="rolesModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content roles-content">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content roles-content ">
                 <div class="modal-header roles-header">
                     <h2 class="modal-title h5" id="rolesModalLabel">Roles disponibles</h2>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body roles-body">
-                    <ul class="list-group roles-list" role="list"></ul>
+                    <div class="accordion" id="accordionExample">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    Super Admin
+                                </button>
+                            </h2>       
+                            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                                <div class="accordion-body">
+                                    <p>
+                                        <select id="idMenu" name="idMenu" class="form-control" title="Nombre Menú" >		
+                                        <?php
+                                              $query = "SELECT
+                                                `centros`.`idCentro`,
+                                                `rol`.`idRol`,
+                                                `menu`.`idMenu`,
+                                                `menu`.`nombreMenu`
+                                                FROM
+                                                `centros`
+                                                INNER JOIN `rol` ON `centros`.`idCentro` = `rol`.`idCentroFK`
+                                                INNER JOIN `menu` ON `rol`.`idRol` = `menu`.`idRolFk`
+                                                WHERE
+                                                `centros`.`idCentro`= '$idCentroIdSession'";
+
+                                                while($registro = mysqli_fetch_array($resultado))
+                                                {
+                                                    <option value=".$registro['idMenu']."'>".($registro['nombreMenu'])."</option> "; 
+                                                }
+                                        ?>
+                                          </select>
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    Administrador
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                                <div class="accordion-body">
+                                    <p>m1</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    Subdirector
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                                <div class="accordion-body">
+                                    <p>m2</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    Abogado
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+                                <div class="accordion-body">
+                                    <p>M1</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    Supervisor
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+                                <div class="accordion-body">
+                                    <p>M1</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer roles-footer">
                     <button type="button" class="btn btn-secondary roles-btn-cancel"

@@ -169,7 +169,7 @@ class ReportsModel extends MainModel
 
 		// Excluir columnas automáticas y FK
 		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idCdp', 'idSemanaFk']));
-		$numericCols = self::$numericFields[$table];
+		$numericCols = self::$numericFields[$table] ?? [];
 
 		// Mapeo del Excel hacia tus columnas del CDP
 		$excelMapping = [
@@ -185,17 +185,17 @@ class ReportsModel extends MainModel
 			'Fuente'                   => 'fuente',
 			'Recurso'                  => 'recurso',
 			'Sit'                      => 'sit',
-			'Valor Inicial '           => 'valorInicial',
-			'Valor Operaciones '       => 'valorOperaciones',
-			'Valor Actual '            => 'valorActual',
-			'Saldo por Comprometer '   => 'saldoComprometer',
+			'Valor Inicial'            => 'valorInicial',
+			'Valor Operaciones'        => 'valorOperaciones',
+			'Valor Actual'             => 'valorActual',
+			'Saldo por Comprometer'    => 'saldoComprometer',
 			'Objeto'                   => 'objeto',
-			'Solicitud CDP'             => 'solicitudCdp',
-			'Compromisos'               => 'compromisos',
-			'Cuentas por Pagar'         => 'cuentasPagar',
-			'Obligaciones'              => 'obligaciones',
-			'Ordenes de Pago'           => 'ordenesPago',
-			'Reintegros'                => 'reintegros'
+			'Solicitud CDP'            => 'solicitudCdp',
+			'Compromisos'              => 'compromisos',
+			'Cuentas por Pagar'        => 'cuentasPagar',
+			'Obligaciones'             => 'obligaciones',
+			'Ordenes de Pago'          => 'ordenesPago',
+			'Reintegros'               => 'reintegros'
 		];
 
 		$reader = IOFactory::createReaderForFile($filePath);
@@ -203,10 +203,8 @@ class ReportsModel extends MainModel
 		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
 
-		// Preparar SQL principal
 		$finalColumnsCdp = array_merge($insertColumns, ['idSemanaFk']);
 		$columnList = "`" . implode("`,`", $finalColumnsCdp) . "`";
-
 		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumnsCdp)), ",") . ")";
 		$sql = "INSERT INTO `$table` ($columnList) VALUES $placeholders";
 		$stmt = $pdo->prepare($sql);
@@ -224,11 +222,11 @@ class ReportsModel extends MainModel
 				$data[] = trim((string)$cell->getValue());
 			}
 
-			// No leo la fila que todos los campos están vacios
 			if (empty(array_filter($data, fn($v) => trim((string)$v) !== ''))) continue;
 
 			if ($firstRow) {
-				$headers = $data;
+				// Limpiar encabezados (quita símbolos, espacios, saltos, etc.)
+				$headers = array_map(fn($h) => trim(preg_replace('/\s+/', ' ', $h)), $data);
 				$firstRow = false;
 				continue;
 			}
@@ -236,7 +234,6 @@ class ReportsModel extends MainModel
 			$rowData = array_combine($headers, $data);
 			if (!$rowData) continue;
 
-			// Preparar datos para CDP
 			$values = [];
 			foreach ($insertColumns as $col) {
 				$excelCol = array_search($col, $excelMapping, true);
@@ -253,25 +250,22 @@ class ReportsModel extends MainModel
 			$stmt->execute($values);
 			$idCdp = $pdo->lastInsertId();
 
-			// Relaciono la tabla cdpdependencia
-			$dependenciaCodigo = $rowData['Dependencia'];
-			$dependenciaDesc   = $rowData['Dependencia Descripcion'];
+			// Dependencias
+			$dependenciaCodigo = $rowData['Dependencia'] ?? null;
+			$dependenciaDesc   = $rowData['Dependencia Descripcion'] ?? null;
 
 			if ($dependenciaCodigo) {
-				// Buscar dependencia
 				$sqlDep = "SELECT idDependencia FROM dependencias WHERE codigo = ?";
 				$stmtDep = $pdo->prepare($sqlDep);
 				$stmtDep->execute([$dependenciaCodigo]);
 				$idDependencia = $stmtDep->fetchColumn();
 
-				// Si no existe, la creamos
 				if (!$idDependencia) {
 					$sqlInsertDep = "INSERT INTO dependencias (codigo, nombre, idCentroFk) VALUES (?, ?, ?)";
 					$pdo->prepare($sqlInsertDep)->execute([$dependenciaCodigo, $dependenciaDesc, $centroId]);
 					$idDependencia = $pdo->lastInsertId();
 				}
 
-				// Insertar relación cdp → dependencia
 				$sqlRel = "INSERT INTO cdpdependencia (idCdpFk, idDependenciaFk) VALUES (?, ?)";
 				$pdo->prepare($sqlRel)->execute([$idCdp, $idDependencia]);
 			}
@@ -285,6 +279,7 @@ class ReportsModel extends MainModel
 
 		return "Datos insertados correctamente en '$table' ($rowCount registros).";
 	}
+
 
 	private static function importExcelToTableRp(string $filePath, string $table)
 	{
@@ -379,8 +374,8 @@ class ReportsModel extends MainModel
 			}
 
 			// Obtener idCdpFk a partir del CDP y la dependencia
-			$cdpNumero      = $rowData['CDP'] ?? null;
-			$dependenciaCod = $rowData['Dependencia'] ?? null;
+			$cdpNumero      = $rowData['CDP'];
+			$dependenciaCod = $rowData['Dependencia'];
 			$idCdpFk        = null;
 
 			if ($cdpNumero && $dependenciaCod) {
@@ -567,12 +562,22 @@ class ReportsModel extends MainModel
 		return str_replace($tildes, $sin, $text);
 	}
 
-	private static function toNumeric($value): int
+	private static function toNumeric($val)
 	{
-		if ($value === null) return 0;
-		$value = str_replace(['$', '.', ','], '', (string)$value);
-		$value = trim($value);
-		return is_numeric($value) ? (int)$value : 0;
+		if ($val === null || $val === '') return 0;
+
+		// 1️⃣ Quita el símbolo $ y espacios
+		$val = str_replace(['$', ' ', "\xc2\xa0"], '', $val);
+
+		// 2️⃣ Quita los separadores de miles (comas)
+		$val = str_replace(',', '', $val);
+
+		// 3️⃣ Asegura el punto decimal estándar
+		$val = str_replace(['.00', '.0'], '', $val); // opcional, si quieres enteros
+		$val = str_replace(['.', ','], ['.', '.'], $val);
+
+		// 4️⃣ Convierte a número
+		return is_numeric($val) ? (float)$val : 0;
 	}
 
 	public static function getDependencias(): array
@@ -673,43 +678,42 @@ class ReportsModel extends MainModel
 
 		$sql = "
 		INSERT INTO informepresupuestal (
-		cdp,
-		fechaRegistro,
-		idDependenciaFK,
-		rubro,
-		descripcion,
-		fuente,
-		valorInicial,
-		valorOperaciones,
-		valorActual,
-		saldoPorComprometer,
-		valorComprometido,
-		valorPagado,
-		porcentajeCompromiso,
-		objeto
+			cdp,
+			fechaRegistro,
+			idDependenciaFK,
+			rubro,
+			descripcion,
+			fuente,
+			valorInicial,
+			valorOperaciones,
+			valorActual,
+			saldoPorComprometer,
+			valorComprometido,
+			valorPagado,
+			porcentajeCompromiso,
+			objeto
 		)
 		SELECT
-		c.idCdp AS cdp,
-		c.fechaRegistro,
-		dep.codigo AS idDependenciaFK,
-		c.rubro,
-		c.descripcionRubro AS descripcion,
-		c.fuente,
-		c.valorInicial,
-		c.valorOperaciones,
-		c.valorActual,
-		c.valorActual - IFNULL(SUM(p.valorNeto), 0) AS saldoPorComprometer,
-		c.compromisos AS valorComprometido,
-		IFNULL(SUM(p.valorNeto), 0) AS valorPagado,
-		IF(c.compromisos > 0, (IFNULL(SUM(p.valorNeto), 0) / c.compromisos) * 100, 0) AS porcentajeCompromiso,
-		c.objeto
+			c.idCdp AS cdp,
+			c.fechaRegistro,
+			dep.codigo AS idDependenciaFK,
+			c.rubro,
+			c.descripcionRubro AS descripcion,
+			c.fuente,
+			c.valorInicial,
+			c.valorOperaciones,
+			c.valorActual,
+			c.valorActual - IFNULL(SUM(p.valorNeto), 0) AS saldoPorComprometer,
+			c.compromisos AS valorComprometido,
+			IFNULL(SUM(p.valorNeto), 0) AS valorPagado,
+			IF(c.compromisos > 0, (c.valorActual / c.compromisos) * 100, 0) AS porcentajeCompromiso,
+			c.objeto
 		FROM cdp c
 		LEFT JOIN cdpdependencia cd ON cd.idCdpFk = c.idCdp
 		LEFT JOIN dependencias dep ON dep.idDependencia = cd.idDependenciaFk
 		LEFT JOIN pagos p ON p.cdp = c.idCdp
 		WHERE c.idSemanaFk = :semanaId
 		GROUP BY c.idCdp
-
 		ON DUPLICATE KEY UPDATE
 			fechaRegistro = VALUES(fechaRegistro),
 			idDependenciaFK = VALUES(idDependenciaFK),
@@ -724,7 +728,7 @@ class ReportsModel extends MainModel
 			valorPagado = VALUES(valorPagado),
 			porcentajeCompromiso = VALUES(porcentajeCompromiso),
 			objeto = VALUES(objeto);
-			";
+		";
 
 		$stmt = $pdo->prepare($sql);
 		$stmt->execute([

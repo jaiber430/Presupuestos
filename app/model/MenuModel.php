@@ -15,7 +15,7 @@ class MenuModel extends MainModel{
                 p.nombre AS nombre_permiso
             FROM permisorol pr
             JOIN permiso p ON p.id = pr.permiso_id
-            JOIN rol r ON r.id = pr.rol_id
+            JOIN rol r ON r.idRol = pr.rol_id
             WHERE r.id = :userRol
               AND pr.estado = '1'
         ";
