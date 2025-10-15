@@ -278,89 +278,51 @@
                 </div>
                 <div class="modal-body roles-body">
                     <div class="accordion" id="accordionExample">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingOne">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                    Super Admin
-                                </button>
-                            </h2>       
-                            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-                                <div class="accordion-body">
-                                    <p>
-                                        <select id="idMenu" name="idMenu" class="form-control" title="Nombre Menú" >		
-                                        <?php
-                                              $query = "SELECT
-                                                `centros`.`idCentro`,
-                                                `rol`.`idRol`,
-                                                `menu`.`idMenu`,
-                                                `menu`.`nombreMenu`
-                                                FROM
-                                                `centros`
-                                                INNER JOIN `rol` ON `centros`.`idCentro` = `rol`.`idCentroFK`
-                                                INNER JOIN `menu` ON `rol`.`idRol` = `menu`.`idRolFk`
-                                                WHERE
-                                                `centros`.`idCentro`= '$idCentroIdSession'";
+                        <?php
+                        $varContR = 1;
+                        $varContSm = 1;
+                        foreach ($roles as $rol): ?>
 
-                                                while($registro = mysqli_fetch_array($resultado))
-                                                {
-                                                    <option value=".$registro['idMenu']."'>".($registro['nombreMenu'])."</option> "; 
-                                                }
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                        <input type="" id="idRol" .$varContR; value="<?= $rol['idRol'] ?>">
+                                        <?= $rol['nombre'];
+                                        $varContR++;
                                         ?>
-                                          </select>
+
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                                    <div class="accordion-body">
+                                        <p>
+                                            <?php
+                                            foreach ($subMenus as $menu): ?>
+                                                <input id="nombreMenu" .$varContSm; value="<?= $menu['nombreMenu'] ?>" readonly />
+                                                <input type="hidden" id="idMenu" .$varCont; value="<?= $menu['idMenu'];
+                                                                                                    $varContSm++ ?>">
+
+                                        <div>
+                                            <label>
+                                                <input type="radio" name="opcion" value="1">
+                                                Sí
+                                            </label>
+
+                                            <label>
+                                                <input type="radio" name="opcion" value="2">
+                                                No
+                                            </label>
+                                            <br>
+                                        </div>
+
+                                    <?php endforeach; ?>
                                     </p>
+                                    </div>
                                 </div>
+
                             </div>
 
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingOne">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                    Administrador
-                                </button>
-                            </h2>
-                            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-                                <div class="accordion-body">
-                                    <p>m1</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingTwo">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                    Subdirector
-                                </button>
-                            </h2>
-                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
-                                <div class="accordion-body">
-                                    <p>m2</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingThree">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                    Abogado
-                                </button>
-                            </h2>
-                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
-                                <div class="accordion-body">
-                                    <p>M1</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingThree">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                    Supervisor
-                                </button>
-                            </h2>
-                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
-                                <div class="accordion-body">
-                                    <p>M1</p>
-                                </div>
-                            </div>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
                 <div class="modal-footer roles-footer">
