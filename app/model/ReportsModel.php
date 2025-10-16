@@ -735,56 +735,67 @@ class ReportsModel extends MainModel
 	{
 		$pdo = self::getConnection();
 
-		try {
-			// PRIMERO: Limpiar la tabla
-			$pdo->exec("TRUNCATE TABLE informepresupuestal");
+		$sql = "
+		INSERT INTO informepresupuestal (
+			cdp, fechaRegistro, idDependenciaFK, rubro, descripcion,
+			fuente, valorInicial, valorOperaciones, valorActual,
+			saldoPorComprometer, valorComprometido, valorPagado, 
+			porcentajeCompromiso, objeto
+		)
+		SELECT
+			c.numeroDocumento AS cdp,
+			c.fechaRegistro,
+			COALESCE(dep.codigo, 'SIN-DEP') AS idDependenciaFK,
+			c.rubro,
+			c.descripcionRubro AS descripcion,
+			c.fuente,
+			c.valorInicial,
+			c.valorOperaciones,
+			c.valorActual,
+			GREATEST(c.valorActual - COALESCE(pt.total_pagado, 0), 0) AS saldoPorComprometer,
+			c.valorActual - GREATEST(c.valorActual - COALESCE(pt.total_pagado, 0), 0) AS valorComprometido,
+			COALESCE(pt.total_pagado, 0) AS valorPagado,
+			CASE 
+				WHEN (c.valorActual - GREATEST(c.valorActual - COALESCE(pt.total_pagado, 0), 0)) > 0 
+				THEN (COALESCE(pt.total_pagado, 0) / 
+					(c.valorActual - GREATEST(c.valorActual - COALESCE(pt.total_pagado, 0), 0))) * 100
+				ELSE 0 
+			END AS porcentajeCompromiso,
+			c.objeto
+		FROM cdp c
+		LEFT JOIN (
+			SELECT idCdpFk, SUM(COALESCE(valorNeto, 0)) as total_pagado
+			FROM pagos 
+			GROUP BY idCdpFk
+		) pt ON pt.idCdpFk = c.idCdp
+		LEFT JOIN cdpdependencia cd ON cd.idCdpFk = c.idCdp
+		LEFT JOIN dependencias dep ON dep.idDependencia = cd.idDependenciaFk
+		-- ✅ AGREGAR FILTRO PARA EVITAR CDPs VACÍOS
+		WHERE c.numeroDocumento IS NOT NULL 
+		AND c.numeroDocumento != '' 
+		AND c.valorActual IS NOT NULL
+		AND c.valorActual > 0
+		GROUP BY c.numeroDocumento
 
-			// SEGUNDO: Insertar datos con consulta directa y segura
-			$sql = "
-        INSERT INTO informepresupuestal (
-            cdp, fechaRegistro, idDependenciaFK, rubro, descripcion,
-            fuente, valorInicial, valorOperaciones, valorActual,
-            saldoPorComprometer, valorComprometido, valorPagado, 
-            porcentajeCompromiso, objeto
-        )
-        SELECT
-            c.numeroDocumento AS cdp,
-            c.fechaRegistro,
-            COALESCE(dep.codigo, 'SIN-DEP') AS idDependenciaFK,
-            c.rubro,
-            c.descripcionRubro AS descripcion,
-            c.fuente,
-            c.valorInicial,
-            c.valorOperaciones,
-            c.valorActual,
-            GREATEST(c.valorActual - COALESCE(pt.total_pagado, 0), 0) AS saldoPorComprometer,
-            c.compromisos AS valorComprometido,
-            COALESCE(pt.total_pagado, 0) AS valorPagado,
-            CASE 
-                WHEN c.compromisos > 0 THEN (COALESCE(pt.total_pagado, 0) / c.compromisos) * 100
-                ELSE 0 
-            END AS porcentajeCompromiso,
-            c.objeto
-        FROM cdp c
-        LEFT JOIN (
-            SELECT idCdpFk, SUM(COALESCE(valorNeto, 0)) as total_pagado
-            FROM pagos 
-            GROUP BY idCdpFk
-        ) pt ON pt.idCdpFk = c.idCdp
-        LEFT JOIN cdpdependencia cd ON cd.idCdpFk = c.idCdp
-        LEFT JOIN dependencias dep ON dep.idDependencia = cd.idDependenciaFk
-        WHERE c.numeroDocumento IS NOT NULL
-        AND c.numeroDocumento != ''
-        ";
+		ON DUPLICATE KEY UPDATE
+			fechaRegistro = VALUES(fechaRegistro),
+			idDependenciaFK = VALUES(idDependenciaFK),
+			rubro = VALUES(rubro),
+			descripcion = VALUES(descripcion),
+			fuente = VALUES(fuente),
+			valorInicial = VALUES(valorInicial),
+			valorOperaciones = VALUES(valorOperaciones),
+			valorActual = VALUES(valorActual),
+			saldoPorComprometer = VALUES(saldoPorComprometer),
+			valorComprometido = VALUES(valorComprometido),
+			valorPagado = VALUES(valorPagado),
+			porcentajeCompromiso = VALUES(porcentajeCompromiso),
+			objeto = VALUES(objeto);
+		";
 
-			$result = $pdo->exec($sql);
-			return "Informe presupuestal actualizado. Filas afectadas: " . $result;
-		} catch (Exception $e) {
-			error_log("ERROR en fillInformePresupuestal: " . $e->getMessage());
-			return "Error: " . $e->getMessage();
-		}
+		$stmt = $pdo->prepare($sql);
+		$stmt->execute();
 	}
-
 	public static function updateInformeWithPagos()
 	{
 		$pdo = self::getConnection();
@@ -792,7 +803,7 @@ class ReportsModel extends MainModel
 		$sql = "
         UPDATE informepresupuestal i
         LEFT JOIN cdp c ON i.cdp = c.numeroDocumento 
-        LEFT JOIN reportepresupuestal r ON c.idCdp = r.idCdpFk  -- ✅ Ahora usamos c.idCdp para unir con r.idCdpFk
+        LEFT JOIN reportepresupuestal r ON c.idCdp = r.idCdpFk
         LEFT JOIN (
             SELECT
                 idCdpFk,
@@ -801,11 +812,14 @@ class ReportsModel extends MainModel
             GROUP BY idCdpFk
         ) ps ON ps.idCdpFk = c.idCdp  
         SET
-            i.valorComprometido = COALESCE(r.compromisos, i.valorComprometido),
+            -- ✅ ELIMINAR esta línea que ya no necesitamos:
+            -- i.valorComprometido = COALESCE(r.compromisos, i.valorComprometido),
             i.valorPagado = COALESCE(ps.sum_pago, 0),
+            -- ✅ CALCULAR valorComprometido y porcentaje basado en el cálculo correcto
+            i.valorComprometido = i.valorActual - i.saldoPorComprometer,
             i.porcentajeCompromiso = CASE
-                WHEN COALESCE(r.compromisos, 0) > 0
-                THEN (COALESCE(ps.sum_pago, 0) / r.compromisos) * 100
+                WHEN (i.valorActual - i.saldoPorComprometer) > 0
+                THEN (COALESCE(ps.sum_pago, 0) / (i.valorActual - i.saldoPorComprometer)) * 100
                 ELSE 0
             END
         ";
