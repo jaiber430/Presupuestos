@@ -1,9 +1,3 @@
-<!-- Obtener el mes y la semana -->
-<?php
-$meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-$mes_actual = $meses[date('n') - 1];
-$ultimo_dia = date('t');
-?>
 <div class="container-fluid  reports-page">
     <!-- Contenido en dos columnas: izquierda (tabla) | derecha (gráfico) -->
     <div class="row g-4 reports-layout">
@@ -299,6 +293,7 @@ $ultimo_dia = date('t');
                                                         class="form-control border-start-0"
                                                         placeholder="Seleccione un filtro primero..."
                                                         autocomplete="off" disabled>
+                                                    <datalist id="dependencias-list"></datalist>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
@@ -313,7 +308,6 @@ $ultimo_dia = date('t');
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Fila 2: Filtros Adicionales -->
                                 </div>
                             </div>
                             <!-- Columna Mini Gráfica (vacía aquí, se mueve abajo) -->
@@ -339,7 +333,7 @@ $ultimo_dia = date('t');
                         </div>
                     </div>
                     <!-- Contenedor con scroll vertical limitado -->
-                    <div class="table-responsive">
+                    <div class="table-responsive" style="max-height: 500px;">
                         <table class="table table-hover table-striped align-middle mb-0">
                             <thead class="table-dark sticky-top">
                                 <tr>
@@ -348,6 +342,12 @@ $ultimo_dia = date('t');
                                     </th>
                                     <th width="110" class="text-center">
                                         <i class="fas fa-calendar me-1"></i>Fecha
+                                    </th>
+                                    <th width="120" class="text-center">
+                                        <i class="fas fa-building me-1"></i>Dependencia
+                                    </th>
+                                    <th width="200">
+                                        <i class="fas fa-university me-1"></i>Nombre Dependencia
                                     </th>
                                     <th width="200">
                                         <i class="fas fa-tag me-1"></i>Concepto
@@ -362,6 +362,12 @@ $ultimo_dia = date('t');
                                         <i class="fas fa-fountain me-1"></i>Fuente
                                     </th>
                                     <th width="140" class="text-end">
+                                        <i class="fas fa-money-bill-wave me-1"></i>Valor Inicial
+                                    </th>
+                                    <th width="140" class="text-end">
+                                        <i class="fas fa-exchange-alt me-1"></i>Operaciones
+                                    </th>
+                                    <th width="140" class="text-end">
                                         <i class="fas fa-money-bill me-1"></i>Valor Actual
                                     </th>
                                     <th width="140" class="text-end">
@@ -370,40 +376,24 @@ $ultimo_dia = date('t');
                                     <th width="140" class="text-end">
                                         <i class="fas fa-hand-holding-usd me-1"></i>Comprometido
                                     </th>
+                                    <th width="140" class="text-end">
+                                        <i class="fas fa-credit-card me-1"></i>Valor Pagado
+                                    </th>
                                     <th width="120" class="text-center">
                                         <i class="fas fa-percentage me-1"></i>% Compromiso
                                     </th>
                                     <th width="250">
                                         <i class="fas fa-bullseye me-1"></i>Objeto
                                     </th>
-                                    <?php if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4): ?>
-                                        <th width="150" class="text-center">
-                                            <i class="fas fa-file-alt me-1"></i>Observación <?php echo $mes_actual . ' 1-7'; ?>
-                                        </th>
-                                        <th width="150" class="text-center">
-                                            <i class="fas fa-calendar-check me-1"></i>Observación <?php echo $mes_actual . ' 8-15'; ?>
-                                        </th>
-                                        <th width="150" class="text-center">
-                                            <i class="fas fa-dollar-sign me-1"></i>Observación <?php echo $mes_actual . ' 16-23'; ?>
-                                        </th>
-                                        <th width="150" class="text-center">
-                                            <i class="fas fa-check-circle me-1"></i>Observación<?php echo $mes_actual . ' 24-' . $ultimo_dia; ?>
-                                        </th>
-                                        <th width="100" class="text-center">
-                                            <i class="fas fa-save me-1"></i>Guardar
-                                        </th>
-                                    <?php endif; ?>
+                                    <!-- Campo de Observación visible para todos -->
+                                    <th width="120" class="text-center">
+                                        <i class="fas fa-file-alt me-1"></i>Observación
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-detalles-body" class="font-monospace">
                                 <tr>
-                                    <?php
-                                    $colspan = 11;
-                                    if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4) {
-                                        $colspan = 16;
-                                    }
-                                    ?>
-                                    <td colspan="<?php echo $colspan; ?>" class="text-center text-muted py-5">
+                                    <td colspan="17" class="text-center text-muted py-5">
                                         <i class="fas fa-search fa-2x mb-3 d-block"></i>
                                         Utilice los filtros para realizar una búsqueda
                                     </td>
@@ -477,6 +467,39 @@ $ultimo_dia = date('t');
     </div>
 </div>
 
+<!-- Modal para Observaciones -->
+<div class="modal fade" id="modalObservacion" tabindex="-1" aria-labelledby="modalObservacionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalObservacionLabel">
+                    <i class="fas fa-file-alt me-2"></i>Observación - CDP: <span id="modal-cdp-number"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="observacion-text" class="form-label fw-semibold">Observación:</label>
+                    <textarea class="form-control" id="observacion-text" rows="6"
+                        placeholder="Ingrese la observación aquí..."
+                        style="resize: vertical;"></textarea>
+                </div>
+                <div class="alert alert-info">
+                    <small>
+                        <i class="fas fa-info-circle me-1"></i>
+                        <span id="modal-info-text">Las observaciones solo pueden ser editadas los días viernes.</span>
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btn-guardar-observacion">
+                    <i class="fas fa-save me-1"></i>Guardar Observación
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- DATALISTS FUERA DEL MODAL -->
 <datalist id="dependencias-list"></datalist>
 <datalist id="rubros-list"></datalist>

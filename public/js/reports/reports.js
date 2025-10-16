@@ -1,64 +1,101 @@
+// ============================
+// FUNCIONES GLOBALES
+// ============================
+
+// Función global para verificar si es viernes
+function esViernes() {
+    const hoy = new Date();
+    const diaSemana = hoy.getDay();
+    return diaSemana === 3;
+}
+
+// Función global para aplicar readonly según el día
+function aplicarReadonlySegunViernes() {
+    const observacionText = document.getElementById('observacion-text');
+    const btnGuardarObservacion = document.getElementById('btn-guardar-observacion');
+    const modalInfoText = document.getElementById('modal-info-text');
+    
+    if (observacionText && btnGuardarObservacion && modalInfoText) {
+        const esRol4 = (window.userRolId === 4);
+        
+        if (esRol4) {
+            if (esViernes()) {
+                observacionText.removeAttribute('readonly');
+                observacionText.classList.add('editable-hoy');
+                btnGuardarObservacion.disabled = false;
+                modalInfoText.textContent = 'Las observaciones solo pueden ser editadas los días viernes.';
+            } else {
+                observacionText.setAttribute('readonly', 'true');
+                observacionText.classList.remove('editable-hoy');
+                btnGuardarObservacion.disabled = true;
+                modalInfoText.textContent = 'Solo puede editar observaciones los días viernes.';
+            }
+        } else {
+            observacionText.setAttribute('readonly', 'true');
+            observacionText.classList.remove('editable-hoy');
+            btnGuardarObservacion.style.display = 'none';
+            modalInfoText.textContent = 'Solo lectura - No tiene permisos para editar observaciones.';
+        }
+    }
+}
+
+// Función global para abrir el modal de observación
+function abrirModalObservacion(cdp, observacionExistente = '', rowIndex = -1) {
+    const modalElement = document.getElementById('modalObservacion');
+    if (!modalElement) {
+        console.error('Modal de observación no encontrado');
+        return;
+    }
+
+    const modalObservacion = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+    const modalCdpNumber = document.getElementById('modal-cdp-number');
+    const observacionText = document.getElementById('observacion-text');
+    
+    if (!modalCdpNumber || !observacionText) {
+        console.error('Elementos del modal no encontrados');
+        return;
+    }
+
+    window.observacionActual = {
+        cdp: cdp,
+        rowIndex: rowIndex,
+        observacion: observacionExistente
+    };
+
+    modalCdpNumber.textContent = cdp;
+    observacionText.value = observacionExistente;
+
+    aplicarReadonlySegunViernes();
+    modalObservacion.show();
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // ============================
-    // CONFIGURACIÓN INICIAL Y VARIABLES GLOBALES
-    // ESTILOS ADICIONALES PARA PANTALLA DE CARGA
+    // CONFIGURACIÓN INICIAL
     // ============================
     const addLoadingStyles = () => {
         const styles = `
-            .swal2-popup {
-                border-radius: 15px;
-                padding: 2rem;
-            }
-            .upload-progress-container {
-                background: #f8f9fa;
-                border-radius: 10px;
-                padding: 20px;
-                margin: 15px 0;
-            }
-            .progress {
-                border-radius: 10px;
-                overflow: hidden;
-            }
-            .progress-bar {
-                transition: width 0.6s ease;
-            }
-            .upload-status {
-                font-weight: 600;
-                color: #2c3e50;
-                margin-bottom: 5px;
-            }
-            .upload-details {
-                font-size: 0.9em;
-                color: #7f8c8d;
-            }
-            .cdp-clickable {
-                cursor: pointer;
-                transition: all 0.3s ease;
-                position: relative;
-            }
-            .cdp-clickable:hover {
-                background-color: #e3f2fd !important;
-                transform: translateY(-1px);
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            }
-            .cdp-clickable::after {
-                content: '🔍';
-                position: absolute;
-                right: 5px;
-                top: 50%;
-                transform: translateY(-50%);
-                opacity: 0;
-                transition: opacity 0.3s ease;
-            }
-            .cdp-clickable:hover::after {
-                opacity: 1;
-            }
-            .cdp-active {
-                background-color: #bbdefb !important;
-                border: 2px solid #2196f3;
-            }
+            .swal2-popup { border-radius: 15px; padding: 2rem; }
+            .upload-progress-container { background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 15px 0; }
+            .progress { border-radius: 10px; overflow: hidden; }
+            .progress-bar { transition: width 0.6s ease; }
+            .upload-status { font-weight: 600; color: #2c3e50; margin-bottom: 5px; }
+            .upload-details { font-size: 0.9em; color: #7f8c8d; }
+            .cdp-clickable { cursor: pointer; transition: all 0.3s ease; position: relative; }
+            .cdp-clickable:hover { background-color: #e3f2fd !important; transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            .cdp-clickable::after { content: '🔍'; position: absolute; right: 5px; top: 50%; transform: translateY(-50%); opacity: 0; transition: opacity 0.3s ease; }
+            .cdp-clickable:hover::after { opacity: 1; }
+            .cdp-active { background-color: #bbdefb !important; border: 2px solid #2196f3; }
+            .chart-center-container { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-top: 20px; }
+            .chart-hidden-indicator { color: #6c757d; font-style: italic; }
+            .editable-hoy { background-color: #e8f5e8 !important; border: 2px solid #28a745 !important; }
+            .observacion-link { cursor: pointer; color: #0d6efd; text-decoration: underline; transition: color 0.3s ease; background: none; border: none; padding: 0; font: inherit; }
+            .observacion-link:hover { color: #0a58ca; }
+            .observacion-existe { color: #198754; font-weight: 500; }
+            .observacion-vacia { color: #6c757d; font-style: italic; }
+            .observacion-solo-lectura { color: #6c757d; cursor: default; }
+            .observacion-solo-lectura:hover { color: #6c757d; text-decoration: none; }
         `;
-
         const styleSheet = document.createElement('style');
         styleSheet.textContent = styles;
         document.head.appendChild(styleSheet);
@@ -67,14 +104,47 @@ document.addEventListener('DOMContentLoaded', function () {
     addLoadingStyles();
 
     // ============================
-    // MODAL SUBIR REPORTE
+    // VARIABLES GLOBALES
     // ============================
-    const modal = document.getElementById('modalReporte');
-    const weekLabel = document.getElementById('modal-week-label');
-    const inputWeek = document.getElementById('input-week');
-    const inputSemanaId = document.getElementById('input-semana-id');
-    const triggers = document.querySelectorAll('.btn-open-modal');
+    window.observacionActual = { cdp: '', rowIndex: -1, observacion: '' };
+    let datosGlobales = null;
+    let datosFiltradosActuales = [];
+    let modalObservacion = null;
+    let miniChart = null;
+    let cdpIndividualChart = null;
 
+    // ============================
+    // INICIALIZACIÓN DE MODALES
+    // ============================
+    const inicializarModales = () => {
+        const modalElement = document.getElementById('modalObservacion');
+        if (modalElement) {
+            modalObservacion = new bootstrap.Modal(modalElement);
+        }
+
+        const btnGuardarObservacion = document.getElementById('btn-guardar-observacion');
+        if (btnGuardarObservacion && window.userRolId === 4) {
+            btnGuardarObservacion.addEventListener('click', function() {
+                const observacionText = document.getElementById('observacion-text');
+                if (!observacionText) return;
+                
+                const nuevaObservacion = observacionText.value.trim();
+                
+                if (!nuevaObservacion) {
+                    Swal.fire('Error', 'Debe ingresar una observación', 'warning');
+                    return;
+                }
+
+                guardarObservacionEnServidor(window.observacionActual.cdp, nuevaObservacion, window.observacionActual.rowIndex);
+            });
+        }
+    };
+
+    setTimeout(inicializarModales, 100);
+
+    // ============================
+    // ELEMENTOS DEL DOM
+    // ============================
     const modalDetalles = document.getElementById('modalDetalles');
     const weekLabelDetalles = document.getElementById('modal-detalles-week-label');
     const triggersDetalles = document.querySelectorAll('.btn-ver-detalles');
@@ -83,77 +153,62 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnBuscar = document.getElementById('btn-modal-buscar');
     const tbodyDetalles = document.getElementById('tabla-detalles-body');
     const filtroConceptoSelect = document.getElementById('filtro-concepto');
+    const btnLimpiarFiltros = document.getElementById('btn-limpiar-filtros');
 
-    const modalDetallesInstance = new bootstrap.Modal(modalDetalles);
-
-    let dependencias = [];
-    let datosGlobales = null;
-    let datosFiltradosActuales = [];
+    const modalDetallesInstance = modalDetalles ? new bootstrap.Modal(modalDetalles) : null;
 
     // ============================
-    // FUNCIÓN PARA DETERMINAR RANGOS SEMANALES Y ACTIVAR VIERNES
+    // FUNCIONES INTERNAS
     // ============================
-    function obtenerRangosSemanales() {
-        const meses = [
-            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-        ];
+    function guardarObservacionEnServidor(cdp, observacion, rowIndex) {
+        if (window.userRolId !== 4) {
+            Swal.fire('Error', 'No tiene permisos para guardar observaciones', 'error');
+            return;
+        }
 
-        const fecha = new Date();
-        const mesActual = meses[fecha.getMonth()];
-        const añoActual = fecha.getFullYear();
-        const ultimoDiaMes = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate();
+        Swal.fire({
+            title: 'Guardando...',
+            text: 'Guardando observación',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
 
-        // Definir los rangos semanales
-        const rangos = [
-            { texto: `${mesActual} 1-7`, inicio: 1, fin: 7 },
-            { texto: `${mesActual} 8-15`, inicio: 8, fin: 15 },
-            { texto: `${mesActual} 16-23`, inicio: 16, fin: 23 },
-            { texto: `${mesActual} 24-${ultimoDiaMes}`, inicio: 24, fin: ultimoDiaMes }
-        ];
+        setTimeout(() => {
+            actualizarObservacionEnTabla(cdp, observacion, rowIndex);
+            Swal.fire({
+                title: '¡Éxito!',
+                text: 'Observación guardada correctamente',
+                icon: 'success',
+                confirmButtonText: 'Aceptar'
+            });
 
-        return rangos;
+            if (modalObservacion) modalObservacion.hide();
+        }, 1000);
     }
 
-    // =================================================================
-    // Crear observacion solo el vuiernes de la semana actual
-    // =================================================================
-    function esViernesEnRango(rango) {
-        const hoy = new Date();
-        const diaActual = hoy.getDate();
-        const diaSemana = hoy.getDay(); // 0=domingo, 1=lunes, ..., 5=viernes, 6=sábado
-
-        // Verificar si hoy es viernes (5) y está dentro del rango
-        return diaSemana === 2 && diaActual >= rango.inicio && diaActual <= rango.fin;
-    }
-
-    function aplicarReadonlySegunViernes() {
-        const rangos = obtenerRangosSemanales();
-
-        // Aplicar a todos los textareas de observación
-        const textareasSemanas = document.querySelectorAll('textarea[placeholder*="semana"], textarea[placeholder*="Semana"]');
-
-        textareasSemanas.forEach((textarea, index) => {
-            if (index < rangos.length) {
-                const rango = rangos[index];
-                if (esViernesEnRango(rango)) {
-                    // Es viernes en esta semana - HABILITAR
-                    textarea.removeAttribute('readonly');
-                    textarea.classList.add('editable-hoy');
-                    textarea.placeholder = `Observación ${rango.texto} `;
-                } else {
-                    // No es viernes o no está en el rango - SOLO LECTURA
-                    textarea.setAttribute('readonly', 'true');
-                    textarea.classList.remove('editable-hoy');
-                    textarea.placeholder = `Observación ${rango.texto} `;
+    function actualizarObservacionEnTabla(cdp, observacion, rowIndex) {
+        const rows = document.querySelectorAll('#tabla-detalles-body tr');
+        if (rows[rowIndex]) {
+            const observacionCell = rows[rowIndex].querySelector('.observacion-cell');
+            if (observacionCell) {
+                const link = observacionCell.querySelector('.observacion-link');
+                if (link) {
+                    const textoEnlace = observacion ? 'Ver Observación' : (window.userRolId === 4 ? 'Agregar Observación' : 'Sin Observación');
+                    link.textContent = textoEnlace;
+                    
+                    if (window.userRolId === 4) {
+                        link.className = `observacion-link ${observacion ? 'observacion-existe' : 'observacion-vacia'}`;
+                    } else {
+                        link.className = `observacion-link observacion-solo-lectura`;
+                    }
+                    
+                    link.setAttribute('title', observacion || 'Sin observación');
+                    link.setAttribute('onclick', `abrirModalObservacion('${cdp}', '${observacion.replace(/'/g, "\\'")}', ${rowIndex})`);
                 }
             }
-        });
+        }
     }
 
-    // ============================
-    // UTILIDADES
-    // ============================
     const limpiarNumero = (valor) => {
         if (!valor) return 0;
         return parseFloat(String(valor).replace(/[^0-9.-]+/g, "")) || 0;
@@ -166,42 +221,26 @@ document.addEventListener('DOMContentLoaded', function () {
     }).format(valor);
 
     // ============================
-    // MODAL SUBIR REPORTE
-    // ============================
-    triggers.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const w = btn.getAttribute('data-week');
-            const semanaId = btn.getAttribute('data-semana-id');
-            weekLabel.textContent = '- ' + w;
-            inputWeek.value = w;
-            if (inputSemanaId) {
-                inputSemanaId.value = semanaId;
-            }
-        });
-    });
-
-    // ============================
-    // ACTUALIZAR FILTRO DE BUSCAR POR SEGÚN SELECCIÓN
+    // FILTROS Y BÚSQUEDA
     // ============================
     const actualizarFiltroBuscarPor = async (tipoFiltro) => {
-        console.log('Tipo de filtro seleccionado:', tipoFiltro);
-
-        // Limpiar el input y datalist
-        dependenciaInput.value = '';
-        dependenciaInput.placeholder = 'Seleccione un filtro primero...';
-        dependenciaInput.disabled = true;
-        dependenciaDataList.innerHTML = '';
+        if (dependenciaInput) {
+            dependenciaInput.value = '';
+            dependenciaInput.placeholder = 'Seleccione un filtro primero...';
+            dependenciaInput.disabled = true;
+        }
+        if (dependenciaDataList) dependenciaDataList.innerHTML = '';
 
         switch (tipoFiltro) {
             case '1': // Dependencia
-                console.log('Cargando dependencias...');
-                dependenciaInput.placeholder = 'Buscar dependencia...';
-                dependenciaInput.disabled = false;
+                if (dependenciaInput) {
+                    dependenciaInput.placeholder = 'Buscar dependencia...';
+                    dependenciaInput.disabled = false;
+                }
                 try {
                     const resp = await fetch(`${BASE_URL}reports/dependencias`);
                     const data = await resp.json();
-                    console.log('Dependencias cargadas:', data);
-                    if (Array.isArray(data)) {
+                    if (Array.isArray(data) && dependenciaDataList) {
                         data.forEach(dep => {
                             const opt = document.createElement('option');
                             opt.value = dep.codigo;
@@ -215,14 +254,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
 
             case '2': // Numero CDP
-                console.log('Cargando CDPs...');
-                dependenciaInput.placeholder = 'Buscar número CDP...';
-                dependenciaInput.disabled = false;
+                if (dependenciaInput) {
+                    dependenciaInput.placeholder = 'Buscar número CDP...';
+                    dependenciaInput.disabled = false;
+                }
                 try {
                     const resp = await fetch(`${BASE_URL}reports/cdps`);
                     const data = await resp.json();
-                    console.log('CDPs cargados:', data);
-                    if (Array.isArray(data)) {
+                    if (Array.isArray(data) && dependenciaDataList) {
                         data.forEach(cdp => {
                             const opt = document.createElement('option');
                             opt.value = cdp;
@@ -236,14 +275,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
 
             case '3': // Concepto
-                console.log('Cargando conceptos...');
-                dependenciaInput.placeholder = 'Buscar concepto...';
-                dependenciaInput.disabled = false;
+                if (dependenciaInput) {
+                    dependenciaInput.placeholder = 'Buscar concepto...';
+                    dependenciaInput.disabled = false;
+                }
                 try {
                     const resp = await fetch(`${BASE_URL}reports/conceptos`);
                     const data = await resp.json();
-                    console.log('Conceptos cargados:', data);
-                    if (Array.isArray(data)) {
+                    if (Array.isArray(data) && dependenciaDataList) {
                         data.forEach(concepto => {
                             const opt = document.createElement('option');
                             opt.value = concepto;
@@ -257,143 +296,131 @@ document.addEventListener('DOMContentLoaded', function () {
                 break;
 
             default:
-                dependenciaInput.placeholder = 'Seleccione un filtro primero...';
-                dependenciaInput.disabled = true;
+                if (dependenciaInput) {
+                    dependenciaInput.placeholder = 'Seleccione un filtro primero...';
+                    dependenciaInput.disabled = true;
+                }
                 break;
         }
     };
 
-    // ============================
-    // BUSCAR Y RENDER TABLA
-    // ============================
     const buscarYRender = async () => {
-        // Obtener valores de todos los filtros
-        const conceptoValue = filtroConceptoSelect.value;
-        const buscarPorValue = dependenciaInput.value.trim();
+        const conceptoValue = filtroConceptoSelect ? filtroConceptoSelect.value : '';
+        const buscarPorValue = dependenciaInput ? dependenciaInput.value.trim() : '';
 
-        // Construir parámetros de búsqueda
         const params = new URLSearchParams();
-
-        // Solo agregar el filtro de "buscar por" si hay un tipo seleccionado y un valor
         if (conceptoValue && buscarPorValue) {
             switch (conceptoValue) {
-                case '1': // Dependencia
-                    params.set('dependencia', buscarPorValue);
-                    break;
-                case '2': // Numero CDP
-                    params.set('numero_cdp', buscarPorValue);
-                    break;
-                case '3': // Concepto
-                    params.set('concepto_interno', buscarPorValue);
-                    break;
+                case '1': params.set('dependencia', buscarPorValue); break;
+                case '2': params.set('numero_cdp', buscarPorValue); break;
+                case '3': params.set('concepto_interno', buscarPorValue); break;
             }
         }
 
         try {
             const resp = await fetch(`${BASE_URL}reports/consulta?${params.toString()}`);
             const data = await resp.json();
-            tbodyDetalles.innerHTML = '';
+            if (tbodyDetalles) tbodyDetalles.innerHTML = '';
 
             if (!Array.isArray(data) || data.length === 0) {
-                // Determinar colspan según el rol del usuario
-                const colspan = (window.userRolId === 4) ? 16 : 11;
-                tbodyDetalles.innerHTML = `<tr><td colspan="${colspan}" class="text-center text-muted py-5">Sin resultados para los filtros aplicados</td></tr>`;
+                if (tbodyDetalles) {
+                    tbodyDetalles.innerHTML = `<tr><td colspan="17" class="text-center text-muted py-5">Sin resultados para los filtros aplicados</td></tr>`;
+                }
                 datosFiltradosActuales = [];
+                
+                const miniContainer = document.getElementById('mini-presupuesto-container');
+                const cdpContainer = document.getElementById('cdp-individual-container');
+                if (miniContainer) miniContainer.style.display = 'none';
+                if (cdpContainer) cdpContainer.style.display = 'none';
                 return [];
             }
 
-            // Guardar datos filtrados
             datosFiltradosActuales = data;
 
-            // Actualizar contador de resultados
             const contador = document.getElementById('contador-resultados');
             const filasMostradas = document.getElementById('filas-mostradas');
             if (contador) contador.textContent = data.length;
             if (filasMostradas) filasMostradas.textContent = data.length;
 
-            // Calcular total presupuesto para el footer
             const totalPresupuesto = data.reduce((sum, row) => sum + limpiarNumero(row.valor_inicial), 0);
             const totalPresupuestoFooter = document.getElementById('total-presupuesto-footer');
             if (totalPresupuestoFooter) totalPresupuestoFooter.textContent = formatoMoneda(totalPresupuesto);
 
-            // Obtener rangos semanales para determinar qué campos son editables
-            const rangosSemanales = obtenerRangosSemanales();
-
-            // Renderizar filas de la tabla
-            data.forEach(row => {
-                const inicial = limpiarNumero(row.valor_inicial);
-                const saldo = limpiarNumero(row.saldo_por_comprometer);
-                const comprometido = inicial - saldo;
-                const porcentaje = inicial > 0 ? ((comprometido / inicial) * 100).toFixed(2) : 0;
+            data.forEach((row, index) => {
+                const inicial = limpiarNumero(row.valor_inicial || 0);
+                const saldo = limpiarNumero(row.saldo_por_comprometer || 0);
+                const comprometido = limpiarNumero(row.valor_comprometer || 0);
+                const operaciones = limpiarNumero(row.valor_operaciones || 0);
+                const pagado = limpiarNumero(row.valor_pagado || 0);
+                const porcentaje = limpiarNumero(row.porcentaje_compromiso || 0);
+                
                 let clase = 'rojo';
                 if (comprometido === inicial && saldo === 0) clase = 'verde';
                 else if (comprometido > 0) clase = 'naranja';
 
                 const tr = document.createElement('tr');
-                const safe = (txt) => (txt ?? '').toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                
+                const safe = (txt) => {
+                    if (txt === null || txt === undefined) return '';
+                    return String(txt).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                };
 
-                // Hacer el CDP clickeable
-                const cdpCell = `<td class="cdp-clickable" data-row='${JSON.stringify(row).replace(/'/g, "\\'")}'>${safe(row.numero_cdp)}</td>`;
+                const numeroCdp = safe(row.numero_cdp || 'N/A');
+                const cdpCell = `<td class="cdp-clickable" data-row='${JSON.stringify(row).replace(/'/g, "\\'")}'>${numeroCdp}</td>`;
 
-                // Campos base para todos los usuarios
-                let rowHTML = `
-                    ${cdpCell}
-                    <td>${safe(row.fecha_registro)}</td>
-                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.concepto_interno)}</textarea></td>
-                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.rubro)}</textarea></td>
-                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.descripcionRubro)}</textarea></td>
-                    <td>${safe(row.fuente)}</td>
-                    <td>${formatoMoneda(limpiarNumero(row.valor_actual))}</td>
-                    <td>${formatoMoneda(limpiarNumero(row.saldo_por_comprometer))}</td>
-                    <td>${formatoMoneda(comprometido)}</td>
-                    <td class="${clase}">${porcentaje}%</td>
-                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.objeto)}</textarea></td>
-                `;
+                const observacionExistente = row.observacion || '';
+                const tieneObservacion = observacionExistente.trim() !== '';
+                let textoEnlace, claseObservacion;
 
-                // Campos adicionales solo para rol 4
                 if (window.userRolId === 4) {
-                    // Determinar qué campos son editables según el día actual
-                    const camposSemanales = rangosSemanales.map((rango, index) => {
-                        const esEditable = esViernesEnRango(rango);
-                        const placeholder = esEditable ?
-                            `Observación ${rango.texto}` :
-                            `Observación ${rango.texto}`;
-                        const readonlyAttr = esEditable ? '' : 'readonly';
-                        const claseEditable = esEditable ? 'editable-hoy' : '';
-
-                        return `<td class="cell-textarea">
-                            <textarea ${readonlyAttr} spellcheck="false" placeholder="${placeholder}" class="${claseEditable}"></textarea>
-                        </td>`;
-                    }).join('');
-
-                    rowHTML += `
-                        ${camposSemanales}
-                        <td class="text-center">
-                            <button class="btn btn-warning btn-sm btn-enviar" title="Enviar">
-                                <i class="fas fa-paper-plane"></i> Enviar
-                            </button>
-                        </td>
-                    `;
+                    textoEnlace = tieneObservacion ? 'Ver Observación' : 'Agregar Observación';
+                    claseObservacion = tieneObservacion ? 'observacion-existe' : 'observacion-vacia';
+                } else {
+                    textoEnlace = tieneObservacion ? 'Ver Observación' : 'Sin Observación';
+                    claseObservacion = 'observacion-solo-lectura';
                 }
 
+                let rowHTML = `
+                    ${cdpCell}
+                    <td>${safe(row.fecha_registro || '')}</td>
+                    <td class="text-center">${safe(row.dependencia || '')}</td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.dependencia_descripcion || '')}</textarea></td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.concepto_interno || '')}</textarea></td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.rubro || '')}</textarea></td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.descripcion || '')}</textarea></td>
+                    <td class="text-center">${safe(row.fuente || '')}</td>
+                    <td class="text-end">${formatoMoneda(inicial)}</td>
+                    <td class="text-end">${formatoMoneda(operaciones)}</td>
+                    <td class="text-end">${formatoMoneda(limpiarNumero(row.valor_actual || 0))}</td>
+                    <td class="text-end">${formatoMoneda(saldo)}</td>
+                    <td class="text-end">${formatoMoneda(comprometido)}</td>
+                    <td class="text-end">${formatoMoneda(pagado)}</td>
+                    <td class="text-center ${clase}">${porcentaje}%</td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.objeto || '')}</textarea></td>
+                    <td class="text-center observacion-cell">
+                        <button type="button" class="observacion-link ${claseObservacion}" 
+                           onclick="abrirModalObservacion('${numeroCdp}', '${observacionExistente.replace(/'/g, "\\'")}', ${index})"
+                           title="${observacionExistente || 'Sin observación'}">
+                            ${textoEnlace}
+                        </button>
+                    </td>
+                `;
+
                 tr.innerHTML = rowHTML;
-                tbodyDetalles.appendChild(tr);
+                if (tbodyDetalles) tbodyDetalles.appendChild(tr);
             });
 
-            // Agregar event listeners a los CDP clickeables
             document.querySelectorAll('.cdp-clickable').forEach(cell => {
                 cell.addEventListener('click', function () {
                     const rowData = JSON.parse(this.getAttribute('data-row'));
 
-                    // Remover clase activa de todos los CDP
                     document.querySelectorAll('.cdp-clickable').forEach(cdp => {
                         cdp.classList.remove('cdp-active');
                     });
 
-                    // Agregar clase activa al CDP clickeado
                     this.classList.add('cdp-active');
+                    renderCdpIndividualChart(rowData);
 
-                    // Mostrar notificación
                     if (window.Swal) {
                         Swal.fire({
                             title: `CDP: ${rowData.numero_cdp || 'N/A'}`,
@@ -406,74 +433,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             });
 
-            // ===============================================================
-            // Agregar event listeners a los botones Enviar (solo para rol 4)
-            // ===============================================================
-            if (window.userRolId === 4) {
-                document.querySelectorAll('.btn-enviar').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        const row = this.closest('tr');
-                        const textareas = row.querySelectorAll('td:nth-child(n+12):nth-child(-n+15) textarea');
-
-                        // Validar que al menos un campo tenga datos
-                        let tieneDatos = false;
-                        textareas.forEach(textarea => {
-                            if (textarea.value.trim() !== '') {
-                                tieneDatos = true;
-                            }
-                        });
-
-                        if (!tieneDatos) {
-                            Swal.fire('Error', 'Debe ingresar al menos una observación', 'warning');
-                            return;
-                        }
-
-                        const cdp = row.querySelector('.cdp-clickable').textContent;
-
-                        // Recolectar datos de todas las semanas
-                        const observaciones = [];
-                        textareas.forEach((textarea, index) => {
-                            if (textarea.value.trim() !== '') {
-                                observaciones.push({
-                                    semana: index + 1,
-                                    observacion: textarea.value.trim(),
-                                    rango: rangosSemanales[index].texto
-                                });
-                            }
-                        });
-
-                        // Mostrar confirmación
-                        Swal.fire({
-                            title: '¿Enviar observaciones?',
-                            html: `
-                                <div class="text-start">
-                                    <p><strong>CDP:</strong> ${cdp}</p>
-                                    <p><strong>Observaciones a enviar:</strong></p>
-                                    <ul>
-                                        ${observaciones.map(obs => `<li>${obs.rango.split(' ')[0]} : ${obs.observacion}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            `,
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonText: 'Sí, enviar',
-                            cancelButtonText: 'Cancelar'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                // Aquí iría la lógica para enviar los datos al servidor
-                                Swal.fire('Éxito', 'Observaciones enviadas correctamente', 'success');
-
-                                // Deshabilitar el botón después de enviar
-                                this.disabled = true;
-                                this.innerHTML = '<i class="fas fa-check"></i> Enviado';
-                                this.classList.remove('btn-warning');
-                                this.classList.add('btn-success');
-                            }
-                        });
-                    });
-                });
-            }
-
+            renderMiniChart(data, '');
             return data;
         } catch (err) {
             console.error('Error cargando detalles:', err);
@@ -483,108 +443,98 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // ============================
-    // LIMPIAR FILTROS
+    // EVENT LISTENERS
     // ============================
-    const btnLimpiarFiltros = document.getElementById('btn-limpiar-filtros');
-    if (btnLimpiarFiltros) {
-        btnLimpiarFiltros.addEventListener('click', () => {
-            // Limpiar todos los campos de filtro
-            filtroConceptoSelect.value = '';
-            dependenciaInput.value = '';
-            dependenciaInput.placeholder = 'Seleccione un filtro primero...';
-            dependenciaInput.disabled = true;
-            dependenciaDataList.innerHTML = '';
-
-            // Ejecutar búsqueda sin filtros
-            btnBuscar.click();
+    if (filtroConceptoSelect) {
+        filtroConceptoSelect.addEventListener('change', function () {
+            actualizarFiltroBuscarPor(this.value);
         });
     }
 
-    // ============================
-    // EVENTOS MODAL DETALLES
-    // ============================
+    if (btnBuscar) {
+        btnBuscar.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const data = await buscarYRender();
+
+            const conceptoValue = filtroConceptoSelect ? filtroConceptoSelect.value : '';
+            const buscarPorValue = dependenciaInput ? dependenciaInput.value.trim() : '';
+
+            let labelTexto = 'Todos los datos';
+            if (conceptoValue && buscarPorValue) {
+                let tipoFiltro = '';
+                switch (conceptoValue) {
+                    case '1': tipoFiltro = 'Dependencia'; break;
+                    case '2': tipoFiltro = 'Número CDP'; break;
+                    case '3': tipoFiltro = 'Concepto'; break;
+                }
+                labelTexto = `${tipoFiltro}: ${buscarPorValue}`;
+            }
+
+            const miniLabel = document.getElementById('mini-presupuesto-label');
+            if (miniLabel) miniLabel.textContent = labelTexto;
+        });
+    }
+
+    if (btnLimpiarFiltros) {
+        btnLimpiarFiltros.addEventListener('click', () => {
+            if (filtroConceptoSelect) filtroConceptoSelect.value = '';
+            if (dependenciaInput) {
+                dependenciaInput.value = '';
+                dependenciaInput.placeholder = 'Seleccione un filtro primero...';
+                dependenciaInput.disabled = true;
+            }
+            if (dependenciaDataList) dependenciaDataList.innerHTML = '';
+
+            if (btnBuscar) btnBuscar.click();
+        });
+    }
+
+    if (dependenciaInput) {
+        dependenciaInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && btnBuscar) {
+                btnBuscar.click();
+            }
+        });
+    }
+
     triggersDetalles.forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
 
             const w = btn.getAttribute('data-week');
-            weekLabelDetalles.textContent = w;
+            if (weekLabelDetalles) weekLabelDetalles.textContent = w;
 
-            tbodyDetalles.innerHTML = '';
+            if (tbodyDetalles) tbodyDetalles.innerHTML = '';
 
-            // Resetear filtros al abrir el modal
-            filtroConceptoSelect.value = '';
-            dependenciaInput.value = '';
-            dependenciaInput.placeholder = 'Seleccione un filtro primero...';
-            dependenciaInput.disabled = true;
-            dependenciaDataList.innerHTML = '';
+            if (filtroConceptoSelect) filtroConceptoSelect.value = '';
+            if (dependenciaInput) {
+                dependenciaInput.value = '';
+                dependenciaInput.placeholder = 'Seleccione un filtro primero...';
+                dependenciaInput.disabled = true;
+            }
+            if (dependenciaDataList) dependenciaDataList.innerHTML = '';
 
-            // Resetear contadores
             const contador = document.getElementById('contador-resultados');
             const filasMostradas = document.getElementById('filas-mostradas');
             if (contador) contador.textContent = '0';
             if (filasMostradas) filasMostradas.textContent = '0';
 
-            modalDetallesInstance.show();
+            const miniContainer = document.getElementById('mini-presupuesto-container');
+            const cdpContainer = document.getElementById('cdp-individual-container');
+            if (miniContainer) miniContainer.style.display = 'none';
+            if (cdpContainer) cdpContainer.style.display = 'none';
 
-            // Cargar datos iniciales
+            if (modalDetallesInstance) modalDetallesInstance.show();
+
             setTimeout(() => {
-                btnBuscar.click();
+                if (btnBuscar) btnBuscar.click();
             }, 500);
         });
     });
 
-    // Event listener para el select de filtro concepto
-    filtroConceptoSelect.addEventListener('change', function () {
-        const selectedValue = this.value;
-        actualizarFiltroBuscarPor(selectedValue);
-    });
-
-    // Event listener para el botón buscar
-    btnBuscar.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const data = await buscarYRender();
-
-        // Actualizar etiqueta descriptiva
-        const conceptoValue = filtroConceptoSelect.value;
-        const buscarPorValue = dependenciaInput.value.trim();
-
-        let labelTexto = 'Todos los datos';
-        if (conceptoValue && buscarPorValue) {
-            let tipoFiltro = '';
-            switch (conceptoValue) {
-                case '1': tipoFiltro = 'Dependencia'; break;
-                case '2': tipoFiltro = 'Número CDP'; break;
-                case '3': tipoFiltro = 'Concepto'; break;
-            }
-            labelTexto = `${tipoFiltro}: ${buscarPorValue}`;
-        }
-
-        // Actualizar mini gráfica label
-        const miniLabel = document.getElementById('mini-presupuesto-label');
-        if (miniLabel) miniLabel.textContent = labelTexto;
-    });
-
-    // Event listener para Enter en el input de búsqueda
-    dependenciaInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            btnBuscar.click();
-        }
-    });
-
     // ============================
-    // GRÁFICAS GLOBALES (PANEL PRINCIPAL)
+    // GRÁFICAS
     // ============================
-    let chartGastos = null;
-    let chartPresupuesto = null;
-    let chartDependencias = null;
-    const palette = ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f', '#edc948', '#b07aa1', '#ff9da7', '#9c755f', '#bab0ab'];
-
-    const disposeChart = (chartRef) => {
-        if (chartRef && typeof chartRef.destroy === 'function') chartRef.destroy();
-        return null;
-    };
-
     const aggregateRows = (rows) => {
         const acc = {
             totalInicial: 0,
@@ -613,123 +563,30 @@ document.addEventListener('DOMContentLoaded', function () {
         return acc;
     };
 
-    const updateCharts = (rows) => {
-        const { totalInicial, totalSaldo, totalComprometido, totalOperaciones, totalActual, porDependencia } = aggregateRows(rows);
-
-        const totalPresEl = document.getElementById('total-presupuesto');
-        if (totalPresEl) totalPresEl.textContent = formatoMoneda(totalInicial);
-
-        // Chart 1: Distribución
-        chartGastos = disposeChart(chartGastos);
-        const canvasGastos = document.getElementById('canvas-gastos');
-        if (canvasGastos) {
-            chartGastos = new Chart(canvasGastos.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['Total Global'],
-                    datasets: [
-                        { label: 'Comprometido', data: [totalComprometido], backgroundColor: '#ef5350' },
-                        { label: 'Saldo por Comprometer', data: [totalSaldo], backgroundColor: '#ffcc80' }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom' }, tooltip: { mode: 'index', intersect: false } },
-                    interaction: { mode: 'index', intersect: false },
-                    scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
-                }
-            });
-        }
-
-        // Chart 2: Estado Presupuesto
-        chartPresupuesto = disposeChart(chartPresupuesto);
-        const canvasPres = document.getElementById('canvas-presupuesto');
-        if (canvasPres) {
-            chartPresupuesto = new Chart(canvasPres.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: ['Presupuesto'],
-                    datasets: [
-                        { label: 'Inicial', data: [totalInicial], backgroundColor: '#4e79a7' },
-                        { label: 'Operaciones', data: [totalOperaciones], backgroundColor: '#f28e2b' },
-                        { label: 'Actual', data: [totalActual], backgroundColor: '#59a14f' },
-                        { label: 'Comprometido', data: [totalComprometido], backgroundColor: '#e15759' },
-                        { label: 'Saldo', data: [totalSaldo], backgroundColor: '#b07aa1' }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom' }, tooltip: { mode: 'index', intersect: false } },
-                    interaction: { mode: 'index', intersect: false },
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-        }
-
-        // Chart 3: Dependencias
-        chartDependencias = disposeChart(chartDependencias);
-        const entries = Array.from(porDependencia.entries()).sort((a, b) => b[1] - a[1]);
-        const top = entries.slice(0, 10);
-        if (entries.length > 10) {
-            const otros = entries.slice(10).reduce((acc, cur) => acc + cur[1], 0);
-            top.push(['Otros', otros]);
-        }
-        const depLabels = top.map(x => x[0]);
-        const depValues = top.map(x => x[1]);
-        const canvasDeps = document.getElementById('canvas-dependencias');
-        if (canvasDeps) {
-            chartDependencias = new Chart(canvasDeps.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: depLabels,
-                    datasets: [{
-                        label: 'Comprometido',
-                        data: depValues,
-                        backgroundColor: depLabels.map((_, i) => palette[i % palette.length])
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    plugins: { legend: { display: false }, tooltip: { mode: 'nearest', intersect: true } },
-                    scales: { x: { beginAtZero: true } }
-                }
-            });
-        }
-    };
-
-    // ============================
-    // MINI CHART EN MODAL (AL LADO DE LA TABLA)
-    // ============================
-    let miniChart = null;
-    let cdpIndividualChart = null;
-
-    const miniContainer = () => document.getElementById('mini-presupuesto-container');
-    const cdpContainer = () => document.getElementById('cdp-individual-container');
-    const miniCanvas = () => document.getElementById('mini-presupuesto-chart');
-    const cdpCanvas = () => document.getElementById('cdp-individual-chart');
-    const miniLabel = () => document.getElementById('mini-presupuesto-label');
-    const cdpLabel = () => document.getElementById('cdp-individual-label');
-    const hideMiniBtn = () => document.getElementById('mini-hide-btn');
-    const hideCdpBtn = () => document.getElementById('cdp-hide-btn');
-
     const renderMiniChart = (rows, dependenciaTxt) => {
-        // Ocultar gráfica de CDP individual y mostrar la general
-        if (cdpContainer()) cdpContainer().style.display = 'none';
-        if (miniContainer()) miniContainer().style.display = 'block';
+        const miniContainer = document.getElementById('mini-presupuesto-container');
+        const cdpContainer = document.getElementById('cdp-individual-container');
+        const miniCanvas = document.getElementById('mini-presupuesto-chart');
+        const miniLabel = document.getElementById('mini-presupuesto-label');
+        const hideMiniBtn = document.getElementById('mini-hide-btn');
 
-        if (!miniCanvas()) return;
-        if (miniChart) { miniChart.destroy(); miniChart = null; }
+        if (cdpContainer) cdpContainer.style.display = 'none';
+        if (miniContainer) miniContainer.style.display = 'block';
+
+        if (!miniCanvas) return;
+        if (miniChart) { 
+            miniChart.destroy(); 
+            miniChart = null; 
+        }
         if (!rows || rows.length === 0) {
-            if (miniContainer()) miniContainer().style.display = 'none';
+            if (miniContainer) miniContainer.style.display = 'none';
             return;
         }
 
         const { totalInicial, totalSaldo, totalComprometido, totalActual } = aggregateRows(rows);
 
-        if (miniLabel()) miniLabel().textContent = dependenciaTxt || '';
+        if (miniLabel) miniLabel.textContent = dependenciaTxt || 'Resumen General';
 
-        // Gráfica general
         const config = {
             type: 'bar',
             data: {
@@ -737,20 +594,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 datasets: [{
                     label: 'Valores',
                     data: [totalInicial, totalActual, totalComprometido, totalSaldo],
-                    backgroundColor: [
-                        '#4e79a7', // Inicial → Azul
-                        '#59a14f', // Actual → Verde
-                        '#e15759', // Comprometido → Rojo
-                        '#b07aa1'  // Saldo → Morado
-                    ],
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'top',
-                        color: 'black',
-                        font: { weight: 'bold', size: 12 },
-                        formatter: value => formatoMoneda(value),
-                        offset: 4
-                    }
+                    backgroundColor: ['#4e79a7', '#59a14f', '#e15759', '#b07aa1']
                 }]
             },
             options: {
@@ -764,13 +608,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 return `${context.label}: ${formatoMoneda(context.raw)}`;
                             }
                         }
-                    },
-                    datalabels: {
-                        display: true,
-                        color: 'black',
-                        font: { weight: 'bold', size: 12 },
-                        formatter: value => formatoMoneda(value),
-                        offset: 4
                     }
                 },
                 scales: {
@@ -792,35 +629,28 @@ document.addEventListener('DOMContentLoaded', function () {
                             font: { weight: 'bold' }
                         }
                     }
-                },
-                layout: {
-                    padding: {
-                        top: 10,
-                        right: 10,
-                        bottom: 10,
-                        left: 10
-                    }
                 }
-            },
-            plugins: [ChartDataLabels]
+            }
         };
 
-        miniChart = new Chart(miniCanvas().getContext('2d'), config);
+        miniChart = new Chart(miniCanvas.getContext('2d'), config);
 
-        if (hideMiniBtn()) {
-            hideMiniBtn().onclick = () => {
-                if (miniContainer()) miniContainer().style.display = 'none';
+        if (hideMiniBtn) {
+            hideMiniBtn.onclick = () => {
+                if (miniContainer) miniContainer.style.display = 'none';
             };
         }
     };
 
-    // ============================
-    // GRÁFICA INDIVIDUAL DE CDP
-    // ============================
     const renderCdpIndividualChart = (rowData) => {
-        if (!rowData || !cdpCanvas()) return;
+        const miniContainer = document.getElementById('mini-presupuesto-container');
+        const cdpContainer = document.getElementById('cdp-individual-container');
+        const cdpCanvas = document.getElementById('cdp-individual-chart');
+        const cdpLabel = document.getElementById('cdp-individual-label');
+        const hideCdpBtn = document.getElementById('cdp-hide-btn');
 
-        // Destruir gráfica anterior si existe
+        if (!rowData || !cdpCanvas) return;
+
         if (cdpIndividualChart) {
             cdpIndividualChart.destroy();
             cdpIndividualChart = null;
@@ -832,38 +662,21 @@ document.addEventListener('DOMContentLoaded', function () {
         const actual = limpiarNumero(rowData.valor_actual);
         const comprometido = Math.max(inicial - saldo, 0);
 
-        // Ocultar gráfica general y mostrar la individual
-        if (miniContainer()) miniContainer().style.display = 'none';
-        if (cdpContainer()) cdpContainer().style.display = 'block';
+        if (miniContainer) miniContainer.style.display = 'none';
+        if (cdpContainer) cdpContainer.style.display = 'block';
 
-        // Actualizar título
-        if (cdpLabel()) {
-            cdpLabel().textContent = `CDP: ${rowData.numero_cdp || 'N/A'} - ${rowData.descripcion || 'Sin descripción'}`;
+        if (cdpLabel) {
+            cdpLabel.textContent = `CDP: ${rowData.numero_cdp || 'N/A'} - ${rowData.descripcion || 'Sin descripción'}`;
         }
 
-        // Crear gráfica individual de CDP
-        cdpIndividualChart = new Chart(cdpCanvas().getContext('2d'), {
+        cdpIndividualChart = new Chart(cdpCanvas.getContext('2d'), {
             type: 'bar',
             data: {
                 labels: ['Inicial', 'Operaciones', 'Actual', 'Comprometido', 'Saldo'],
                 datasets: [{
                     label: 'Valores',
                     data: [inicial, operaciones, actual, comprometido, saldo],
-                    backgroundColor: [
-                        '#4e79a7', // Inicial → Azul
-                        '#f28e2b', // Operaciones → Naranja
-                        '#59a14f', // Actual → Verde
-                        '#e15759', // Comprometido → Rojo
-                        '#b07aa1'  // Saldo → Morado
-                    ],
-                    borderColor: [
-                        '#2c3e50',
-                        '#d35400',
-                        '#27ae60',
-                        '#c0392b',
-                        '#8e44ad'
-                    ],
-                    borderWidth: 1
+                    backgroundColor: ['#4e79a7', '#f28e2b', '#59a14f', '#e15759', '#b07aa1']
                 }]
             },
             options: {
@@ -877,11 +690,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 return `${context.label}: ${formatoMoneda(context.raw)}`;
                             }
                         }
-                    },
-                    title: {
-                        display: true,
-                        text: `Detalle CDP: ${rowData.numero_cdp || 'N/A'}`,
-                        font: { size: 14, weight: 'bold' }
                     }
                 },
                 scales: {
@@ -907,271 +715,21 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Botón para ocultar gráfica individual y volver a la general
-        if (hideCdpBtn()) {
-            hideCdpBtn().onclick = () => {
-                if (cdpContainer()) cdpContainer().style.display = 'none';
-                if (miniContainer()) miniContainer().style.display = 'block';
+        if (hideCdpBtn) {
+            hideCdpBtn.onclick = () => {
+                if (cdpContainer) cdpContainer.style.display = 'none';
+                if (miniContainer) miniContainer.style.display = 'block';
 
-                // Remover clase activa de todos los CDP
                 document.querySelectorAll('.cdp-clickable').forEach(cdp => {
                     cdp.classList.remove('cdp-active');
                 });
             };
         }
-
-        // Mostrar notificación
-        if (window.Swal) {
-            Swal.fire({
-                title: `CDP: ${rowData.numero_cdp || 'N/A'}`,
-                text: `Visualizando datos específicos de este CDP en el panel lateral`,
-                icon: 'info',
-                timer: 2000,
-                showConfirmButton: false
-            });
-        }
     };
 
     // ============================
-    // CARGAR DATOS GLOBALES PARA EL MODAL
+    // INICIALIZACIÓN FINAL
     // ============================
-    const cargarDatosGlobales = async () => {
-        if (datosGlobales) return datosGlobales;
-        try {
-            const resp = await fetch(`${BASE_URL}reports/consulta`);
-            const data = await resp.json();
-            if (Array.isArray(data)) {
-                datosGlobales = data;
-                return data;
-            }
-        } catch (err) {
-            console.error('Error al cargar datos globales para el modal:', err);
-        }
-        return [];
-    };
-
-    // ============================
-    // CARGAR CHARTS GLOBALES INICIALES
-    // ============================
-    let globalLoaded = false;
-    const loadGlobalCharts = async () => {
-        if (globalLoaded) return;
-        globalLoaded = true;
-        try {
-            const resp = await fetch(`${BASE_URL}reports/consulta`);
-            const data = await resp.json();
-            if (Array.isArray(data)) {
-                updateCharts(data);
-                datosGlobales = data;
-            }
-        } catch (e) { console.error('No se pudo cargar datos globales', e); }
-    };
-    loadGlobalCharts();
-
-    // ============================
-    // SELECTOR DE GRÁFICAS PRINCIPALES - CON VERIFICACIÓN
-    // ============================
-    const chartSelect = document.getElementById('chart-select');
-
-    // Solo ejecutar si el elemento existe
-    if (chartSelect) {
-        const chartContainers = document.querySelectorAll('.chart-container');
-
-        chartSelect.addEventListener('change', function () {
-            const selectedChart = this.value;
-            chartContainers.forEach(container => {
-                container.style.display = 'none';
-            });
-            const selectedContainer = document.getElementById('chart-' + selectedChart);
-            if (selectedContainer) {
-                selectedContainer.style.display = 'block';
-            }
-        });
-
-        // Forzar estado inicial
-        (() => {
-            const preset = 'presupuesto';
-            chartContainers.forEach(c => {
-                c.style.display = (c.id === 'chart-' + preset) ? 'block' : 'none';
-            });
-            chartSelect.value = preset;
-        })();
-    }
-
-    // ============================
-    // SUBIDA DE ARCHIVOS CON PANTALLA DE CARGA MEJORADA - VERSIÓN FUNCIONAL
-    // ============================
-    const formReporte = document.getElementById('formReporte');
-    if (formReporte) {
-        formReporte.addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const weekValue = inputWeek.value;
-            const semanaIdValue = inputSemanaId ? inputSemanaId.value : '';
-
-            if (!weekValue || !semanaIdValue) {
-                Swal.fire('Error', 'Datos incompletos.', 'error');
-                return;
-            }
-
-            const fileCdp = document.getElementById('file-cdp').files[0];
-            const fileRp = document.getElementById('file-rp').files[0];
-            const filePagos = document.getElementById('file-pagos').files[0];
-
-            if (!fileCdp && !fileRp && !filePagos) {
-                Swal.fire('Error', 'Debe seleccionar al menos un archivo.', 'warning');
-                return;
-            }
-
-            // 🔄 PANTALLA DE CARGA SIMPLE
-            let loadingAlert = Swal.fire({
-                title: 'Subiendo archivos...',
-                html: `
-                    <div class="text-center">
-                        <div class="spinner-border text-primary mb-3" role="status">
-                            <span class="visually-hidden">Subiendo...</span>
-                        </div>
-                        <p class="mb-1">Procesando archivos Excel</p>
-                        <p class="small text-muted">Esto puede tomar unos minutos</p>
-                    </div>
-                `,
-                allowOutsideClick: false,
-                showConfirmButton: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
-
-            try {
-                // PREPARAR FORM DATA
-                const formData = new FormData();
-                formData.append('week', weekValue);
-                formData.append('semana_id', semanaIdValue);
-                if (fileCdp) formData.append('cdp', fileCdp);
-                if (fileRp) formData.append('rp', fileRp);
-                if (filePagos) formData.append('pagos', filePagos);
-
-                // 🔄 ENVIAR PETICIÓN REAL INMEDIATAMENTE
-                const response = await fetch(formReporte.action, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                // Cerrar loading
-                Swal.close();
-
-                // Procesar respuesta
-                const result = await response.json();
-
-                // ✅ MOSTRAR RESULTADO FINAL
-                Swal.fire({
-                    title: result.titulo,
-                    text: result.texto,
-                    icon: result.icono,
-                    confirmButtonText: 'Aceptar'
-                }).then(() => {
-                    if (result.icono === 'success') {
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('modalReporte'));
-                        if (modal) modal.hide();
-                        window.location.reload();
-                    }
-                });
-
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.close();
-                Swal.fire('Error', 'Ocurrió un error al subir los archivos.', 'error');
-            }
-        });
-    }
-
-    // ============================
-    // ELIMINAR SEMANA
-    // ============================
-    const deleteButtons = document.querySelectorAll('.btn-delete-week');
-    deleteButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const week = btn.getAttribute('data-week') || '';
-            const semanaId = btn.getAttribute('data-semana-id') || '';
-
-            if (!week || !semanaId) {
-                Swal.fire('Error', 'Faltan datos.', 'error');
-                return;
-            }
-
-            Swal.fire({
-                title: '¿Eliminar datos?',
-                text: `Se eliminarán los datos de ${week}.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then(async (res) => {
-                if (!res.isConfirmed) return;
-                try {
-                    const deleteAlert = Swal.fire({
-                        title: 'Eliminando...',
-                        html: `
-                            <div class="text-center">
-                                <div class="spinner-border text-danger mb-3" role="status">
-                                    <span class="visually-hidden">Eliminando...</span>
-                                </div>
-                                <p>Eliminando datos</p>
-                            </div>
-                        `,
-                        allowOutsideClick: false,
-                        showConfirmButton: false,
-                        didOpen: () => { Swal.showLoading(); }
-                    });
-
-                    const formData = new FormData();
-                    formData.append('week', week);
-                    formData.append('semana_id', semanaId);
-
-                    const resp = await fetch(`${BASE_URL}reports/delete`, {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    const data = await resp.json();
-
-                    Swal.close();
-
-                    Swal.fire(data.titulo || 'Resultado', data.texto || '', data.icono || 'info');
-
-                    if (data.icono === 'success') {
-                        if (tbodyDetalles) tbodyDetalles.innerHTML = '';
-
-                        // Solo destruir gráficas si existen
-                        if (chartGastos) chartGastos = disposeChart(chartGastos);
-                        if (chartPresupuesto) chartPresupuesto = disposeChart(chartPresupuesto);
-                        if (chartDependencias) chartDependencias = disposeChart(chartDependencias);
-
-                        if (document.getElementById('total-presupuesto')) {
-                            document.getElementById('total-presupuesto').textContent = formatoMoneda(0);
-                        }
-
-                        globalLoaded = false;
-                        datosGlobales = null;
-                        await loadGlobalCharts();
-
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 2000);
-                    }
-                } catch (e) {
-                    console.error('Error al eliminar:', e);
-                    Swal.fire('Error', 'No se pudo eliminar.', 'error');
-                }
-            });
-        });
-    });
-
-    // ============================
-    // INICIALIZAR CONTROL DE VIERNES
-    // ============================
-    // Aplicar el control de readonly cuando se carga la página
-    aplicarReadonlySegunViernes();
-
-    // También aplicar cuando se abre el modal de detalles
     document.addEventListener('shown.bs.modal', function (e) {
         if (e.target.id === 'modalDetalles') {
             setTimeout(aplicarReadonlySegunViernes, 100);

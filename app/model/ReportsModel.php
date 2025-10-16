@@ -711,39 +711,45 @@ class ReportsModel extends MainModel
 	public static function consultarCDP(array $filters): array
 	{
 		$sql = "SELECT 
-                c.numeroDocumento AS numero_cdp,
-                c.fechaRegistro AS fecha_registro,
-                d.codigo AS dependencia,
-                d.nombre AS dependencia_descripcion,
-                SUBSTRING_INDEX(c.objeto, ':', 1) AS concepto_interno,
-                c.rubro, c.descripcionRubro, c.fuente,
-                c.valorInicial AS valor_inicial, 
-                c.valorOperaciones AS valor_operaciones, 
-                c.valorActual AS valor_actual,
-                c.saldoComprometer AS saldo_por_comprometer,
-                c.objeto
-            FROM cdp c
-            INNER JOIN cdpdependencia cd ON c.idCdp = cd.idCdpFk
-            INNER JOIN dependencias d ON cd.idDependenciaFk = d.idDependencia
-            WHERE 1=1";
+            i.idCdpFk AS numero_cdp,
+            i.fechaRegistro AS fecha_registro,
+            d.codigo AS dependencia,
+            d.nombre AS dependencia_descripcion,
+            SUBSTRING_INDEX(i.objeto, ':', 1) AS concepto_interno,
+            i.rubro,
+            i.descripcion, 
+            i.fuente,
+            i.valorInicial AS valor_inicial, 
+            i.valorOperaciones AS valor_operaciones, 
+            i.valorActual AS valor_actual,
+            i.saldoPorComprometer AS saldo_por_comprometer,
+            i.valorComprometido AS valor_comprometer,
+            i.valorPagado AS valor_pagado,
+            i.porcentajeCompromiso AS porcentaje_compromiso,
+            i.objeto
+        FROM informepresupuestal i
+        INNER JOIN cdp c ON i.idCdpFk = c.numeroDocumento
+        INNER JOIN cdpdependencia cd ON c.idCdp = cd.idCdpFk
+        INNER JOIN dependencias d ON cd.idDependenciaFk = d.idDependencia
+        WHERE 1=1";
 
 		$params = [];
-		
+
 		// Filtro por dependencia
 		if (!empty($filters['dependencia'])) {
 			$sql .= " AND d.codigo = :dependencia";
 			$params[':dependencia'] = $filters['dependencia'];
 		}
-		
+
 		// Filtro por número CDP
 		if (!empty($filters['numero_cdp'])) {
 			$sql .= " AND c.numeroDocumento = :numero_cdp";
 			$params[':numero_cdp'] = $filters['numero_cdp'];
 		}
-		
-		// Filtro por concepto interno
+
+		// Filtro por concepto interno - CORREGIDO: usar i.objeto en lugar de c.objeto
 		if (!empty($filters['concepto_interno'])) {
-			$sql .= " AND SUBSTRING_INDEX(c.objeto, ':', 1) = :concepto_interno";
+			$sql .= " AND SUBSTRING_INDEX(i.objeto, ':', 1) = :concepto_interno";
 			$params[':concepto_interno'] = $filters['concepto_interno'];
 		}
 
