@@ -8,8 +8,10 @@ use presupuestos\controller\UserController;
 use presupuestos\model\AnioFiscalModel;
 use presupuestos\controller\role\RoleController;
 use presupuestos\controller\role\PermisoController;
+use presupuestos\controller\PruebaController;
 
-class DashboardController{
+
+class DashboardController {
 
     public function index($page = "dashboard"){
         Auth::check();
@@ -36,7 +38,10 @@ class DashboardController{
 
         //Obtengo todas las semanas
         $semanas = AnioFiscalModel::obtenerSemanasPorCentro($idCentroIdSession);
+        $subMenus= PruebaController::listarSubMenu($idCentroIdSession);
+        $roles= PruebaController::listarRoles($idCentroIdSession);
         
+
         // echo "<pre>";
         // var_dump($_SESSION[APP_SESSION_NAME]);
         // exit;

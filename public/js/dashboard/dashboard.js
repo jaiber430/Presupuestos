@@ -4,7 +4,7 @@ function escapeHtml(text) {
 }
 
 $(document).ready(function() {	
-    console.log("hayAnioFiscal:", hayAnioFiscal);
+    //console.log("hayAnioFiscal:", hayAnioFiscal);
     // Abrir modal solo si NO hay año fiscal activo
     if(!hayAnioFiscal){
         
