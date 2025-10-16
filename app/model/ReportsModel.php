@@ -161,7 +161,6 @@ class ReportsModel extends MainModel
 		return true;
 	}
 
-
 	private static function importExcelToTableCdp(string $filePath, string $table, int $semanaId, int $centroId): string
 	{
 		$pdo = self::getConnection();
@@ -186,10 +185,10 @@ class ReportsModel extends MainModel
 			'Fuente'                   => 'fuente',
 			'Recurso'                  => 'recurso',
 			'Sit'                      => 'sit',
-			'Valor Inicial'            => 'valorInicial',          
-			'Valor Operaciones'        => 'valorOperaciones',       
-			'Valor Actual'             => 'valorActual',            
-			'Saldo por Comprometer'    => 'saldoComprometer',      
+			'Valor Inicial'            => 'valorInicial',
+			'Valor Operaciones'        => 'valorOperaciones',
+			'Valor Actual'             => 'valorActual',
+			'Saldo por Comprometer'    => 'saldoComprometer',
 			'Objeto'                   => 'objeto',
 			'Solicitud CDP'            => 'solicitudCdp',
 			'Compromisos'              => 'compromisos',
@@ -283,8 +282,6 @@ class ReportsModel extends MainModel
 
 		return "Datos insertados correctamente en '$table' ($rowCount registros).";
 	}
-
-
 
 	private static function importExcelToTableRp(string $filePath, string $table)
 	{
@@ -411,8 +408,8 @@ class ReportsModel extends MainModel
 		$pdo = self::getConnection();
 		$columns = self::getTableColumns($table);
 
-		// Excluir columnas automáticas y FK
-		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idPresupuestal', 'idPresupuestalFk']));
+		// Excluir columnas automáticas y FK - CORREGIDO
+		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idPagos', 'idCdpFk']));
 
 		// Mapeo del Excel hacia tus columnas del RP
 		$excelMapping = [
@@ -468,14 +465,13 @@ class ReportsModel extends MainModel
 			'Objeto del Compromiso'          => 'objetoCompromiso'
 		];
 
-
 		$reader = IOFactory::createReaderForFile($filePath);
 		$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
 
-		// Preparar SQL principal
-		$finalColumns = array_merge($insertColumns, ['idPresupuestalFk']);
+		// Preparar SQL principal - FUERA DEL BUCLE
+		$finalColumns = array_merge($insertColumns, ['idCdpFk']);
 		$columnList = "`" . implode("`,`", $finalColumns) . "`";
 		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumns)), ",") . ")";
 		$sql = "INSERT INTO `$table` ($columnList) VALUES $placeholders";
@@ -509,31 +505,36 @@ class ReportsModel extends MainModel
 			// Preparar valores para PAGOS
 			$values = [];
 			foreach ($insertColumns as $col) {
-				$excelCol = array_search($col, $excelMapping, true);
-				$val = $excelCol && isset($rowData[$excelCol]) ? $rowData[$excelCol] : null;
+				// ✅ VERIFICACIÓN DE SEGURIDAD PARA array_search
+				$excelCol = null;
+				if (is_array($excelMapping)) {
+					$excelCol = array_search($col, $excelMapping, true);
+				}
+
+				$val = ($excelCol !== false && isset($rowData[$excelCol])) ? $rowData[$excelCol] : null;
 
 				$values[] = is_numeric($val) ? self::toNumeric($val) : self::normalizeText(mb_convert_encoding($val ?? '', 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252'));
 			}
 
 			// Obtener idCdpFk a partir del CDP y la dependencia
-			//$cdpNumero      = $rowData['CDP'] ?? null;
-			//$dependenciaCod = $rowData['Dependencia'] ?? null;
-			//$idCdpFk        = null;
+			$cdpNumero      = $rowData['CDP'] ?? null;
+			$dependenciaCod = $rowData['Dependencia'] ?? null;
+			$idCdpFk        = null;
 
-			// Obtenemos el id de la tabla rp a travez del compromiso
-			$compromiso = $rowData['Compromisos'] ?? null;
-			$idPresupuestalFk = null;
-
-			if ($compromiso) {
-				$sqlRp = "SELECT idPresupuestal 
-              FROM reportepresupuestal 
-              WHERE compromisos = ?";
-				$stmtRp = $pdo->prepare($sqlRp);
-				$stmtRp->execute([$compromiso]);
-				$idPresupuestalFk = $stmtRp->fetchColumn();
+			if ($cdpNumero && $dependenciaCod) {
+				$sqlCdpDep = "SELECT idCdpFk FROM cdpdependencia cd
+                        JOIN dependencias d ON cd.idDependenciaFk = d.idDependencia
+                        JOIN cdp c ON cd.idCdpFk = c.idCdp
+                        WHERE c.numeroDocumento = ? AND d.codigo = ?";
+				$stmtCdpDep = $pdo->prepare($sqlCdpDep);
+				$stmtCdpDep->execute([$cdpNumero, $dependenciaCod]);
+				$idCdpFk = $stmtCdpDep->fetchColumn();
 			}
 
-			$values[] = $idPresupuestalFk;
+			// ✅ AGREGAR idCdpFk AL FINAL
+			$values[] = $idCdpFk;
+
+			// ✅ EJECUTAR LA CONSULTA
 			$stmt->execute($values);
 			$rowCount++;
 		}
@@ -542,7 +543,7 @@ class ReportsModel extends MainModel
 		$spreadsheet->disconnectWorksheets();
 		unset($spreadsheet);
 
-		return "Filas incertadas en '$table' ($rowCount registros).";
+		return "Filas insertadas en '$table' ($rowCount registros).";
 	}
 
 	private static function getTableColumns(string $table): array
@@ -706,7 +707,7 @@ class ReportsModel extends MainModel
 
 		$sql = "
 		INSERT INTO informepresupuestal (
-		cdp,
+		cdp,  -- ✅ Ahora guardará el numeroDocumento
 		fechaRegistro,
 		idDependenciaFK,
 		rubro,
@@ -722,7 +723,7 @@ class ReportsModel extends MainModel
 		objeto
 		)
 		SELECT
-		c.idCdp AS cdp,
+		c.numeroDocumento AS cdp,  -- ✅ CAMBIO: se inserta el numeroDocumento en lugar del idCdp
 		c.fechaRegistro,
 		dep.codigo AS idDependenciaFK,
 		c.rubro,
@@ -739,11 +740,12 @@ class ReportsModel extends MainModel
 		FROM cdp c
 		LEFT JOIN cdpdependencia cd ON cd.idCdpFk = c.idCdp
 		LEFT JOIN dependencias dep ON dep.idDependencia = cd.idDependenciaFk
-		LEFT JOIN pagos p ON p.cdp = c.idCdp
+		LEFT JOIN pagos p ON p.idCdpFk = c.idCdp
 		WHERE c.idSemanaFk = :semanaId
 		GROUP BY c.idCdp
 
 		ON DUPLICATE KEY UPDATE
+			cdp = VALUES(cdp),  -- ✅ Actualiza el numeroDocumento
 			fechaRegistro = VALUES(fechaRegistro),
 			idDependenciaFK = VALUES(idDependenciaFK),
 			rubro = VALUES(rubro),
@@ -770,24 +772,25 @@ class ReportsModel extends MainModel
 		$pdo = self::getConnection();
 
 		$sql = "
-			UPDATE informepresupuestal i
-			LEFT JOIN reportepresupuestal r ON i.cdp = r.idCdpFk
-			LEFT JOIN (
-				SELECT
-					cdp,
-					SUM(COALESCE(valorNeto, 0)) AS sum_pago
-				FROM pagos
-				GROUP BY cdp
-			) ps ON ps.cdp = i.cdp
-			SET
-				i.valorComprometido = COALESCE(r.compromisos, i.valorComprometido),
-				i.valorPagado = COALESCE(ps.sum_pago, 0),
-				i.porcentajeCompromiso = CASE
-					WHEN COALESCE(r.compromisos, 0) > 0
-					THEN (COALESCE(ps.sum_pago, 0) / r.compromisos) * 100
-					ELSE 0
-				END
-			";
+        UPDATE informepresupuestal i
+        LEFT JOIN cdp c ON i.cdp = c.numeroDocumento  -- ✅ Unir por numeroDocumento
+        LEFT JOIN reportepresupuestal r ON c.idCdp = r.idCdpFk  -- ✅ Ahora usamos c.idCdp para unir con r.idCdpFk
+        LEFT JOIN (
+            SELECT
+                idCdpFk,
+                SUM(COALESCE(valorNeto, 0)) AS sum_pago
+            FROM pagos
+            GROUP BY idCdpFk
+        ) ps ON ps.idCdpFk = c.idCdp  -- ✅ Unir por idCdpFk con c.idCdp
+        SET
+            i.valorComprometido = COALESCE(r.compromisos, i.valorComprometido),
+            i.valorPagado = COALESCE(ps.sum_pago, 0),
+            i.porcentajeCompromiso = CASE
+                WHEN COALESCE(r.compromisos, 0) > 0
+                THEN (COALESCE(ps.sum_pago, 0) / r.compromisos) * 100
+                ELSE 0
+            END
+        ";
 
 		$pdo->exec($sql);
 	}
