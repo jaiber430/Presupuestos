@@ -408,10 +408,9 @@ class ReportsModel extends MainModel
 		$pdo = self::getConnection();
 		$columns = self::getTableColumns($table);
 
-		// Excluir columnas automáticas y FK - CORREGIDO
+		// Excluir columnas automáticas y FK
 		$insertColumns = array_filter($columns, fn($col) => !in_array($col, ['idPagos', 'idCdpFk']));
 
-		// Mapeo del Excel hacia tus columnas del RP
 		$excelMapping = [
 			'Numero Documento'               => 'numeroDocumento',
 			'Fecha de Registro'              => 'fechaRegistro',
@@ -465,12 +464,17 @@ class ReportsModel extends MainModel
 			'Objeto del Compromiso'          => 'objetoCompromiso'
 		];
 
+		// ✅ VERIFICACIÓN: Asegurar que $excelMapping es un array
+		if (!is_array($excelMapping)) {
+			throw new Exception("Error: excelMapping no es un array válido");
+		}
+
 		$reader = IOFactory::createReaderForFile($filePath);
 		$reader->setReadDataOnly(true);
 		$spreadsheet = $reader->load($filePath);
 		$sheet = $spreadsheet->getActiveSheet();
 
-		// Preparar SQL principal - FUERA DEL BUCLE
+		// Preparar SQL principal
 		$finalColumns = array_merge($insertColumns, ['idCdpFk']);
 		$columnList = "`" . implode("`,`", $finalColumns) . "`";
 		$placeholders = "(" . rtrim(str_repeat("?,", count($finalColumns)), ",") . ")";
@@ -490,8 +494,17 @@ class ReportsModel extends MainModel
 				$data[] = trim((string)$cell->getValue());
 			}
 
-			// Saltar fila vacía
-			if (empty(array_filter($data, fn($v) => trim((string)$v) !== ''))) continue;
+			// ✅ Validación mejorada de filas vacías
+			$isEmptyRow = true;
+			foreach ($data as $value) {
+				$cleanValue = preg_replace('/\s+/', '', (string)$value);
+				if (!empty($cleanValue) && $cleanValue !== '-' && $cleanValue !== 'N/A') {
+					$isEmptyRow = false;
+					break;
+				}
+			}
+
+			if ($isEmptyRow) continue;
 
 			if ($firstRow) {
 				$headers = $data;
@@ -502,10 +515,20 @@ class ReportsModel extends MainModel
 			$rowData = array_combine($headers, $data);
 			if (!$rowData) continue;
 
-			// Preparar valores para PAGOS
+			// ✅ Validar que tenga datos críticos antes de insertar
+			$cdpNumero = $rowData['CDP'] ?? null;
+			$compromiso = $rowData['Compromisos'] ?? null;
+			$valorNeto = $rowData['Valor Neto'] ?? null;
+
+			// Si no tiene CDP, Compromiso NI Valor Neto, saltar la fila
+			if (empty($cdpNumero) && empty($compromiso) && empty($valorNeto)) {
+				continue;
+			}
+
+			// ✅ PREPARAR VALORES CON VERIFICACIÓN DE SEGURIDAD
 			$values = [];
 			foreach ($insertColumns as $col) {
-				// ✅ VERIFICACIÓN DE SEGURIDAD PARA array_search
+				// Verificación de seguridad para array_search
 				$excelCol = null;
 				if (is_array($excelMapping)) {
 					$excelCol = array_search($col, $excelMapping, true);
@@ -517,9 +540,9 @@ class ReportsModel extends MainModel
 			}
 
 			// Obtener idCdpFk a partir del CDP y la dependencia
-			$cdpNumero      = $rowData['CDP'] ?? null;
+			$cdpNumero = $rowData['CDP'] ?? null;
 			$dependenciaCod = $rowData['Dependencia'] ?? null;
-			$idCdpFk        = null;
+			$idCdpFk = null;
 
 			if ($cdpNumero && $dependenciaCod) {
 				$sqlCdpDep = "SELECT idCdpFk FROM cdpdependencia cd
@@ -531,12 +554,17 @@ class ReportsModel extends MainModel
 				$idCdpFk = $stmtCdpDep->fetchColumn();
 			}
 
-			// ✅ AGREGAR idCdpFk AL FINAL
 			$values[] = $idCdpFk;
 
-			// ✅ EJECUTAR LA CONSULTA
-			$stmt->execute($values);
-			$rowCount++;
+			// ✅ Verificar que al menos algunos valores no estén vacíos
+			$nonEmptyValues = array_filter($values, function ($v) {
+				return !empty($v) && $v !== '' && $v !== null;
+			});
+
+			if (count($nonEmptyValues) > 1) { // Más de 1 porque idCdpFk podría ser NULL
+				$stmt->execute($values);
+				$rowCount++;
+			}
 		}
 
 		$pdo->commit();
@@ -588,7 +616,9 @@ class ReportsModel extends MainModel
 
 	private static function toNumeric($value): float
 	{
-		if ($value === null || $value === '') return 0;
+		if ($value === null || $value === '' || $value === '-') {
+			return 0;
+		}
 
 		$value = trim((string)$value);
 		if ($value === '-') return 0;
@@ -701,70 +731,58 @@ class ReportsModel extends MainModel
 		return $stmt->execute();
 	}
 
-	public static function fillInformePresupuestal(int $semanaId, int $centroId)
+	public static function fillInformePresupuestal()
 	{
 		$pdo = self::getConnection();
 
-		$sql = "
-		INSERT INTO informepresupuestal (
-		cdp,  -- ✅ Ahora guardará el numeroDocumento
-		fechaRegistro,
-		idDependenciaFK,
-		rubro,
-		descripcion,
-		fuente,
-		valorInicial,
-		valorOperaciones,
-		valorActual,
-		saldoPorComprometer,
-		valorComprometido,
-		valorPagado,
-		porcentajeCompromiso,
-		objeto
-		)
-		SELECT
-		c.numeroDocumento AS cdp,  -- ✅ CAMBIO: se inserta el numeroDocumento en lugar del idCdp
-		c.fechaRegistro,
-		dep.codigo AS idDependenciaFK,
-		c.rubro,
-		c.descripcionRubro AS descripcion,
-		c.fuente,
-		c.valorInicial,
-		c.valorOperaciones,
-		c.valorActual,
-		c.valorActual - IFNULL(SUM(p.valorNeto), 0) AS saldoPorComprometer,
-		c.compromisos AS valorComprometido,
-		IFNULL(SUM(p.valorNeto), 0) AS valorPagado,
-		IF(c.compromisos > 0, (IFNULL(SUM(p.valorNeto), 0) / c.compromisos) * 100, 0) AS porcentajeCompromiso,
-		c.objeto
-		FROM cdp c
-		LEFT JOIN cdpdependencia cd ON cd.idCdpFk = c.idCdp
-		LEFT JOIN dependencias dep ON dep.idDependencia = cd.idDependenciaFk
-		LEFT JOIN pagos p ON p.idCdpFk = c.idCdp
-		WHERE c.idSemanaFk = :semanaId
-		GROUP BY c.idCdp
+		try {
+			// PRIMERO: Limpiar la tabla
+			$pdo->exec("TRUNCATE TABLE informepresupuestal");
 
-		ON DUPLICATE KEY UPDATE
-			cdp = VALUES(cdp),  -- ✅ Actualiza el numeroDocumento
-			fechaRegistro = VALUES(fechaRegistro),
-			idDependenciaFK = VALUES(idDependenciaFK),
-			rubro = VALUES(rubro),
-			descripcion = VALUES(descripcion),
-			fuente = VALUES(fuente),
-			valorInicial = VALUES(valorInicial),
-			valorOperaciones = VALUES(valorOperaciones),
-			valorActual = VALUES(valorActual),
-			saldoPorComprometer = VALUES(saldoPorComprometer),
-			valorComprometido = VALUES(valorComprometido),
-			valorPagado = VALUES(valorPagado),
-			porcentajeCompromiso = VALUES(porcentajeCompromiso),
-			objeto = VALUES(objeto);
-			";
+			// SEGUNDO: Insertar datos con consulta directa y segura
+			$sql = "
+        INSERT INTO informepresupuestal (
+            cdp, fechaRegistro, idDependenciaFK, rubro, descripcion,
+            fuente, valorInicial, valorOperaciones, valorActual,
+            saldoPorComprometer, valorComprometido, valorPagado, 
+            porcentajeCompromiso, objeto
+        )
+        SELECT
+            c.numeroDocumento AS cdp,
+            c.fechaRegistro,
+            COALESCE(dep.codigo, 'SIN-DEP') AS idDependenciaFK,
+            c.rubro,
+            c.descripcionRubro AS descripcion,
+            c.fuente,
+            c.valorInicial,
+            c.valorOperaciones,
+            c.valorActual,
+            GREATEST(c.valorActual - COALESCE(pt.total_pagado, 0), 0) AS saldoPorComprometer,
+            c.compromisos AS valorComprometido,
+            COALESCE(pt.total_pagado, 0) AS valorPagado,
+            CASE 
+                WHEN c.compromisos > 0 THEN (COALESCE(pt.total_pagado, 0) / c.compromisos) * 100
+                ELSE 0 
+            END AS porcentajeCompromiso,
+            c.objeto
+        FROM cdp c
+        LEFT JOIN (
+            SELECT idCdpFk, SUM(COALESCE(valorNeto, 0)) as total_pagado
+            FROM pagos 
+            GROUP BY idCdpFk
+        ) pt ON pt.idCdpFk = c.idCdp
+        LEFT JOIN cdpdependencia cd ON cd.idCdpFk = c.idCdp
+        LEFT JOIN dependencias dep ON dep.idDependencia = cd.idDependenciaFk
+        WHERE c.numeroDocumento IS NOT NULL
+        AND c.numeroDocumento != ''
+        ";
 
-		$stmt = $pdo->prepare($sql);
-		$stmt->execute([
-			':semanaId' => $semanaId
-		]);
+			$result = $pdo->exec($sql);
+			return "Informe presupuestal actualizado. Filas afectadas: " . $result;
+		} catch (Exception $e) {
+			error_log("ERROR en fillInformePresupuestal: " . $e->getMessage());
+			return "Error: " . $e->getMessage();
+		}
 	}
 
 	public static function updateInformeWithPagos()
@@ -773,7 +791,7 @@ class ReportsModel extends MainModel
 
 		$sql = "
         UPDATE informepresupuestal i
-        LEFT JOIN cdp c ON i.cdp = c.numeroDocumento  -- ✅ Unir por numeroDocumento
+        LEFT JOIN cdp c ON i.cdp = c.numeroDocumento 
         LEFT JOIN reportepresupuestal r ON c.idCdp = r.idCdpFk  -- ✅ Ahora usamos c.idCdp para unir con r.idCdpFk
         LEFT JOIN (
             SELECT
@@ -781,7 +799,7 @@ class ReportsModel extends MainModel
                 SUM(COALESCE(valorNeto, 0)) AS sum_pago
             FROM pagos
             GROUP BY idCdpFk
-        ) ps ON ps.idCdpFk = c.idCdp  -- ✅ Unir por idCdpFk con c.idCdp
+        ) ps ON ps.idCdpFk = c.idCdp  
         SET
             i.valorComprometido = COALESCE(r.compromisos, i.valorComprometido),
             i.valorPagado = COALESCE(ps.sum_pago, 0),
