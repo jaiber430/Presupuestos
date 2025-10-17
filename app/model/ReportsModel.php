@@ -506,6 +506,7 @@ class ReportsModel extends MainModel
 
 			if ($isEmptyRow) continue;
 
+			
 			if ($firstRow) {
 				$headers = $data;
 				$firstRow = false;
@@ -515,10 +516,10 @@ class ReportsModel extends MainModel
 			$rowData = array_combine($headers, $data);
 			if (!$rowData) continue;
 
-			// ✅ Validar que tenga datos críticos antes de insertar
-			$cdpNumero = $rowData['CDP'] ?? null;
-			$compromiso = $rowData['Compromisos'] ?? null;
-			$valorNeto = $rowData['Valor Neto'] ?? null;
+
+			$cdpNumero = $rowData['CDP'];
+			$compromiso = $rowData['Compromisos'];
+			$valorNeto = $rowData['Valor Neto'] ;
 
 			// Si no tiene CDP, Compromiso NI Valor Neto, saltar la fila
 			if (empty($cdpNumero) && empty($compromiso) && empty($valorNeto)) {
