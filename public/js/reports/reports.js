@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     // ============================
+    // CONFIGURACIÓN INICIAL Y VARIABLES GLOBALES
     // ESTILOS ADICIONALES PARA PANTALLA DE CARGA
     // ============================
     const addLoadingStyles = () => {
@@ -57,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 border: 2px solid #2196f3;
             }
         `;
-        
+
         const styleSheet = document.createElement('style');
         styleSheet.textContent = styles;
         document.head.appendChild(styleSheet);
@@ -74,21 +75,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputSemanaId = document.getElementById('input-semana-id');
     const triggers = document.querySelectorAll('.btn-open-modal');
 
-    triggers.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const w = btn.getAttribute('data-week');
-            const semanaId = btn.getAttribute('data-semana-id');
-            weekLabel.textContent = '- ' + w;
-            inputWeek.value = w;
-            if (inputSemanaId) {
-                inputSemanaId.value = semanaId;
-            }
-        });
-    });
-
-    // ============================
-    // MODAL VER DETALLES
-    // ============================
     const modalDetalles = document.getElementById('modalDetalles');
     const weekLabelDetalles = document.getElementById('modal-detalles-week-label');
     const triggersDetalles = document.querySelectorAll('.btn-ver-detalles');
@@ -98,13 +84,72 @@ document.addEventListener('DOMContentLoaded', function () {
     const tbodyDetalles = document.getElementById('tabla-detalles-body');
     const filtroConceptoSelect = document.getElementById('filtro-concepto');
 
-    // Instancia del modal (Bootstrap 5)
     const modalDetallesInstance = new bootstrap.Modal(modalDetalles);
 
-    // Almacenar dependencias y datos globales
     let dependencias = [];
     let datosGlobales = null;
     let datosFiltradosActuales = [];
+
+    // ============================
+    // FUNCIÓN PARA DETERMINAR RANGOS SEMANALES Y ACTIVAR VIERNES
+    // ============================
+    function obtenerRangosSemanales() {
+        const meses = [
+            'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+            'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
+
+        const fecha = new Date();
+        const mesActual = meses[fecha.getMonth()];
+        const añoActual = fecha.getFullYear();
+        const ultimoDiaMes = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate();
+
+        // Definir los rangos semanales
+        const rangos = [
+            { texto: `${mesActual} 1-7`, inicio: 1, fin: 7 },
+            { texto: `${mesActual} 8-15`, inicio: 8, fin: 15 },
+            { texto: `${mesActual} 16-23`, inicio: 16, fin: 23 },
+            { texto: `${mesActual} 24-${ultimoDiaMes}`, inicio: 24, fin: ultimoDiaMes }
+        ];
+
+        return rangos;
+    }
+
+    // =================================================================
+    // Crear observacion solo el vuiernes de la semana actual
+    // =================================================================
+    function esViernesEnRango(rango) {
+        const hoy = new Date();
+        const diaActual = hoy.getDate();
+        const diaSemana = hoy.getDay(); // 0=domingo, 1=lunes, ..., 5=viernes, 6=sábado
+
+        // Verificar si hoy es viernes (5) y está dentro del rango
+        return diaSemana === 2 && diaActual >= rango.inicio && diaActual <= rango.fin;
+    }
+
+    function aplicarReadonlySegunViernes() {
+        const rangos = obtenerRangosSemanales();
+
+        // Aplicar a todos los textareas de observación
+        const textareasSemanas = document.querySelectorAll('textarea[placeholder*="semana"], textarea[placeholder*="Semana"]');
+
+        textareasSemanas.forEach((textarea, index) => {
+            if (index < rangos.length) {
+                const rango = rangos[index];
+                if (esViernesEnRango(rango)) {
+                    // Es viernes en esta semana - HABILITAR
+                    textarea.removeAttribute('readonly');
+                    textarea.classList.add('editable-hoy');
+                    textarea.placeholder = `Observación ${rango.texto} `;
+                } else {
+                    // No es viernes o no está en el rango - SOLO LECTURA
+                    textarea.setAttribute('readonly', 'true');
+                    textarea.classList.remove('editable-hoy');
+                    textarea.placeholder = `Observación ${rango.texto} `;
+                }
+            }
+        });
+    }
 
     // ============================
     // UTILIDADES
@@ -121,18 +166,33 @@ document.addEventListener('DOMContentLoaded', function () {
     }).format(valor);
 
     // ============================
+    // MODAL SUBIR REPORTE
+    // ============================
+    triggers.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const w = btn.getAttribute('data-week');
+            const semanaId = btn.getAttribute('data-semana-id');
+            weekLabel.textContent = '- ' + w;
+            inputWeek.value = w;
+            if (inputSemanaId) {
+                inputSemanaId.value = semanaId;
+            }
+        });
+    });
+
+    // ============================
     // ACTUALIZAR FILTRO DE BUSCAR POR SEGÚN SELECCIÓN
     // ============================
     const actualizarFiltroBuscarPor = async (tipoFiltro) => {
         console.log('Tipo de filtro seleccionado:', tipoFiltro);
-        
+
         // Limpiar el input y datalist
         dependenciaInput.value = '';
         dependenciaInput.placeholder = 'Seleccione un filtro primero...';
         dependenciaInput.disabled = true;
         dependenciaDataList.innerHTML = '';
 
-        switch(tipoFiltro) {
+        switch (tipoFiltro) {
             case '1': // Dependencia
                 console.log('Cargando dependencias...');
                 dependenciaInput.placeholder = 'Buscar dependencia...';
@@ -153,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.error('Error cargando dependencias:', error);
                 }
                 break;
-                
+
             case '2': // Numero CDP
                 console.log('Cargando CDPs...');
                 dependenciaInput.placeholder = 'Buscar número CDP...';
@@ -174,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.error('Error cargando CDPs:', error);
                 }
                 break;
-                
+
             case '3': // Concepto
                 console.log('Cargando conceptos...');
                 dependenciaInput.placeholder = 'Buscar concepto...';
@@ -195,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.error('Error cargando conceptos:', error);
                 }
                 break;
-                
+
             default:
                 dependenciaInput.placeholder = 'Seleccione un filtro primero...';
                 dependenciaInput.disabled = true;
@@ -213,10 +273,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Construir parámetros de búsqueda
         const params = new URLSearchParams();
-        
+
         // Solo agregar el filtro de "buscar por" si hay un tipo seleccionado y un valor
         if (conceptoValue && buscarPorValue) {
-            switch(conceptoValue) {
+            switch (conceptoValue) {
                 case '1': // Dependencia
                     params.set('dependencia', buscarPorValue);
                     break;
@@ -233,9 +293,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const resp = await fetch(`${BASE_URL}reports/consulta?${params.toString()}`);
             const data = await resp.json();
             tbodyDetalles.innerHTML = '';
-            
+
             if (!Array.isArray(data) || data.length === 0) {
-                tbodyDetalles.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-5">Sin resultados para los filtros aplicados</td></tr>`;
+                // Determinar colspan según el rol del usuario
+                const colspan = (window.userRolId === 4) ? 16 : 11;
+                tbodyDetalles.innerHTML = `<tr><td colspan="${colspan}" class="text-center text-muted py-5">Sin resultados para los filtros aplicados</td></tr>`;
                 datosFiltradosActuales = [];
                 return [];
             }
@@ -254,6 +316,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const totalPresupuestoFooter = document.getElementById('total-presupuesto-footer');
             if (totalPresupuestoFooter) totalPresupuestoFooter.textContent = formatoMoneda(totalPresupuesto);
 
+            // Obtener rangos semanales para determinar qué campos son editables
+            const rangosSemanales = obtenerRangosSemanales();
+
             // Renderizar filas de la tabla
             data.forEach(row => {
                 const inicial = limpiarNumero(row.valor_inicial);
@@ -270,7 +335,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Hacer el CDP clickeable
                 const cdpCell = `<td class="cdp-clickable" data-row='${JSON.stringify(row).replace(/'/g, "\\'")}'>${safe(row.numero_cdp)}</td>`;
 
-                tr.innerHTML = `
+                // Campos base para todos los usuarios
+                let rowHTML = `
                     ${cdpCell}
                     <td>${safe(row.fecha_registro)}</td>
                     <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.concepto_interno)}</textarea></td>
@@ -283,6 +349,34 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="${clase}">${porcentaje}%</td>
                     <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.objeto)}</textarea></td>
                 `;
+
+                // Campos adicionales solo para rol 4
+                if (window.userRolId === 4) {
+                    // Determinar qué campos son editables según el día actual
+                    const camposSemanales = rangosSemanales.map((rango, index) => {
+                        const esEditable = esViernesEnRango(rango);
+                        const placeholder = esEditable ?
+                            `Observación ${rango.texto}` :
+                            `Observación ${rango.texto}`;
+                        const readonlyAttr = esEditable ? '' : 'readonly';
+                        const claseEditable = esEditable ? 'editable-hoy' : '';
+
+                        return `<td class="cell-textarea">
+                            <textarea ${readonlyAttr} spellcheck="false" placeholder="${placeholder}" class="${claseEditable}"></textarea>
+                        </td>`;
+                    }).join('');
+
+                    rowHTML += `
+                        ${camposSemanales}
+                        <td class="text-center">
+                            <button class="btn btn-warning btn-sm btn-enviar" title="Enviar">
+                                <i class="fas fa-paper-plane"></i> Enviar
+                            </button>
+                        </td>
+                    `;
+                }
+
+                tr.innerHTML = rowHTML;
                 tbodyDetalles.appendChild(tr);
             });
 
@@ -311,6 +405,74 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
             });
+
+            // ===============================================================
+            // Agregar event listeners a los botones Enviar (solo para rol 4)
+            // ===============================================================
+            if (window.userRolId === 4) {
+                document.querySelectorAll('.btn-enviar').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const row = this.closest('tr');
+                        const textareas = row.querySelectorAll('td:nth-child(n+12):nth-child(-n+15) textarea');
+
+                        // Validar que al menos un campo tenga datos
+                        let tieneDatos = false;
+                        textareas.forEach(textarea => {
+                            if (textarea.value.trim() !== '') {
+                                tieneDatos = true;
+                            }
+                        });
+
+                        if (!tieneDatos) {
+                            Swal.fire('Error', 'Debe ingresar al menos una observación', 'warning');
+                            return;
+                        }
+
+                        const cdp = row.querySelector('.cdp-clickable').textContent;
+
+                        // Recolectar datos de todas las semanas
+                        const observaciones = [];
+                        textareas.forEach((textarea, index) => {
+                            if (textarea.value.trim() !== '') {
+                                observaciones.push({
+                                    semana: index + 1,
+                                    observacion: textarea.value.trim(),
+                                    rango: rangosSemanales[index].texto
+                                });
+                            }
+                        });
+
+                        // Mostrar confirmación
+                        Swal.fire({
+                            title: '¿Enviar observaciones?',
+                            html: `
+                                <div class="text-start">
+                                    <p><strong>CDP:</strong> ${cdp}</p>
+                                    <p><strong>Observaciones a enviar:</strong></p>
+                                    <ul>
+                                        ${observaciones.map(obs => `<li>${obs.rango.split(' ')[0]} : ${obs.observacion}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            `,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sí, enviar',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Aquí iría la lógica para enviar los datos al servidor
+                                Swal.fire('Éxito', 'Observaciones enviadas correctamente', 'success');
+
+                                // Deshabilitar el botón después de enviar
+                                this.disabled = true;
+                                this.innerHTML = '<i class="fas fa-check"></i> Enviado';
+                                this.classList.remove('btn-warning');
+                                this.classList.add('btn-success');
+                            }
+                        });
+                    });
+                });
+            }
 
             return data;
         } catch (err) {
@@ -349,7 +511,7 @@ document.addEventListener('DOMContentLoaded', function () {
             weekLabelDetalles.textContent = w;
 
             tbodyDetalles.innerHTML = '';
-            
+
             // Resetear filtros al abrir el modal
             filtroConceptoSelect.value = '';
             dependenciaInput.value = '';
@@ -373,7 +535,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Event listener para el select de filtro concepto
-    filtroConceptoSelect.addEventListener('change', function() {
+    filtroConceptoSelect.addEventListener('change', function () {
         const selectedValue = this.value;
         actualizarFiltroBuscarPor(selectedValue);
     });
@@ -382,15 +544,15 @@ document.addEventListener('DOMContentLoaded', function () {
     btnBuscar.addEventListener('click', async (e) => {
         e.preventDefault();
         const data = await buscarYRender();
-        
+
         // Actualizar etiqueta descriptiva
         const conceptoValue = filtroConceptoSelect.value;
         const buscarPorValue = dependenciaInput.value.trim();
-        
+
         let labelTexto = 'Todos los datos';
         if (conceptoValue && buscarPorValue) {
             let tipoFiltro = '';
-            switch(conceptoValue) {
+            switch (conceptoValue) {
                 case '1': tipoFiltro = 'Dependencia'; break;
                 case '2': tipoFiltro = 'Número CDP'; break;
                 case '3': tipoFiltro = 'Concepto'; break;
@@ -404,44 +566,25 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Event listener para Enter en el input de búsqueda
-    dependenciaInput.addEventListener('keypress', function(e) {
+    dependenciaInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             btnBuscar.click();
         }
     });
 
-    // Cargar dependencias solo una vez
-    let depsCargadas = false;
-    const cargarDependencias = async () => {
-        if (depsCargadas) return;
-        try {
-            const resp = await fetch(`${BASE_URL}reports/dependencias`);
-            const data = await resp.json();
-            if (Array.isArray(data)) {
-                dependenciaDataList.innerHTML = '';
-                dependencias = data;
-                data.forEach(dep => {
-                    const opt = document.createElement('option');
-                    opt.value = dep.codigo;
-                    opt.textContent = `${dep.codigo} - ${dep.nombre}`;
-                    dependenciaDataList.appendChild(opt);
-                });
-                depsCargadas = true;
-            }
-        } catch (e) { console.error('Error al cargar dependencias:', e); }
+    // ============================
+    // GRÁFICAS GLOBALES (PANEL PRINCIPAL)
+    // ============================
+    let chartGastos = null;
+    let chartPresupuesto = null;
+    let chartDependencias = null;
+    const palette = ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f', '#edc948', '#b07aa1', '#ff9da7', '#9c755f', '#bab0ab'];
+
+    const disposeChart = (chartRef) => {
+        if (chartRef && typeof chartRef.destroy === 'function') chartRef.destroy();
+        return null;
     };
 
-    // Función para obtener nombre completo de dependencia
-    const obtenerNombreDependencia = (codigo) => {
-        if (!codigo || !codigo.trim()) return 'Todas las dependencias';
-        const clean = codigo.trim();
-        const dep = dependencias.find(d => d.codigo.toString().trim() === clean);
-        return dep ? `${dep.codigo} - ${dep.nombre}` : clean;
-    };
-
-    // ============================
-    // AGREGACIÓN DE FILAS
-    // ============================
     const aggregateRows = (rows) => {
         const acc = {
             totalInicial: 0,
@@ -468,19 +611,6 @@ document.addEventListener('DOMContentLoaded', function () {
             acc.porDependencia.set(depName, (acc.porDependencia.get(depName) || 0) + comprometido);
         });
         return acc;
-    };
-
-    // ============================
-    // GRÁFICAS GLOBALES (PANEL PRINCIPAL)
-    // ============================
-    let chartGastos = null;
-    let chartPresupuesto = null;
-    let chartDependencias = null;
-    const palette = ['#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f', '#edc948', '#b07aa1', '#ff9da7', '#9c755f', '#bab0ab'];
-
-    const disposeChart = (chartRef) => {
-        if (chartRef && typeof chartRef.destroy === 'function') chartRef.destroy();
-        return null;
     };
 
     const updateCharts = (rows) => {
@@ -685,7 +815,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // ============================
-    // NUEVA FUNCIONALIDAD: CLICK EN CDP PARA MOSTRAR GRÁFICA INDIVIDUAL EN EL MODAL
+    // GRÁFICA INDIVIDUAL DE CDP
     // ============================
     const renderCdpIndividualChart = (rowData) => {
         if (!rowData || !cdpCanvas()) return;
@@ -803,126 +933,6 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // ============================
-    // BUSCAR Y RENDER TABLA CON TODOS LOS FILTROS
-    // ============================
-    const buscarYRenderConFiltros = async () => {
-        // Obtener valores de todos los filtros
-        const conceptoValue = document.getElementById('filtro-concepto').value;
-        const buscarPorValue = dependenciaInput.value.trim();
-        const pagosValue = document.getElementById('filtro-pagos').value;
-        const contratoValue = document.getElementById('filtro-contrato').value;
-        const valorMin = document.getElementById('filtro-valor-min').value;
-        const valorMax = document.getElementById('filtro-valor-max').value;
-
-        // Construir parámetros de búsqueda
-        const params = new URLSearchParams();
-        
-        // Solo agregar el filtro de "buscar por" si hay un tipo seleccionado y un valor
-        if (conceptoValue && buscarPorValue) {
-            switch(conceptoValue) {
-                case '1': // Dependencia
-                    params.set('dependencia', buscarPorValue);
-                    break;
-                case '2': // Numero CDP
-                    params.set('numero_cdp', buscarPorValue);
-                    break;
-                case '3': // Concepto
-                    params.set('concepto_interno', buscarPorValue);
-                    break;
-            }
-        }
-        
-        if (pagosValue) params.set('estado_pagos', pagosValue);
-        if (contratoValue) params.set('estado_contrato', contratoValue);
-        if (valorMin) params.set('valor_min', valorMin);
-        if (valorMax) params.set('valor_max', valorMax);
-
-        try {
-            const resp = await fetch(`${BASE_URL}reports/consulta?${params.toString()}`);
-            const data = await resp.json();
-            tbodyDetalles.innerHTML = '';
-            
-            if (!Array.isArray(data) || data.length === 0) {
-                tbodyDetalles.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-5">Sin resultados para los filtros aplicados</td></tr>`;
-                datosFiltradosActuales = [];
-                return [];
-            }
-
-            // Guardar datos filtrados para actualizar el datalist
-            datosFiltradosActuales = data;
-
-            // Actualizar el datalist según el filtro seleccionado
-            actualizarFiltroBuscarPor(conceptoValue);
-
-            // Actualizar contador de resultados
-            const contador = document.getElementById('contador-resultados');
-            const filasMostradas = document.getElementById('filas-mostradas');
-            if (contador) contador.textContent = data.length;
-            if (filasMostradas) filasMostradas.textContent = data.length;
-
-            // Calcular total presupuesto para el footer
-            const totalPresupuesto = data.reduce((sum, row) => sum + limpiarNumero(row.valor_inicial), 0);
-            const totalPresupuestoFooter = document.getElementById('total-presupuesto-footer');
-            if (totalPresupuestoFooter) totalPresupuestoFooter.textContent = formatoMoneda(totalPresupuesto);
-
-            data.forEach(row => {
-                const inicial = limpiarNumero(row.valor_inicial);
-                const saldo = limpiarNumero(row.saldo_por_comprometer);
-                const comprometido = inicial - saldo;
-                const porcentaje = inicial > 0 ? ((comprometido / inicial) * 100).toFixed(2) : 0;
-                let clase = 'rojo';
-                if (comprometido === inicial && saldo === 0) clase = 'verde';
-                else if (comprometido > 0) clase = 'naranja';
-
-                const tr = document.createElement('tr');
-                const safe = (txt) => (txt ?? '').toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-                // Hacer el CDP clickeable
-                const cdpCell = `<td class="cdp-clickable" data-row='${JSON.stringify(row).replace(/'/g, "\\'")}'>${safe(row.numero_cdp)}</td>`;
-
-                tr.innerHTML = `
-                    ${cdpCell}
-                    <td>${safe(row.fecha_registro)}</td>
-                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.concepto_interno)}</textarea></td>
-                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.rubro)}</textarea></td>
-                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.descripcion)}</textarea></td>
-                    <td>${safe(row.fuente)}</td>
-                    <td>${formatoMoneda(limpiarNumero(row.valor_actual))}</td>
-                    <td>${formatoMoneda(limpiarNumero(row.saldo_por_comprometer))}</td>
-                    <td>${formatoMoneda(comprometido)}</td>
-                    <td class="${clase}">${porcentaje}%</td>
-                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.objeto)}</textarea></td>
-                `;
-                tbodyDetalles.appendChild(tr);
-            });
-
-            // Agregar event listeners a los CDP clickeables
-            document.querySelectorAll('.cdp-clickable').forEach(cell => {
-                cell.addEventListener('click', function () {
-                    const rowData = JSON.parse(this.getAttribute('data-row'));
-
-                    // Remover clase activa de todos los CDP
-                    document.querySelectorAll('.cdp-clickable').forEach(cdp => {
-                        cdp.classList.remove('cdp-active');
-                    });
-
-                    // Agregar clase activa al CDP clickeado
-                    this.classList.add('cdp-active');
-
-                    // Renderizar gráfica individual en el modal
-                    renderCdpIndividualChart(rowData);
-                });
-            });
-
-            return data;
-        } catch (err) {
-            console.error('Error cargando detalles:', err);
-            if (window.Swal) Swal.fire('Error', 'No fue posible cargar los detalles.', 'error');
-            return [];
-        }
-    };
-
-    // ============================
     // CARGAR DATOS GLOBALES PARA EL MODAL
     // ============================
     const cargarDatosGlobales = async () => {
@@ -962,11 +972,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // SELECTOR DE GRÁFICAS PRINCIPALES - CON VERIFICACIÓN
     // ============================
     const chartSelect = document.getElementById('chart-select');
-    
+
     // Solo ejecutar si el elemento existe
     if (chartSelect) {
         const chartContainers = document.querySelectorAll('.chart-container');
-        
+
         chartSelect.addEventListener('change', function () {
             const selectedChart = this.value;
             chartContainers.forEach(container => {
@@ -988,7 +998,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })();
     }
 
-        // ============================
+    // ============================
     // SUBIDA DE ARCHIVOS CON PANTALLA DE CARGA MEJORADA - VERSIÓN FUNCIONAL
     // ============================
     const formReporte = document.getElementById('formReporte');
@@ -1129,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     if (data.icono === 'success') {
                         if (tbodyDetalles) tbodyDetalles.innerHTML = '';
-                        
+
                         // Solo destruir gráficas si existen
                         if (chartGastos) chartGastos = disposeChart(chartGastos);
                         if (chartPresupuesto) chartPresupuesto = disposeChart(chartPresupuesto);
@@ -1153,5 +1163,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
+    });
+
+    // ============================
+    // INICIALIZAR CONTROL DE VIERNES
+    // ============================
+    // Aplicar el control de readonly cuando se carga la página
+    aplicarReadonlySegunViernes();
+
+    // También aplicar cuando se abre el modal de detalles
+    document.addEventListener('shown.bs.modal', function (e) {
+        if (e.target.id === 'modalDetalles') {
+            setTimeout(aplicarReadonlySegunViernes, 100);
+        }
     });
 });

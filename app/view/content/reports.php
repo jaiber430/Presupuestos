@@ -1,3 +1,9 @@
+<!-- Obtener el mes y la semana -->
+<?php
+$meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+$mes_actual = $meses[date('n') - 1];
+$ultimo_dia = date('t');
+?>
 <div class="container-fluid  reports-page">
     <!-- Contenido en dos columnas: izquierda (tabla) | derecha (gráfico) -->
     <div class="row g-4 reports-layout">
@@ -370,11 +376,34 @@
                                     <th width="250">
                                         <i class="fas fa-bullseye me-1"></i>Objeto
                                     </th>
+                                    <?php if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4): ?>
+                                        <th width="150" class="text-center">
+                                            <i class="fas fa-file-alt me-1"></i>Observación <?php echo $mes_actual . ' 1-7'; ?>
+                                        </th>
+                                        <th width="150" class="text-center">
+                                            <i class="fas fa-calendar-check me-1"></i>Observación <?php echo $mes_actual . ' 8-15'; ?>
+                                        </th>
+                                        <th width="150" class="text-center">
+                                            <i class="fas fa-dollar-sign me-1"></i>Observación <?php echo $mes_actual . ' 16-23'; ?>
+                                        </th>
+                                        <th width="150" class="text-center">
+                                            <i class="fas fa-check-circle me-1"></i>Observación<?php echo $mes_actual . ' 24-' . $ultimo_dia; ?>
+                                        </th>
+                                        <th width="100" class="text-center">
+                                            <i class="fas fa-save me-1"></i>Guardar
+                                        </th>
+                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody id="tabla-detalles-body" class="font-monospace">
                                 <tr>
-                                    <td colspan="11" class="text-center text-muted py-5">
+                                    <?php
+                                    $colspan = 11;
+                                    if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4) {
+                                        $colspan = 16;
+                                    }
+                                    ?>
+                                    <td colspan="<?php echo $colspan; ?>" class="text-center text-muted py-5">
                                         <i class="fas fa-search fa-2x mb-3 d-block"></i>
                                         Utilice los filtros para realizar una búsqueda
                                     </td>
@@ -451,7 +480,13 @@
 <!-- DATALISTS FUERA DEL MODAL -->
 <datalist id="dependencias-list"></datalist>
 <datalist id="rubros-list"></datalist>
-</div>
+
+<!-- Script para pasar el rol del usuario a JavaScript -->
+<script>
+    window.userRolId = <?php echo $_SESSION['user_rol_id'] ?? 0; ?>;
+    window.userId = <?php echo $_SESSION[APP_SESSION_NAME]['idUsuarioSession'] ?? 0; ?>;
+</script>
+
 
 <style>
     /* COLORES SENA - DEBE IR DESPUÉS DE BOOTSTRAP */

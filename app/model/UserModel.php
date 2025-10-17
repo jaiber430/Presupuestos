@@ -71,7 +71,7 @@ class UserModel extends MainModel {
     }
 
     public function verifyAccount(int $userId): ?string{
-        $query = "SELECT r.nombre AS rol
+        $query = "SELECT r.nombre AS rol, u.idRolFk AS rol_id
               FROM user u
               JOIN rol r ON u.idRolFk = r.idRol
               WHERE u.idUser = :id";
@@ -81,10 +81,25 @@ class UserModel extends MainModel {
         if ($stmt) {
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             if ($result && isset($result['rol'])) {
+                // Guardar el ID del rol en sesión
+                $_SESSION['user_rol_id'] = $result['rol_id'];
                 return $result['rol'];
             }
         }
 
+        return null; 
+    }
+
+    // Método específico para obtener solo el ID del rol
+    public function getUserRoleId(int $userId): ?int {
+        $query = "SELECT idRolFk AS rol_id FROM user WHERE idUser = :id";
+        $params = [':id' => $userId];
+        $stmt = parent::executeQuery($query, $params);
+
+        if ($stmt) {
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return $result ? (int)$result['rol_id'] : null;
+        }
         return null; 
     }
 
@@ -119,6 +134,4 @@ class UserModel extends MainModel {
             return [];
         }
     }
-
-
 }
