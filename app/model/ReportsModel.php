@@ -692,46 +692,6 @@ class ReportsModel extends MainModel
 		}
 	}
 
-	public static function crearTable(string $nombreTabla)
-	{
-		$pdo = self::getConnection();
-		$sql = "
-        	CREATE TABLE `$nombreTabla` (
-            `id` INT AUTO_INCREMENT PRIMARY KEY,
-            `numero_documento` INT(11) NULL DEFAULT NULL,
-            `fecha_registro` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `fecha_creacion` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `tipo_cdp` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `estado` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `dependencia` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `dependencia_descripcion` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `rubro` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `descripcion` TEXT NULL COLLATE 'utf8mb4_general_ci',
-            `fuente` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `recurso` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `sit` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `valor_inicial` DECIMAL(18,2) NULL DEFAULT NULL,
-            `valor_operaciones` DECIMAL(18,2) NULL DEFAULT NULL,
-            `valor_actual` DECIMAL(18,2) NULL DEFAULT NULL,
-            `saldo_por_comprometer` DECIMAL(18,2) NULL DEFAULT NULL,
-            `objeto` TEXT NULL COLLATE 'utf8mb4_general_ci',
-            `solicitud_CDP` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `compromiso` VARCHAR(500) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `cuentas_por_pagar` VARCHAR(500) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `obligaciones` VARCHAR(500) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `ordenes_de_pago` VARCHAR(500) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `reintegros` VARCHAR(500) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
-            `idSemanaFk` INT NOT NULL,
-            `idCentroFk` INT NOT NULL
-        )
-        COLLATE='utf8mb4_general_ci'
-        ENGINE=InnoDB";
-
-		$stmt = $pdo->prepare($sql);
-
-		return $stmt->execute();
-	}
-
 	public static function fillInformePresupuestal()
 	{
 		$pdo = self::getConnection();
