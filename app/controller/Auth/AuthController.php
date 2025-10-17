@@ -111,6 +111,9 @@ class AuthController{
                 'idAnioFiscalActivoSession' => $anioFiscalActivo,
             ];
 
+            // GUARDAR EL ID DEL ROL EN SESIÓN PARA USO EN EL MODAL
+            $_SESSION['user_rol_id'] = $dataUser['idRolFk'];
+
             echo json_encode([
                 'state' => 1,
                 'message' => "Login exitoso",
