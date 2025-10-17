@@ -646,6 +646,34 @@ class ReportsModel extends MainModel
 		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
 
+	/**
+	 * Obtener números CDP únicos desde numeroDocumento
+	 */
+	public static function getCDPs(): array
+	{
+		$stmt = self::executeQuery("SELECT DISTINCT numeroDocumento FROM cdp WHERE numeroDocumento IS NOT NULL AND numeroDocumento != '' ORDER BY numeroDocumento");
+		return $stmt->fetchAll(PDO::FETCH_COLUMN);
+	}
+
+	/**
+	 * Obtener conceptos internos únicos (texto antes de :)
+	 */
+	public static function getConceptos(): array
+	{
+		$stmt = self::executeQuery("SELECT DISTINCT 
+					CASE 
+						WHEN observaciones LIKE '%:%' THEN 
+							TRIM(SUBSTRING_INDEX(observaciones, ':', 1))
+						ELSE 
+							TRIM(observaciones)
+					END as concepto
+				FROM reportepresupuestal 
+				WHERE observaciones IS NOT NULL 
+				AND observaciones != '' 
+				ORDER BY concepto");
+		return $stmt->fetchAll(PDO::FETCH_COLUMN);
+	}
+
 	public static function consultarCDP(array $filters): array
 	{
 		$sql = "SELECT 
