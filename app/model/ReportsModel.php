@@ -677,30 +677,34 @@ class ReportsModel extends MainModel
 	public static function consultarCDP(array $filters): array
 	{
 		$sql = "SELECT 
-                    c.codigo_cdp AS numero_cdp,
-                    c.fecha_registro AS fecha_registro,
-                    d.codigo AS dependencia,
-                    d.nombre AS dependencia_descripcion,
-                    SUBSTRING_INDEX(c.objeto, ':', 1) AS concepto_interno,
-                    c.rubro, c.descripcion, c.fuente,
-                    c.valor_inicial, c.valor_operaciones, c.valor_actual,
-                    c.comprometer_saldo AS saldo_por_comprometer,
-                    c.objeto
-                FROM cdp c
-                INNER JOIN dependencias d ON c.dependencia = d.codigo
-                WHERE 1=1";
+			c.numeroDocumento AS numero_cdp,
+			c.fechaRegistro AS fecha_registro,
+			d.codigo AS dependencia,
+			d.nombre AS dependencia_descripcion,
+			SUBSTRING_INDEX(c.objeto, ':', 1) AS concepto_interno,
+			c.rubro,
+			c.fuente,
+			c.valorInicial,
+			c.valorOperaciones,
+			c.valorActual,
+			c.saldoComprometer AS saldo_por_comprometer,
+			c.objeto
+		FROM cdp c
+		INNER JOIN cdpdependencia cd ON c.idCdp = cd.idCdpFk 
+		INNER JOIN dependencias d ON cd.idDependenciaFk = d.idDependencia  
+		WHERE 1=1";
 
 		$params = [];
 		if (!empty($filters['codigo_cdp'])) {
-			$sql .= " AND c.codigo_cdp = :codigo";
+			$sql .= " AND c.numeroDocumento = :codigo";
 			$params[':codigo'] = $filters['codigo_cdp'];
 		} elseif (!empty($filters['dependencia'])) {
-			$sql .= " AND c.dependencia = :dep";
+			$sql .= " AND d.codigo = :dep";  // Cambiado a d.codigo (tabla dependencias)
 			$params[':dep'] = $filters['dependencia'];
 		}
 
 		if (empty($filters['codigo_cdp']) && empty($filters['dependencia'])) {
-			$sql .= " ORDER BY c.id DESC LIMIT 200";
+			$sql .= " ORDER BY c.idCdp DESC LIMIT 200";
 		}
 
 		$stmt = self::executeQuery($sql, $params);
@@ -709,7 +713,7 @@ class ReportsModel extends MainModel
 
 	public static function clearWeekData(string $week): void
 	{
-		$tables = ['cdp', 'pagos', 'reporte_presupuestal'];
+		$tables = ['cdp', 'pagos', 'reportepresupuestal'];
 		$pdo = self::getConnection();
 		try {
 			$pdo->exec('SET FOREIGN_KEY_CHECKS=0');
