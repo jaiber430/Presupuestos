@@ -39,20 +39,23 @@ $ultimo_dia = date('t');
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($semanas as $semana): ?>
-                                    <tr class="border-bottom">
+                                <?php
+
+                                if ($semanaActiva): ?>
+                                    <tr class="border-bottom table-active bg-light">
                                         <td class="ps-4 fw-bold text-dark">
                                             <i class="fas fa-calendar-alt me-2 text-primary"></i>
-                                            Semana <?= $semana['numeroSemana'] ?>
+                                            Semana <?= $semanaActiva['numeroSemana'] ?>
+                                            <span class="badge bg-success ms-2">ACTUAL</span>
                                         </td>
                                         <td>
-                                            <span class="text-muted"><?= date("d/m/Y", strtotime($semana['fechaInicio'])) ?></span>
+                                            <span class="text-muted"><?= date("d/m/Y", strtotime($semanaActiva['fechaInicio'])) ?></span>
                                         </td>
                                         <td>
-                                            <span class="text-muted"><?= date("d/m/Y", strtotime($semana['fechaFin'])) ?></span>
+                                            <span class="text-muted"><?= date("d/m/Y", strtotime($semanaActiva['fechaFin'])) ?></span>
                                         </td>
                                         <td class="text-center">
-                                            <?php if (!empty($semana['archivoCdp']) || !empty($semana['archivoRp']) || !empty($semana['archivoPagos'])): ?>
+                                            <?php if (!empty($semanaActiva['archivoCdp']) || !empty($semanaActiva['archivoRp']) || !empty($semanaActiva['archivoPagos'])): ?>
                                                 <span class="badge bg-success rounded-pill">
                                                     <i class="fas fa-check me-1"></i>Cargado
                                                 </span>
@@ -65,17 +68,17 @@ $ultimo_dia = date('t');
                                         <td class="text-center pe-4">
                                             <div class="d-flex gap-2 justify-content-center">
                                                 <button class="btn btn-outline-primary btn-sm btn-ver-detalles"
-                                                    data-week="Semana <?= $semana['numeroSemana'] ?>"
-                                                    data-semana-id="<?= $semana['idSemana'] ?>"
+                                                    data-week="Semana <?= $semanaActiva['numeroSemana'] ?>"
+                                                    data-semana-id="<?= $semanaActiva['idSemana'] ?>"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#modalDetalles"
                                                     title="Ver detalles">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <?php if (empty($semana['archivoCdp']) && empty($semana['archivoRp']) && empty($semana['archivoPagos'])): ?>
+                                                <?php if (empty($semanaActiva['archivoCdp']) && empty($semanaActiva['archivoRp']) && empty($semanaActiva['archivoPagos'])): ?>
                                                     <button class="btn btn-primary btn-sm btn-open-modal"
-                                                        data-week="Semana <?= $semana['numeroSemana'] ?>"
-                                                        data-semana-id="<?= $semana['idSemana'] ?>"
+                                                        data-week="Semana <?= $semanaActiva['numeroSemana'] ?>"
+                                                        data-semana-id="<?= $semanaActiva['idSemana'] ?>"
                                                         data-bs-toggle="modal"
                                                         data-bs-target="#modalReporte"
                                                         title="Subir reporte">
@@ -88,15 +91,21 @@ $ultimo_dia = date('t');
                                                     </button>
                                                 <?php endif; ?>
                                                 <button class="btn btn-outline-danger btn-sm btn-delete-week"
-                                                    data-week="Semana <?= $semana['numeroSemana'] ?>"
-                                                    data-semana-id="<?= $semana['idSemana'] ?>"
+                                                    data-week="Semana <?= $semanaActiva['numeroSemana'] ?>"
+                                                    data-semana-id="<?= $semanaActiva['idSemana'] ?>"
                                                     title="Eliminar semana">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            No hay semana activa disponible
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -104,7 +113,7 @@ $ultimo_dia = date('t');
                 <div class="card-footer bg-light py-3">
                     <small class="text-muted">
                         <i class="fas fa-info-circle me-1"></i>
-                        Total <?= count($semanas) ?> semanas registradas
+                        Semana activa actual - <?= date('d/m/Y') ?>
                     </small>
                 </div>
             </div>
@@ -253,19 +262,47 @@ $ultimo_dia = date('t');
                     <div class="flex-grow-1">
                         <h5 class="modal-title mb-0 fw-bold">
                             <i class="fas fa-chart-bar me-2"></i>
-                            Detalles de <span class="text-warning" id="modal-detalles-week-label"></span>
+                            Detalles de Presupuesto - <span class="text-warning" id="modal-detalles-week-label">Semana <?= $semanaActiva['numeroSemana'] ?? '' ?></span>
+                            <?php if ($semanaActiva && $semanaActiva['semanaActiva']): ?>
+                                <span class="badge bg-success ms-2">SEMANA ACTUAL</span>
+                            <?php endif; ?>
                         </h5>
-                        <small class="opacity-75">Análisis detallado del presupuesto y compromisos</small>
+                        <small class="opacity-75">
+                            Análisis detallado del presupuesto y compromisos -
+                            <?php if ($semanaActiva): ?>
+                                <?= date("d/m/Y", strtotime($semanaActiva['fechaInicio'])) ?> al <?= date("d/m/Y", strtotime($semanaActiva['fechaFin'])) ?>
+                            <?php endif; ?>
+                        </small>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
             </div>
+
+            <!-- Alerta de semana activa automática -->
+            <?php if ($semanaActiva && $semanaActiva['semanaActiva']): ?>
+                <div class="alert alert-info alert-dismissible fade show mb-0" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-robot me-2 fa-lg"></i>
+                        <div class="flex-grow-1">
+                            <strong>Semana activa automática:</strong> El sistema ha activado esta semana según la fecha actual.
+                            <small class="d-block text-muted">La activación se realiza automáticamente cada día.</small>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <div class="modal-body p-4">
                 <!-- Panel de Filtros Mejorado -->
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-light py-3">
                         <h6 class="mb-0 fw-semibold text-primary">
                             <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+                            <?php if ($semanaActiva && $semanaActiva['semanaActiva']): ?>
+                                <span class="badge bg-success ms-2">
+                                    <i class="fas fa-bolt me-1"></i>ACTUAL
+                                </span>
+                            <?php endif; ?>
                         </h6>
                     </div>
                     <div class="card-body">
@@ -313,21 +350,32 @@ $ultimo_dia = date('t');
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Fila 2: Filtros Adicionales -->
                                 </div>
                             </div>
-                            <!-- Columna Mini Gráfica (vacía aquí, se mueve abajo) -->
-                            <div class="col-lg-4 col-md-5"></div>
+                            <!-- Columna Información de Semana -->
+                            <div class="col-lg-4 col-md-5">
+                                <div class="text-end">
+                                    <small class="text-muted">
+                                        <i class="fas fa-database me-1"></i>
+                                        <?= count($informe) ?> registros encontrados
+                                        <?php if ($semanaActiva && $semanaActiva['semanaActiva']): ?>
+                                            <span class="badge bg-info ms-1">
+                                                <i class="fas fa-robot me-1"></i>Automático
+                                            </span>
+                                        <?php endif; ?>
+                                    </small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- NUEVO LAYOUT: Tabla que ocupa todo el ancho -->
+                <!-- TABLA CON DATOS ACTUALIZADOS SEGÚN TU CONSULTA -->
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0 fw-semibold text-primary">
-                            <i class="fas fa-table me-2"></i>Resultados de la Búsqueda
-                            <span class="badge bg-primary ms-2" id="contador-resultados">0</span>
+                            <i class="fas fa-table me-2"></i>Detalles Presupuestales
+                            <span class="badge bg-primary ms-2"><?= count($informe) ?> registros</span>
                         </h6>
                         <div class="d-flex gap-2">
                             <button class="btn btn-outline-primary btn-sm" id="btn-exportar">
@@ -338,144 +386,214 @@ $ultimo_dia = date('t');
                             </button>
                         </div>
                     </div>
-                    <!-- Contenedor con scroll vertical limitado -->
+
                     <div class="table-responsive">
                         <table class="table table-hover table-striped align-middle mb-0">
                             <thead class="table-dark sticky-top">
                                 <tr>
-                                    <th width="120" class="text-center">
-                                        <i class="fas fa-hashtag me-1"></i>CDP
-                                    </th>
-                                    <th width="110" class="text-center">
-                                        <i class="fas fa-calendar me-1"></i>Fecha
-                                    </th>
-                                    <th width="200">
-                                        <i class="fas fa-tag me-1"></i>Concepto
-                                    </th>
-                                    <th width="150">
-                                        <i class="fas fa-folder me-1"></i>Rubro
-                                    </th>
-                                    <th width="200">
-                                        <i class="fas fa-align-left me-1"></i>Descripción
-                                    </th>
-                                    <th width="100" class="text-center">
-                                        <i class="fas fa-fountain me-1"></i>Fuente
-                                    </th>
-                                    <th width="140" class="text-end">
-                                        <i class="fas fa-money-bill me-1"></i>Valor Actual
-                                    </th>
-                                    <th width="140" class="text-end">
-                                        <i class="fas fa-wallet me-1"></i>Saldo
-                                    </th>
-                                    <th width="140" class="text-end">
-                                        <i class="fas fa-hand-holding-usd me-1"></i>Comprometido
-                                    </th>
-                                    <th width="120" class="text-center">
-                                        <i class="fas fa-percentage me-1"></i>% Compromiso
-                                    </th>
-                                    <th width="250">
-                                        <i class="fas fa-bullseye me-1"></i>Objeto
-                                    </th>
+                                    <th width="120" class="text-center">CDP</th>
+                                    <th width="110" class="text-center">Fecha</th>
+                                    <th width="150">Rubro</th>
+                                    <th width="200">Descripción</th>
+                                    <th width="100" class="text-center">Fuente</th>
+                                    <th width="140" class="text-end">Valor Actual</th>
+                                    <th width="140" class="text-end">Saldo</th>
+                                    <th width="140" class="text-end">Comprometido</th>
+                                    <th width="120" class="text-center">% Compromiso</th>
+                                    <th width="250">Objeto</th>
                                     <?php if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4): ?>
-                                        <th width="150" class="text-center">
-                                            <i class="fas fa-file-alt me-1"></i>Observación <?php echo $mes_actual . ' 1-7'; ?>
-                                        </th>
-                                        <th width="150" class="text-center">
-                                            <i class="fas fa-calendar-check me-1"></i>Observación <?php echo $mes_actual . ' 8-15'; ?>
-                                        </th>
-                                        <th width="150" class="text-center">
-                                            <i class="fas fa-dollar-sign me-1"></i>Observación <?php echo $mes_actual . ' 16-23'; ?>
-                                        </th>
-                                        <th width="150" class="text-center">
-                                            <i class="fas fa-check-circle me-1"></i>Observación<?php echo $mes_actual . ' 24-' . $ultimo_dia; ?>
-                                        </th>
-                                        <th width="100" class="text-center">
-                                            <i class="fas fa-save me-1"></i>Guardar
-                                        </th>
+                                        <th width="150" class="text-center">Obs. <?= $mes_actual . ' 1-7' ?></th>
+                                        <th width="150" class="text-center">Obs. <?= $mes_actual . ' 8-15' ?></th>
+                                        <th width="150" class="text-center">Obs. <?= $mes_actual . ' 16-23' ?></th>
+                                        <th width="150" class="text-center">Obs. <?= $mes_actual . ' 24-' . $ultimo_dia ?></th>
+                                        <th width="100" class="text-center">Guardar</th>
                                     <?php endif; ?>
                                 </tr>
                             </thead>
-                            <tbody id="tabla-detalles-body" class="font-monospace">
-                                <tr>
-                                    <?php
-                                    $colspan = 11;
-                                    if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4) {
-                                        $colspan = 16;
-                                    }
+                            <tbody class="font-monospace">
+                                <?php
+                                $totalPresupuesto = 0;
+                                $totalComprometido = 0;
+                                $totalSaldo = 0;
+
+                                if (empty($informe)): ?>
+                                    <tr>
+                                        <?php
+                                        $colspan = 10;
+                                        if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4) {
+                                            $colspan = 15;
+                                        }
+                                        ?>
+                                        <td colspan="<?= $colspan ?>" class="text-center text-muted py-5">
+                                            <i class="fas fa-search fa-2x mb-3 d-block"></i>
+                                            No se encontraron registros para esta semana
+                                        </td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($informe as $item):
+                                        // Usando los nombres exactos de tu consulta
+                                        $valorActual = floatval($item['valorActual'] ?? 0);
+                                        $valorComprometido = floatval($item['valorComprometido'] ?? 0);
+                                        $saldoComprometer = floatval($item['saldoPorComprometer'] ?? 0);
+                                        $porcentaje = floatval($item['porcentajeCompromiso'] ?? 0);
+
+                                        $totalPresupuesto += $valorActual;
+                                        $totalComprometido += $valorComprometido;
+                                        $totalSaldo += $saldoComprometer;
+
+                                        // CORRECCIÓN DE COLORES: ROJO para 0%, VERDE para 100%
+                                        $claseFila = '';
+                                        $claseBadge = 'bg-secondary';
+
+                                        if ($porcentaje == 0) {
+                                            $claseFila = 'table-danger'; // ROJO para 0%
+                                            $claseBadge = 'bg-danger';
+                                        } elseif ($porcentaje == 100) {
+                                            $claseFila = 'table-success'; // VERDE para 100%
+                                            $claseBadge = 'bg-success';
+                                        } elseif ($porcentaje > 80) {
+                                            $claseFila = 'table-warning';
+                                            $claseBadge = 'bg-warning text-dark';
+                                        } elseif ($porcentaje > 50) {
+                                            $claseFila = 'table-info';
+                                            $claseBadge = 'bg-info text-dark';
+                                        } elseif ($porcentaje > 0) {
+                                            $claseBadge = 'bg-primary';
+                                        }
                                     ?>
-                                    <td colspan="<?php echo $colspan; ?>" class="text-center text-muted py-5">
-                                        <i class="fas fa-search fa-2x mb-3 d-block"></i>
-                                        Utilice los filtros para realizar una búsqueda
-                                    </td>
-                                </tr>
+                                        <tr class="<?= $claseFila ?>">
+                                            <td class="text-center fw-bold"><?= htmlspecialchars($item['cdp'] ?? '') ?></td>
+                                            <td class="text-center"><?= !empty($item['fechaRegistro']) ? date('d/m/Y', strtotime($item['fechaRegistro'])) : '' ?></td>
+                                            <td><?= htmlspecialchars($item['rubro'] ?? '') ?></td>
+                                            <td class="small"><?= htmlspecialchars($item['descripcion'] ?? '') ?></td>
+                                            <td class="text-center"><?= htmlspecialchars($item['fuente'] ?? '') ?></td>
+                                            <td class="text-end fw-bold">$<?= number_format($valorActual, 0, ',', '.') ?></td>
+                                            <td class="text-end">$<?= number_format($saldoComprometer, 0, ',', '.') ?></td>
+                                            <td class="text-end">$<?= number_format($valorComprometido, 0, ',', '.') ?></td>
+                                            <td class="text-center">
+                                                <span class="badge <?= $claseBadge ?>">
+                                                    <?= number_format($porcentaje, 1) ?>%
+                                                </span>
+                                            </td>
+                                            <td class="small"><?= htmlspecialchars($item['descripcionCompleta'] ?? '') ?></td>
+                                            <?php if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4): ?>
+                                                <td class="text-center">
+                                                    <input type="text" class="form-control form-control-sm observacion"
+                                                        data-cdp="<?= htmlspecialchars($item['cdp'] ?? '') ?>"
+                                                        data-periodo="1"
+                                                        value="<?= htmlspecialchars($item['observacion1'] ?? '') ?>">
+                                                </td>
+                                                <td class="text-center">
+                                                    <input type="text" class="form-control form-control-sm observacion"
+                                                        data-cdp="<?= htmlspecialchars($item['cdp'] ?? '') ?>"
+                                                        data-periodo="2"
+                                                        value="<?= htmlspecialchars($item['observacion2'] ?? '') ?>">
+                                                </td>
+                                                <td class="text-center">
+                                                    <input type="text" class="form-control form-control-sm observacion"
+                                                        data-cdp="<?= htmlspecialchars($item['cdp'] ?? '') ?>"
+                                                        data-periodo="3"
+                                                        value="<?= htmlspecialchars($item['observacion3'] ?? '') ?>">
+                                                </td>
+                                                <td class="text-center">
+                                                    <input type="text" class="form-control form-control-sm observacion"
+                                                        data-cdp="<?= htmlspecialchars($item['cdp'] ?? '') ?>"
+                                                        data-periodo="4"
+                                                        value="<?= htmlspecialchars($item['observacion4'] ?? '') ?>">
+                                                </td>
+                                                <td class="text-center">
+                                                    <button class="btn btn-sm btn-success btn-guardar-observaciones"
+                                                        data-cdp="<?= htmlspecialchars($item['cdp'] ?? '') ?>">
+                                                        <i class="fas fa-save"></i>
+                                                    </button>
+                                                </td>
+                                            <?php endif; ?>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
+
                     <div class="card-footer bg-light py-3">
                         <div class="row align-items-center">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <small class="text-muted">
                                     <i class="fas fa-info-circle me-1"></i>
-                                    Mostrando <span id="filas-mostradas">0</span> registros
+                                    Mostrando <span class="fw-bold"><?= count($informe) ?></span> registros
                                 </small>
                             </div>
-                            <div class="col-md-6 text-end">
-                                <small class="text-muted">
-                                    Total presupuesto: <span class="fw-bold text-success" id="total-presupuesto-footer">$0</span>
-                                </small>
+                            <div class="col-md-8 text-end">
+                                <div class="d-flex justify-content-end gap-4">
+                                    <small class="text-muted">
+                                        Total presupuesto: <span class="fw-bold text-primary">$<?= number_format($totalPresupuesto, 0, ',', '.') ?></span>
+                                    </small>
+                                    <small class="text-muted">
+                                        Total comprometido: <span class="fw-bold text-warning">$<?= number_format($totalComprometido, 0, ',', '.') ?></span>
+                                    </small>
+                                    <small class="text-muted">
+                                        Saldo disponible: <span class="fw-bold text-success">$<?= number_format($totalSaldo, 0, ',', '.') ?></span>
+                                    </small>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Gráfica centrada debajo de la tabla -->
-                <div class="chart-center-container">
-                    <!-- Gráfica general -->
-                    <div id="mini-presupuesto-container" class="card border shadow-sm" style="display: none;">
-                        <div class="card-header bg-white border-bottom py-3">
-                            <div class="d-flex justify-content-between align-items-center">
+                <!-- GRÁFICAS -->
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-white border-bottom py-3">
                                 <h6 class="mb-0 fw-semibold text-primary">
                                     <i class="fas fa-chart-pie me-2"></i>Resumen General
                                 </h6>
-                                <button type="button" class="btn btn-sm btn-outline-secondary p-1" id="mini-hide-btn" title="Ocultar">
-                                    <i class="fas fa-times"></i>
-                                </button>
                             </div>
-                            <small class="text-muted" id="mini-presupuesto-label"></small>
-                        </div>
-                        <div class="card-body p-3">
-                            <canvas id="mini-presupuesto-chart" height="280"></canvas>
+                            <div class="card-body">
+                                <canvas id="graficaGeneral" height="250"></canvas>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Gráfica de CDP individual -->
-                    <div id="cdp-individual-container" class="card border shadow-sm" style="display:none;">
-                        <div class="card-header bg-white border-bottom py-3">
-                            <div class="d-flex justify-content-between align-items-center">
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-white border-bottom py-3">
                                 <h6 class="mb-0 fw-semibold text-primary">
-                                    <i class="fas fa-chart-pie me-2"></i>Detalle CDP
+                                    <i class="fas fa-chart-bar me-2"></i>Distribución por Estado
                                 </h6>
-                                <button type="button" class="btn btn-sm btn-outline-secondary p-1" id="cdp-hide-btn" title="Ocultar">
-                                    <i class="fas fa-times"></i>
-                                </button>
                             </div>
-                            <small class="text-muted" id="cdp-individual-label"></small>
+                            <div class="card-body">
+                                <canvas id="graficaEstado" height="250"></canvas>
+                            </div>
                         </div>
-                        <div class="card-body p-3">
-                            <canvas id="cdp-individual-chart" height="280"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Indicador cuando no hay gráfica visible -->
-                    <div id="no-chart-indicator" class="chart-hidden-indicator">
-                        <i class="fas fa-chart-line fa-3x mb-3"></i>
-                        <p>La gráfica se mostrará aquí cuando aplique filtros</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer bg-light">
+                <div class="me-auto">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar-check me-1 text-success"></i>
+                        <?php if ($semanaActiva && $semanaActiva['semanaActiva']): ?>
+                            Semana activa automática - Actualizado: <?= date('d/m/Y H:i') ?>
+                        <?php else: ?>
+                            Semana histórica - Sistema de activación automática activo
+                        <?php endif; ?>
+                    </small>
+                </div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cerrar
+                </button>
+                <button type="button" class="btn btn-primary" id="btn-imprimir-informe">
+                    <i class="fas fa-print me-1"></i>Imprimir
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+
 
 <!-- DATALISTS FUERA DEL MODAL -->
 <datalist id="dependencias-list"></datalist>

@@ -10,7 +10,6 @@ use presupuestos\helpers\MailerHelper;
 use presupuestos\helpers\TokenHelper;
 use presupuestos\model\TokenModel;
 use presupuestos\model\MainModel;
-use presupuestos\controller\AnioFiscalController;
 use presupuestos\model\AnioFiscalModel;
 use presupuestos\helpers\ResponseHelper;
 use PDO;
@@ -91,14 +90,14 @@ class AuthController{
 
             $centroId = $dataUser['idCentroFk'];
             //Obtengo todas las semanas
-            $semanas = AnioFiscalModel::obtenerSemanasPorCentro($centroId);
+            $semanas = AnioFiscalModel::obtenerSemanaActiva($centroId);
             
 
             //Obtengo el año fiscal activo
             $anioFiscalActivo = AnioFiscalModel::getPresupuestoActivo($centroId);
             
             //Obtengo las semana por centro y la qué está activa
-            $semanaActiva = AnioFiscalController::getSemanaActiva($semanas);
+            $semanaActiva = AnioFiscalModel::obtenerSemanaActiva($centroId);
 
             //Guardar la semana activa, y el año fiscal activo
             $_SESSION[APP_SESSION_NAME] = [
@@ -107,7 +106,7 @@ class AuthController{
                 'emailLoginSession'    => $dataUser['email'],
                 'idCentroIdSession'     => $dataUser['idCentroFk'],
                 'idRolSession' => $dataUser['idRolFk'],
-                'idSemanaActivaSession' => $semanaActiva['idSemana'] ?? null,
+                'idSemanaActivaSession' => $semanaActiva['idSemana'],
                 'idAnioFiscalActivoSession' => $anioFiscalActivo,
             ];
 

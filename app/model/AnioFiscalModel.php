@@ -30,16 +30,18 @@ class AnioFiscalModel extends MainModel
 
             // 3. Guardar semanas
             foreach ($semanas as $semana) {
-                $existe = self::verificarSemanaExistente($semana['numero_semana'], $centroId);
+                $existe = self::verificarSemanaExistente($semana['numerosemana'], $centroId);
                 if (!$existe) {
                     self::insertarSemanaCarga(
-                        $semana['numero_semana'],
+                        $semana['numerosemana'],
                         $semana['inicio'],
                         $semana['fin'],
                         $centroId
                     );
                 }
             }
+
+            self::activarSemanaActualAutomaticamente($centroId);
 
             $pdo->commit();
             return true;
@@ -117,15 +119,132 @@ class AnioFiscalModel extends MainModel
         self::executeQuery($sql, [$numeroSemana, $fechaInicio, $fechaFin, $centroId]);
     }
 
-    
-    public static function obtenerSemanasPorCentro(int $centroId): array
+    public static function activarSemanaActualAutomaticamente(int $centroId): bool
     {
-        $sql = "SELECT idSemana, numeroSemana, fechaInicio, fechaFin, 
-                   archivoCdp, archivoRp, archivoPagos, fechaSubida 
-            FROM semanascarga 
-            WHERE idCentroFk = ? 
-            ORDER BY numeroSemana ASC";
-        $stmt = self::executeQuery($sql, [$centroId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pdo = self::getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $fechaActual = date('Y-m-d');
+
+            $sql = "SELECT id, numeroSemana 
+                FROM semanascarga 
+                WHERE idCentroFk = ? 
+                AND ? BETWEEN inicio AND fin 
+                AND activa = 0
+                LIMIT 1";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$centroId, $fechaActual]);
+            $semanaActual = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($semanaActual) {
+                // Primero desactivar todas las semanas del centro
+                $sqlDesactivar = "UPDATE semanascarga SET activa = 0 WHERE centro_id = ?";
+                $stmtDesactivar = $pdo->prepare($sqlDesactivar);
+                $stmtDesactivar->execute([$centroId]);
+
+                // Luego activar la semana actual
+                $sqlActivar = "UPDATE semanascarga SET activa = 1 WHERE id = ?";
+                $stmtActivar = $pdo->prepare($sqlActivar);
+                $stmtActivar->execute([$semanaActual['id']]);
+
+                error_log("Semana " . $semanaActual['numeroSemana'] . " activada automáticamente para el centro " . $centroId);
+            }
+
+            $pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            error_log("Error al activar semana automáticamente: " . $e->getMessage());
+            return false;
+        }
+    }
+    public static function verificarYActivarSemanaActual(int $centroId): bool
+    {
+        $pdo = self::getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $fechaActual = date('Y-m-d');
+
+            // 1. Obtener la semana actualmente activa
+            $sqlSemanaActiva = "SELECT id, numero_semana, inicio, fin 
+                           FROM semanascarga 
+                           WHERE centro_id = ? AND activa = 1
+                           LIMIT 1";
+            $stmtActiva = $pdo->prepare($sqlSemanaActiva);
+            $stmtActiva->execute([$centroId]);
+            $semanaActivaActual = $stmtActiva->fetch(PDO::FETCH_ASSOC);
+
+            // 2. Verificar si la semana activa actual todavía es válida
+            $debeCambiar = false;
+            if ($semanaActivaActual) {
+                // Si la fecha actual NO está en el rango de la semana activa, cambiar
+                if ($fechaActual < $semanaActivaActual['inicio'] || $fechaActual > $semanaActivaActual['fin']) {
+                    $debeCambiar = true;
+                }
+            } else {
+                // Si no hay semana activa, buscar una
+                $debeCambiar = true;
+            }
+
+            // 3. Si es necesario cambiar, buscar y activar la nueva semana
+            if ($debeCambiar) {
+                // Buscar la semana que corresponde a la fecha actual
+                $sqlNuevaSemana = "SELECT id, numero_semana 
+                              FROM semanascarga 
+                              WHERE centro_id = ? 
+                              AND ? BETWEEN inicio AND fin 
+                              LIMIT 1";
+
+                $stmtNueva = $pdo->prepare($sqlNuevaSemana);
+                $stmtNueva->execute([$centroId, $fechaActual]);
+                $nuevaSemana = $stmtNueva->fetch(PDO::FETCH_ASSOC);
+
+                if ($nuevaSemana) {
+                    // Desactivar todas las semanas del centro
+                    $sqlDesactivar = "UPDATE semanascarga SET activa = 0 WHERE centro_id = ?";
+                    $stmtDesactivar = $pdo->prepare($sqlDesactivar);
+                    $stmtDesactivar->execute([$centroId]);
+
+                    // Activar la nueva semana
+                    $sqlActivar = "UPDATE semanascarga SET activa = 1 WHERE id = ?";
+                    $stmtActivar = $pdo->prepare($sqlActivar);
+                    $stmtActivar->execute([$nuevaSemana['id']]);
+
+                    error_log("Semana cambiada automáticamente: " . $nuevaSemana['numero_semana'] . " para centro " . $centroId);
+                } else {
+                    error_log("No se encontró semana para la fecha " . $fechaActual . " en centro " . $centroId);
+                }
+            }
+
+            $pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            error_log("Error al verificar semana actual: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public static function obtenerSemanaActiva(int $centroId): ?array
+    {
+        $pdo = self::getConnection();
+
+        // Primero, verificar y activar la semana actual si es necesario
+        self::verificarYActivarSemanaActual($centroId);
+
+        // Luego obtener la semana activa
+        $sql = "SELECT sc.* 
+            FROM semanascarga sc
+            WHERE sc.idCentroFk = ? AND sc.semanaActiva = 1
+            LIMIT 1";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$centroId]);
+        $semanaActiva = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $semanaActiva ?: null;
     }
 }
