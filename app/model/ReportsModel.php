@@ -557,7 +557,7 @@ class ReportsModel extends MainModel
 
 			$values[] = $idCdpFk;
 
-			// ✅ Verificar que al menos algunos valores no estén vacíos
+			// Verificar que al menos algunos valores no estén vacíos
 			$nonEmptyValues = array_filter($values, function ($v) {
 				return !empty($v) && $v !== '' && $v !== null;
 			});
@@ -763,7 +763,6 @@ class ReportsModel extends MainModel
 		) pt ON pt.idCdpFk = c.idCdp
 		LEFT JOIN cdpdependencia cd ON cd.idCdpFk = c.idCdp
 		LEFT JOIN dependencias dep ON dep.idDependencia = cd.idDependenciaFk
-		-- ✅ AGREGAR FILTRO PARA EVITAR CDPs VACÍOS
 		WHERE c.numeroDocumento IS NOT NULL 
 		AND c.numeroDocumento != '' 
 		AND c.valorActual IS NOT NULL
@@ -805,10 +804,10 @@ class ReportsModel extends MainModel
             GROUP BY idCdpFk
         ) ps ON ps.idCdpFk = c.idCdp  
         SET
-            -- ✅ ELIMINAR esta línea que ya no necesitamos:
+            -- ELIMINAR esta línea que ya no necesitamos:
             -- i.valorComprometido = COALESCE(r.compromisos, i.valorComprometido),
             i.valorPagado = COALESCE(ps.sum_pago, 0),
-            -- ✅ CALCULAR valorComprometido y porcentaje basado en el cálculo correcto
+            -- CALCULAR valorComprometido y porcentaje basado en el cálculo correcto
             i.valorComprometido = i.valorActual - i.saldoPorComprometer,
             i.porcentajeCompromiso = CASE
                 WHEN (i.valorActual - i.saldoPorComprometer) > 0

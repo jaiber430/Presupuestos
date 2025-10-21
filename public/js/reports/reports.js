@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // =================================================================
-    // Crear observacion solo el vuiernes de la semana actual
+    // Crear observacion solo el viernes de la semana actual
     // =================================================================
     function esViernesEnRango(rango) {
         const hoy = new Date();
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const diaSemana = hoy.getDay(); // 0=domingo, 1=lunes, ..., 5=viernes, 6=sábado
 
         // Verificar si hoy es viernes (5) y está dentro del rango
-        return diaSemana === 2 && diaActual >= rango.inicio && diaActual <= rango.fin;
+        return diaSemana === 1 && diaActual >= rango.inicio && diaActual <= rango.fin;
     }
 
     function aplicarReadonlySegunViernes() {
@@ -352,32 +352,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Campos adicionales solo para rol 4
                 if (window.userRolId === 4) {
-                    // Determinar qué campos son editables según el día actual
-                    const camposSemanales = rangosSemanales.map((rango, index) => {
-                        const esEditable = esViernesEnRango(rango);
-                        const placeholder = esEditable ?
-                            `Observación ${rango.texto}` :
-                            `Observación ${rango.texto}`;
-                        const readonlyAttr = esEditable ? '' : 'readonly';
-                        const claseEditable = esEditable ? 'editable-hoy' : '';
+                    const rangosSemanales = obtenerRangosSemanales();
+                    const esViernesActivo = rangosSemanales.some(rango => esViernesEnRango(rango));
 
-                        return `<td class="cell-textarea">
-                            <textarea ${readonlyAttr} spellcheck="false" placeholder="${placeholder}" class="${claseEditable}"></textarea>
-                        </td>`;
-                    }).join('');
+                    if (esViernesActivo) {
+                        const linkAsignar = `
+            <td class="text-center" colspan="${rangosSemanales.length}">
+                <a href="#" id="idAsignarObservacion" class="text-primary fw-semibold text-decoration-underline" style="cursor:pointer;">
+                    <i class="fas fa-edit me-1"></i>Asignar observación
+                </a>
+            </td>
+        `;
 
-                    rowHTML += `
-                        ${camposSemanales}
-                        <td class="text-center">
-                            <button class="btn btn-warning btn-sm btn-enviar" title="Enviar">
-                                <i class="fas fa-paper-plane"></i> Enviar
-                            </button>
-                        </td>
-                    `;
+                        rowHTML += linkAsignar;
+                    } else {
+                        const linkInactivo = `
+            <td class="text-center text-muted" colspan="${rangosSemanales.length}">
+                <i class="fas fa-lock me-1"></i>No disponible hoy
+            </td>
+        `;
+
+                        rowHTML += linkInactivo;
+                    }
                 }
 
                 tr.innerHTML = rowHTML;
                 tbodyDetalles.appendChild(tr);
+            });
+
+            // Evento para abrir el modal para asignar las observaciones
+            document.addEventListener('click', function (e) {
+                if (e.target && e.target.id === 'idAsignarObservacion') {
+                    e.preventDefault();
+                    const modal = new bootstrap.Modal(document.getElementById('modalAsignarObservacion'));
+                    modal.show();
+                }
             });
 
             // Agregar event listeners a los CDP clickeables

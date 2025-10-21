@@ -378,19 +378,7 @@ $ultimo_dia = date('t');
                                     </th>
                                     <?php if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4): ?>
                                         <th width="150" class="text-center">
-                                            <i class="fas fa-file-alt me-1"></i>Observación <?php echo $mes_actual . ' 1-7'; ?>
-                                        </th>
-                                        <th width="150" class="text-center">
-                                            <i class="fas fa-calendar-check me-1"></i>Observación <?php echo $mes_actual . ' 8-15'; ?>
-                                        </th>
-                                        <th width="150" class="text-center">
-                                            <i class="fas fa-dollar-sign me-1"></i>Observación <?php echo $mes_actual . ' 16-23'; ?>
-                                        </th>
-                                        <th width="150" class="text-center">
-                                            <i class="fas fa-check-circle me-1"></i>Observación<?php echo $mes_actual . ' 24-' . $ultimo_dia; ?>
-                                        </th>
-                                        <th width="100" class="text-center">
-                                            <i class="fas fa-save me-1"></i>Guardar
+                                            <i class="fas fa-file-alt me-1"></i>Observación
                                         </th>
                                     <?php endif; ?>
                                 </tr>
@@ -476,6 +464,32 @@ $ultimo_dia = date('t');
         </div>
     </div>
 </div>
+
+<!-- Modal Asignar Observación -->
+<div class="modal fade" id="modalAsignarObservacion" tabindex="-1" aria-labelledby="modalAsignarObservacionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white py-2">
+                <h5 class="modal-title fw-semibold" id="modalAsignarObservacionLabel">
+                    <i class="fas fa-comment-dots me-2"></i>Asignar observación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <textarea id="textareaObservacion" class="form-control" rows="5" placeholder="Escribe la observación aquí..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-success" id="btnEnviarObservacion">
+                    <i class="fas fa-paper-plane me-1"></i>Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- DATALISTS FUERA DEL MODAL -->
 <datalist id="dependencias-list"></datalist>
