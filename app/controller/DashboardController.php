@@ -8,7 +8,7 @@ use presupuestos\controller\UserController;
 use presupuestos\model\AnioFiscalModel;
 use presupuestos\controller\role\RoleController;
 use presupuestos\controller\role\PermisoController;
-use presupuestos\controller\PruebaController;
+use presupuestos\controller\ReportsController;
 
 
 class DashboardController {
@@ -19,6 +19,7 @@ class DashboardController {
         $title = str_replace("/", " ", $title);
 
         $idCentroIdSession = $_SESSION[APP_SESSION_NAME]['idCentroIdSession'];
+        $idSemanaSession= $_SESSION[APP_SESSION_NAME]['idSemanaActivaSession'];
         $subdirector = UserController::getSubdirector($idCentroIdSession);
 
         //obtengo los roles para listarlos en la vista
@@ -37,10 +38,12 @@ class DashboardController {
         $permisos = $permisoController->list();
 
         //Obtengo todas las semanas
-        $semanas = AnioFiscalModel::obtenerSemanasPorCentro($idCentroIdSession);
+        $semanaActiva= AnioFiscalModel::obtenerSemanaActiva($idCentroIdSession);
+        
         $subMenus= PruebaController::listarSubMenu($idCentroIdSession);
         $roles= PruebaController::listarRoles($idCentroIdSession);
-        
+        $controller = new ReportsController();
+        $informe = $controller->getInformePresupuestalPorSemana($idSemanaSession);
 
         // echo "<pre>";
         // var_dump($_SESSION[APP_SESSION_NAME]);
@@ -49,7 +52,7 @@ class DashboardController {
         // echo "<pre>";
         // var_dump( $semanas);
         // exit;
-        $semanaActiva = AnioFiscalController::getSemanaActiva($semanas);
+        
     
         $views = [
             "dashboards"      => __DIR__ . '/../view/content/dashboard.php',
@@ -57,7 +60,6 @@ class DashboardController {
             "usuarios"        => __DIR__ . '/../view/content/role/manage.php',
             "page_not_found"  => __DIR__ . '/../app/view/errors/404.php',
             "sin-rol"         => __DIR__ . '/../app/view/errors/sin_rol.php',
-            "subirArchivo"=> __DIR__ . '/app/view/cargarExcel.php',
         ];
 
         $userRol = UserController::verifyAccount($_SESSION[APP_SESSION_NAME]['idUsuarioSession']);

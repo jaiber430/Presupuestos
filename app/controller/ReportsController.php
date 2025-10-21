@@ -4,12 +4,16 @@ namespace presupuestos\controller;
 
 use presupuestos\helpers\Auth;
 use presupuestos\model\ReportsModel;
+use Exception;
+use PDO;
 
-class ReportsController{
+class ReportsController
+{
     /**
      * POST /reports -> subir Excel semana 1 (cdp, rp, pagos)
      */
-    public function index(){
+    public function index()
+    {
         Auth::check();
 
         try {
@@ -27,7 +31,7 @@ class ReportsController{
 
             $files = $_FILES;
             $semanaId = (int)$_POST['semana_id'];
-            $centroId= $_SESSION[APP_SESSION_NAME]['idCentroIdSession'];         
+            $centroId = $_SESSION[APP_SESSION_NAME]['idCentroIdSession'];
             // Procesa Excel usando ReportsModel adaptado
             $results = ReportsModel::processWeek1Excels($files, $semanaId, $centroId);
 
@@ -59,10 +63,59 @@ class ReportsController{
         }
     }
 
+    public function getInformePresupuestalPorSemana(int $semanaId)
+    {
+        Auth::check();
+
+        $idCentroIdSession = $_SESSION[APP_SESSION_NAME]['idCentroIdSession'];
+
+        // Obtener datos del modelo
+        $datosInforme = ReportsModel::getInformePresupuestalPorSemana(
+            $idCentroIdSession,
+            $semanaId
+        );
+
+        return $datosInforme;
+       
+        // Calcular resúmenes
+        $resumenes = $this->calcularResumenes($datosInforme);
+
+        // Preparar datos para la vista
+        $vistaDatos = [
+            'datos' => $datosInforme,
+            'resumenes' => $resumenes,
+            'semanaId' => $semanaId,
+            'totalRegistros' => count($datosInforme)
+        ];
+    }
+
+    private function calcularResumenes(array $datos): array
+    {
+        $totalPresupuesto = 0;
+        $totalPagado = 0;
+        $totalSaldo = 0;
+        $totalComprometido = 0;
+
+        foreach ($datos as $fila) {
+            $totalPresupuesto += floatval($fila['valorActual'] ?? 0);
+            $totalPagado += floatval($fila['valorPagado'] ?? 0);
+            $totalSaldo += floatval($fila['saldoPorComprometer'] ?? 0);
+            $totalComprometido += floatval($fila['valorComprometido'] ?? 0);
+        }
+
+        return [
+            'totalPresupuesto' => $totalPresupuesto,
+            'totalPagado' => $totalPagado,
+            'totalSaldo' => $totalSaldo,
+            'totalComprometido' => $totalComprometido
+        ];
+    }
+
     /**
      * GET /reports/dependencias -> lista dependencias
      */
-    public function dependencias(){
+    public function dependencias()
+    {
         header('Content-Type: application/json; charset=utf-8');
         $deps = ReportsModel::getDependencias();
         echo json_encode($deps, JSON_UNESCAPED_UNICODE);
@@ -72,7 +125,8 @@ class ReportsController{
     /**
      * GET /reports/cdps -> lista números CDP únicos
      */
-    public function cdps(){
+    public function cdps()
+    {
         header('Content-Type: application/json; charset=utf-8');
         $cdps = ReportsModel::getCDPs();
         echo json_encode($cdps, JSON_UNESCAPED_UNICODE);
@@ -82,7 +136,8 @@ class ReportsController{
     /**
      * GET /reports/conceptos -> lista conceptos internos únicos
      */
-    public function conceptos(){
+    public function conceptos()
+    {
         header('Content-Type: application/json; charset=utf-8');
         $conceptos = ReportsModel::getConceptos();
         echo json_encode($conceptos, JSON_UNESCAPED_UNICODE);
@@ -92,7 +147,8 @@ class ReportsController{
     /**
      * GET /reports/consulta?dependencia=...&numero_cdp=...&concepto_interno=...
      */
-    public function consulta(){
+    public function consulta()
+    {
         header('Content-Type: application/json; charset=utf-8');
         $filters = [
             'dependencia' => $_GET['dependencia'] ?? '',
@@ -107,7 +163,8 @@ class ReportsController{
     /**
      * POST /reports/delete -> limpia datos cargados (TRUNCATE) para la semana indicada
      */
-    public function delete(){
+    public function delete()
+    {
         Auth::check();
         header('Content-Type: application/json; charset=utf-8');
         try {

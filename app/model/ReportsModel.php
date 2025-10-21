@@ -763,7 +763,6 @@ class ReportsModel extends MainModel
 		) pt ON pt.idCdpFk = c.idCdp
 		LEFT JOIN cdpdependencia cd ON cd.idCdpFk = c.idCdp
 		LEFT JOIN dependencias dep ON dep.idDependencia = cd.idDependenciaFk
-		-- ✅ AGREGAR FILTRO PARA EVITAR CDPs VACÍOS
 		WHERE c.numeroDocumento IS NOT NULL 
 		AND c.numeroDocumento != '' 
 		AND c.valorActual IS NOT NULL
@@ -818,5 +817,31 @@ class ReportsModel extends MainModel
         ";
 
 		$pdo->exec($sql);
+	}
+
+	public static function getInformePresupuestalPorSemana(int $centroId, int $semanaId): array
+	{
+		$pdo = self::getConnection();
+
+		$sql = "
+			SELECT 
+				ip.*,
+				c.fechaRegistro,
+				c.objeto as descripcionCompleta
+			FROM informepresupuestal ip
+			LEFT JOIN cdp c ON ip.cdp = c.numeroDocumento
+			LEFT JOIN semanascarga s ON c.idSemanaFk = s.idSemana  
+			WHERE s.idCentroFK = :centroId
+			AND c.idSemanaFk = :semanaId
+			ORDER BY ip.porcentajeCompromiso ASC;
+		";
+
+		$stmt = $pdo->prepare($sql);
+		$stmt->execute([
+			':centroId' => $centroId,
+			':semanaId' => $semanaId
+		]);
+
+		return $stmt->fetchAll(PDO::FETCH_ASSOC);
 	}
 }

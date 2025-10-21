@@ -122,19 +122,6 @@ class AnioFiscalController{
         return $semanas;
     }
 
-    public static function getSemanaActiva(array $semanas): ?array{
-
-        $hoy = new \DateTime();
-        $hoyStr = $hoy->format('Y-m-d');
-
-        foreach ($semanas as $semana) {
-            if ($hoyStr >= $semana['fechaInicio'] && $hoyStr <= $semana['fechaFin']) {
-                return $semana;
-            }
-        }
-
-        return null;
-    }
 
     public static function modificar()
     {
