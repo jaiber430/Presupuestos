@@ -263,35 +263,11 @@ $ultimo_dia = date('t');
                         <h5 class="modal-title mb-0 fw-bold">
                             <i class="fas fa-chart-bar me-2"></i>
                             Detalles de Presupuesto - <span class="text-warning" id="modal-detalles-week-label">Semana <?= $semanaActiva['numeroSemana'] ?? '' ?></span>
-                            <?php if ($semanaActiva && $semanaActiva['semanaActiva']): ?>
-                                <span class="badge bg-success ms-2">SEMANA ACTUAL</span>
-                            <?php endif; ?>
                         </h5>
-                        <small class="opacity-75">
-                            Análisis detallado del presupuesto y compromisos -
-                            <?php if ($semanaActiva): ?>
-                                <?= date("d/m/Y", strtotime($semanaActiva['fechaInicio'])) ?> al <?= date("d/m/Y", strtotime($semanaActiva['fechaFin'])) ?>
-                            <?php endif; ?>
-                        </small>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
             </div>
-
-            <!-- Alerta de semana activa automática -->
-            <?php if ($semanaActiva && $semanaActiva['semanaActiva']): ?>
-                <div class="alert alert-info alert-dismissible fade show mb-0" role="alert">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-robot me-2 fa-lg"></i>
-                        <div class="flex-grow-1">
-                            <strong>Semana activa automática:</strong> El sistema ha activado esta semana según la fecha actual.
-                            <small class="d-block text-muted">La activación se realiza automáticamente cada día.</small>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                </div>
-            <?php endif; ?>
-
             <div class="modal-body p-4">
                 <!-- Panel de Filtros Mejorado -->
                 <div class="card shadow-sm border-0 mb-4">
@@ -353,16 +329,12 @@ $ultimo_dia = date('t');
                                 </div>
                             </div>
                             <!-- Columna Información de Semana -->
+
                             <div class="col-lg-4 col-md-5">
                                 <div class="text-end">
                                     <small class="text-muted">
                                         <i class="fas fa-database me-1"></i>
                                         <?= count($informe) ?> registros encontrados
-                                        <?php if ($semanaActiva && $semanaActiva['semanaActiva']): ?>
-                                            <span class="badge bg-info ms-1">
-                                                <i class="fas fa-robot me-1"></i>Automático
-                                            </span>
-                                        <?php endif; ?>
                                     </small>
                                 </div>
                             </div>
@@ -370,11 +342,10 @@ $ultimo_dia = date('t');
                     </div>
                 </div>
 
-                <!-- TABLA CON DATOS ACTUALIZADOS SEGÚN TU CONSULTA -->
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0 fw-semibold text-primary">
-                            <i class="fas fa-table me-2"></i>Detalles Presupuestales
+                            <i class="fas fa-table me-2"></i>Detalles Presupuestales Completos
                             <span class="badge bg-primary ms-2"><?= count($informe) ?> registros</span>
                         </h6>
                         <div class="d-flex gap-2">
@@ -391,22 +362,29 @@ $ultimo_dia = date('t');
                         <table class="table table-hover table-striped align-middle mb-0">
                             <thead class="table-dark sticky-top">
                                 <tr>
-                                    <th width="120" class="text-center">CDP</th>
-                                    <th width="110" class="text-center">Fecha</th>
-                                    <th width="150">Rubro</th>
-                                    <th width="200">Descripción</th>
-                                    <th width="100" class="text-center">Fuente</th>
-                                    <th width="140" class="text-end">Valor Actual</th>
-                                    <th width="140" class="text-end">Saldo</th>
-                                    <th width="140" class="text-end">Comprometido</th>
-                                    <th width="120" class="text-center">% Compromiso</th>
-                                    <th width="250">Objeto</th>
+                                    <th width="120" class="text-center">Número CDP</th>
+                                    <th width="110" class="text-center">Fecha de Registro</th>
+                                    <th width="100" class="text-center">Dependencia</th>
+                                    <th width="100" class="text-center">Dependencia Descripción</th>
+                                    <th width="200">Concepto Interno</th>
+                                    <th width="120">Rubro</th>
+                                    <th width="180">Rubro Descripción</th>
+                                    <th width="90" class="text-center">Fuente</th>
+                                    <th width="120" class="text-end">Valor Inicial</th>
+                                    <th width="120" class="text-end">Valor Operaciones</th>
+                                    <th width="120" class="text-end">Valor Actual</th>
+                                    <th width="120" class="text-end">Saldo por Comprometer</th>
+                                    <th width="120" class="text-end">Valor Comprometido</th>
+                                    <th width="100" class="text-center">% Compromiso</th>
+                                    <th width="120" class="text-end">Valor Pagado</th>
+                                    <th width="100" class="text-center">% Pagado</th>
+
                                     <?php if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4): ?>
-                                        <th width="150" class="text-center">Obs. <?= $mes_actual . ' 1-7' ?></th>
-                                        <th width="150" class="text-center">Obs. <?= $mes_actual . ' 8-15' ?></th>
-                                        <th width="150" class="text-center">Obs. <?= $mes_actual . ' 16-23' ?></th>
-                                        <th width="150" class="text-center">Obs. <?= $mes_actual . ' 24-' . $ultimo_dia ?></th>
-                                        <th width="100" class="text-center">Guardar</th>
+                                        <th width="120" class="text-center">Obs. <?= $mes_actual . ' 1-7' ?></th>
+                                        <th width="120" class="text-center">Obs. <?= $mes_actual . ' 8-15' ?></th>
+                                        <th width="120" class="text-center">Obs. <?= $mes_actual . ' 16-23' ?></th>
+                                        <th width="120" class="text-center">Obs. <?= $mes_actual . ' 24-' . $ultimo_dia ?></th>
+                                        <th width="80" class="text-center">Guardar</th>
                                     <?php endif; ?>
                                 </tr>
                             </thead>
@@ -415,13 +393,41 @@ $ultimo_dia = date('t');
                                 $totalPresupuesto = 0;
                                 $totalComprometido = 0;
                                 $totalSaldo = 0;
+                                $totalValorInicial = 0;
+                                $totalValorOperaciones = 0;
+                                $totalValorPagado = 0;
+
+                                // Función para extraer solo el texto antes de los dos puntos (Concepto)
+                                function extraerConcepto($texto)
+                                {
+                                    if (empty($texto)) return '';
+                                    $partes = explode(':', $texto, 2);
+                                    return trim($partes[0]);
+                                }
+
+                                // Función para extraer solo el texto hasta el SEGUNDO guión (Servicio)
+                                function extraerServicio($texto)
+                                {
+                                    if (empty($texto)) return '';
+                                    $partes = explode('-', $texto);
+                                    // Si hay al menos 3 partes (2 guiones), unimos las primeras dos
+                                    if (count($partes) >= 3) {
+                                        return trim($partes[0]) . ' - ' . trim($partes[1]);
+                                    } elseif (count($partes) == 2) {
+                                        // Si solo hay un guión, devolvemos la primera parte
+                                        return trim($partes[0]);
+                                    } else {
+                                        // Si no hay guiones, devolvemos el texto completo
+                                        return trim($texto);
+                                    }
+                                }
 
                                 if (empty($informe)): ?>
                                     <tr>
                                         <?php
-                                        $colspan = 10;
+                                        $colspan = 16;
                                         if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4) {
-                                            $colspan = 15;
+                                            $colspan = 21;
                                         }
                                         ?>
                                         <td colspan="<?= $colspan ?>" class="text-center text-muted py-5">
@@ -431,51 +437,110 @@ $ultimo_dia = date('t');
                                     </tr>
                                 <?php else: ?>
                                     <?php foreach ($informe as $item):
-                                        // Usando los nombres exactos de tu consulta
+                                        // Usando todos los campos de tu tabla excepto el ID
+                                        $valorInicial = floatval($item['valorInicial'] ?? 0);
+                                        $valorOperaciones = floatval($item['valorOperaciones'] ?? 0);
                                         $valorActual = floatval($item['valorActual'] ?? 0);
-                                        $valorComprometido = floatval($item['valorComprometido'] ?? 0);
                                         $saldoComprometer = floatval($item['saldoPorComprometer'] ?? 0);
-                                        $porcentaje = floatval($item['porcentajeCompromiso'] ?? 0);
+                                        $valorComprometido = floatval($item['valorComprometido'] ?? 0);
+                                        $porcentajeCompromiso = floatval($item['porcentajeCompromiso'] ?? 0);
+                                        $valorPagado = floatval($item['valorPagado'] ?? 0);
+                                        $porcentajePagado = floatval($item['porcentajePagado'] ?? 0);
 
+                                        // Extraer solo el concepto (texto antes de los dos puntos)
+                                        $concepto = extraerConcepto($item['descripcionCompleta'] ?? '');
+
+                                        // Extraer solo el servicio (texto hasta el SEGUNDO guión) para Rubro Descripción
+                                        $servicio = extraerServicio($item['descripcion'] ?? '');
+
+                                        // Totales para el footer
+                                        $totalValorInicial += $valorInicial;
+                                        $totalValorOperaciones += $valorOperaciones;
                                         $totalPresupuesto += $valorActual;
-                                        $totalComprometido += $valorComprometido;
                                         $totalSaldo += $saldoComprometer;
+                                        $totalComprometido += $valorComprometido;
+                                        $totalValorPagado += $valorPagado;
 
-                                        // CORRECCIÓN DE COLORES: ROJO para 0%, VERDE para 100%
                                         $claseFila = '';
                                         $claseBadge = 'bg-secondary';
 
-                                        if ($porcentaje == 0) {
+                                        if ($porcentajeCompromiso == 0) {
                                             $claseFila = 'table-danger'; // ROJO para 0%
                                             $claseBadge = 'bg-danger';
-                                        } elseif ($porcentaje == 100) {
+                                        } elseif ($porcentajeCompromiso == 100) {
                                             $claseFila = 'table-success'; // VERDE para 100%
                                             $claseBadge = 'bg-success';
-                                        } elseif ($porcentaje > 80) {
+                                        } elseif ($porcentajeCompromiso > 80) {
                                             $claseFila = 'table-warning';
                                             $claseBadge = 'bg-warning text-dark';
-                                        } elseif ($porcentaje > 50) {
+                                        } elseif ($porcentajeCompromiso > 50) {
                                             $claseFila = 'table-info';
                                             $claseBadge = 'bg-info text-dark';
-                                        } elseif ($porcentaje > 0) {
+                                        } elseif ($porcentajeCompromiso > 0) {
                                             $claseBadge = 'bg-primary';
                                         }
                                     ?>
                                         <tr class="<?= $claseFila ?>">
+                                            <!-- Columna 1: Número CDP -->
                                             <td class="text-center fw-bold"><?= htmlspecialchars($item['cdp'] ?? '') ?></td>
+
+                                            <!-- Columna 2: Fecha de Registro -->
                                             <td class="text-center"><?= !empty($item['fechaRegistro']) ? date('d/m/Y', strtotime($item['fechaRegistro'])) : '' ?></td>
+
+                                            <!-- Columna 3: Dependencia (ID) -->
+                                            <td class="text-center"><?= htmlspecialchars($item['idDependenciaFk'] ?? '') ?></td>
+
+                                            <!-- Columna 4: Dependencia Descripción-->
+                                            <td class="text-center"><?= htmlspecialchars($item['dependenciaDescripcion'] ?? '') ?></td>
+
+                                            <!-- Columna 5: Concepto Interno (extraído del objeto) -->
+                                            <td class="small" title="<?= htmlspecialchars($item['descripcionCompleta'] ?? '') ?>">
+                                                <?= htmlspecialchars($concepto) ?>
+                                            </td>
+
+                                            <!-- Columna 6: Rubro -->
                                             <td><?= htmlspecialchars($item['rubro'] ?? '') ?></td>
-                                            <td class="small"><?= htmlspecialchars($item['descripcion'] ?? '') ?></td>
+
+                                            <!-- Columna 7: Rubro Descripción (ahora con el servicio extraído) -->
+                                            <td class="small" title="<?= htmlspecialchars($item['descripcion'] ?? '') ?>">
+                                                <?= htmlspecialchars($servicio) ?>
+                                            </td>
+
+                                            <!-- Columna 8: Fuente -->
                                             <td class="text-center"><?= htmlspecialchars($item['fuente'] ?? '') ?></td>
+
+                                            <!-- Columna 9: Valor Inicial -->
+                                            <td class="text-end">$<?= number_format($valorInicial, 0, ',', '.') ?></td>
+
+                                            <!-- Columna 10: Valor Operaciones -->
+                                            <td class="text-end">$<?= number_format($valorOperaciones, 0, ',', '.') ?></td>
+
+                                            <!-- Columna 11: Valor Actual -->
                                             <td class="text-end fw-bold">$<?= number_format($valorActual, 0, ',', '.') ?></td>
+
+                                            <!-- Columna 12: Saldo por Comprometer -->
                                             <td class="text-end">$<?= number_format($saldoComprometer, 0, ',', '.') ?></td>
+
+                                            <!-- Columna 13: Valor Comprometido -->
                                             <td class="text-end">$<?= number_format($valorComprometido, 0, ',', '.') ?></td>
+
+                                            <!-- Columna 14: % Compromiso -->
                                             <td class="text-center">
                                                 <span class="badge <?= $claseBadge ?>">
-                                                    <?= number_format($porcentaje, 1) ?>%
+                                                    <?= number_format($porcentajeCompromiso, 1) ?>%
                                                 </span>
                                             </td>
-                                            <td class="small"><?= htmlspecialchars($item['descripcionCompleta'] ?? '') ?></td>
+
+                                            <!-- Columna 15: Valor Pagado -->
+                                            <td class="text-end">$<?= number_format($valorPagado, 0, ',', '.') ?></td>
+
+                                            <!-- Columna 16: % Pagado -->
+                                            <td class="text-center">
+                                                <span class="badge bg-secondary">
+                                                    <?= number_format($porcentajePagado, 1) ?>%
+                                                </span>
+                                            </td>
+
                                             <?php if (isset($_SESSION['user_rol_id']) && $_SESSION['user_rol_id'] == 4): ?>
                                                 <td class="text-center">
                                                     <input type="text" class="form-control form-control-sm observacion"
@@ -524,15 +589,21 @@ $ultimo_dia = date('t');
                                 </small>
                             </div>
                             <div class="col-md-8 text-end">
-                                <div class="d-flex justify-content-end gap-4">
+                                <div class="d-flex justify-content-end gap-3 flex-wrap">
                                     <small class="text-muted">
-                                        Total presupuesto: <span class="fw-bold text-primary">$<?= number_format($totalPresupuesto, 0, ',', '.') ?></span>
+                                        Valor Inicial: <span class="fw-bold text-info">$<?= number_format($totalValorInicial, 0, ',', '.') ?></span>
                                     </small>
                                     <small class="text-muted">
-                                        Total comprometido: <span class="fw-bold text-warning">$<?= number_format($totalComprometido, 0, ',', '.') ?></span>
+                                        Valor Actual: <span class="fw-bold text-primary">$<?= number_format($totalPresupuesto, 0, ',', '.') ?></span>
                                     </small>
                                     <small class="text-muted">
-                                        Saldo disponible: <span class="fw-bold text-success">$<?= number_format($totalSaldo, 0, ',', '.') ?></span>
+                                        Comprometido: <span class="fw-bold text-warning">$<?= number_format($totalComprometido, 0, ',', '.') ?></span>
+                                    </small>
+                                    <small class="text-muted">
+                                        Saldo: <span class="fw-bold text-success">$<?= number_format($totalSaldo, 0, ',', '.') ?></span>
+                                    </small>
+                                    <small class="text-muted">
+                                        Pagado: <span class="fw-bold text-secondary">$<?= number_format($totalValorPagado, 0, ',', '.') ?></span>
                                     </small>
                                 </div>
                             </div>
@@ -592,7 +663,6 @@ $ultimo_dia = date('t');
         </div>
     </div>
 </div>
-
 
 
 <!-- DATALISTS FUERA DEL MODAL -->

@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ============================
     // BUSCAR Y RENDER TABLA
     // ============================
- 
+    
     // ============================
     // LIMPIAR FILTROS
     // ============================
