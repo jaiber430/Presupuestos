@@ -826,11 +826,14 @@ class ReportsModel extends MainModel
 		$sql = "
 			SELECT 
 				ip.*,
+				d.nombre AS dependenciaDescripcion,
 				c.fechaRegistro,
 				c.objeto as descripcionCompleta
+				
 			FROM informepresupuestal ip
 			LEFT JOIN cdp c ON ip.cdp = c.numeroDocumento
 			LEFT JOIN semanascarga s ON c.idSemanaFk = s.idSemana  
+			JOIN dependencias d ON ip.idDependenciaFk= d.codigo
 			WHERE s.idCentroFK = :centroId
 			AND c.idSemanaFk = :semanaId
 			ORDER BY ip.porcentajeCompromiso ASC;
