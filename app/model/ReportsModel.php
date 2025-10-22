@@ -804,10 +804,10 @@ class ReportsModel extends MainModel
             GROUP BY idCdpFk
         ) ps ON ps.idCdpFk = c.idCdp  
         SET
-            -- ✅ ELIMINAR esta línea que ya no necesitamos:
+
             -- i.valorComprometido = COALESCE(r.compromisos, i.valorComprometido),
             i.valorPagado = COALESCE(ps.sum_pago, 0),
-            -- ✅ CALCULAR valorComprometido y porcentaje basado en el cálculo correcto
+
             i.valorComprometido = i.valorActual - i.saldoPorComprometer,
             i.porcentajeCompromiso = CASE
                 WHEN (i.valorActual - i.saldoPorComprometer) > 0
