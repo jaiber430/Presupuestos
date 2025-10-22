@@ -264,11 +264,6 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // ============================
-    // BUSCAR Y RENDER TABLA
-    // ============================
-    
-
-    // ============================
     // LIMPIAR FILTROS
     // ============================
     const btnLimpiarFiltros = document.getElementById('btn-limpiar-filtros');
@@ -357,6 +352,126 @@ document.addEventListener('DOMContentLoaded', function () {
             btnBuscar.click();
         }
     });
+
+// ============================
+    // BUSCAR Y RENDER TABLA
+    // ============================
+    const buscarYRenderConFiltros = async () => {
+        // Obtener valores de todos los filtros
+        const conceptoValue = document.getElementById('filtro-concepto').value;
+        const buscarPorValue = dependenciaInput.value.trim();
+        const pagosValue = document.getElementById('filtro-pagos').value;
+        const contratoValue = document.getElementById('filtro-contrato').value;
+        const valorMin = document.getElementById('filtro-valor-min').value;
+        const valorMax = document.getElementById('filtro-valor-max').value;
+
+        // Construir parámetros de búsqueda
+        const params = new URLSearchParams();
+        
+        // Solo agregar el filtro de "buscar por" si hay un tipo seleccionado y un valor
+        if (conceptoValue && buscarPorValue) {
+            switch(conceptoValue) {
+                case '1': // Dependencia
+                    params.set('dependencia', buscarPorValue);
+                    break;
+                case '2': // Numero CDP
+                    params.set('numero_cdp', buscarPorValue);
+                    break;
+                case '3': // Concepto
+                    params.set('concepto_interno', buscarPorValue);
+                    break;
+            }
+        }
+        
+        if (pagosValue) params.set('estado_pagos', pagosValue);
+        if (contratoValue) params.set('estado_contrato', contratoValue);
+        if (valorMin) params.set('valor_min', valorMin);
+        if (valorMax) params.set('valor_max', valorMax);
+
+        try {
+            const resp = await fetch(`${BASE_URL}reports/consulta?${params.toString()}`);
+            const data = await resp.json();
+            tbodyDetalles.innerHTML = '';
+            
+            if (!Array.isArray(data) || data.length === 0) {
+                tbodyDetalles.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-5">Sin resultados para los filtros aplicados</td></tr>`;
+                datosFiltradosActuales = [];
+                return [];
+            }
+
+            // Guardar datos filtrados para actualizar el datalist
+            datosFiltradosActuales = data;
+
+            // Actualizar el datalist según el filtro seleccionado
+            actualizarFiltroBuscarPor(conceptoValue);
+
+            // Actualizar contador de resultados
+            const contador = document.getElementById('contador-resultados');
+            const filasMostradas = document.getElementById('filas-mostradas');
+            if (contador) contador.textContent = data.length;
+            if (filasMostradas) filasMostradas.textContent = data.length;
+
+            // Calcular total presupuesto para el footer
+            const totalPresupuesto = data.reduce((sum, row) => sum + limpiarNumero(row.valor_inicial), 0);
+            const totalPresupuestoFooter = document.getElementById('total-presupuesto-footer');
+            if (totalPresupuestoFooter) totalPresupuestoFooter.textContent = formatoMoneda(totalPresupuesto);
+
+            data.forEach(row => {
+                const inicial = limpiarNumero(row.valor_inicial);
+                const saldo = limpiarNumero(row.saldo_por_comprometer);
+                const comprometido = inicial - saldo;
+                const porcentaje = inicial > 0 ? ((comprometido / inicial) * 100).toFixed(2) : 0;
+                let clase = 'rojo';
+                if (comprometido === inicial && saldo === 0) clase = 'verde';
+                else if (comprometido > 0) clase = 'naranja';
+
+                const tr = document.createElement('tr');
+                const safe = (txt) => (txt ?? '').toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                // Hacer el CDP clickeable
+                const cdpCell = `<td class="cdp-clickable" data-row='${JSON.stringify(row).replace(/'/g, "\\'")}'>${safe(row.numero_cdp)}</td>`;
+
+                tr.innerHTML = `
+                    ${cdpCell}
+                    <td>${safe(row.fecha_registro)}</td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.concepto_interno)}</textarea></td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.rubro)}</textarea></td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.descripcion)}</textarea></td>
+                    <td>${safe(row.fuente)}</td>
+                    <td>${formatoMoneda(limpiarNumero(row.valor_actual))}</td>
+                    <td>${formatoMoneda(limpiarNumero(row.saldo_por_comprometer))}</td>
+                    <td>${formatoMoneda(comprometido)}</td>
+                    <td class="${clase}">${porcentaje}%</td>
+                    <td class="cell-textarea"><textarea readonly spellcheck="false">${safe(row.objeto)}</textarea></td>
+                `;
+                tbodyDetalles.appendChild(tr);
+            });
+
+            // Agregar event listeners a los CDP clickeables
+            document.querySelectorAll('.cdp-clickable').forEach(cell => {
+                cell.addEventListener('click', function () {
+                    const rowData = JSON.parse(this.getAttribute('data-row'));
+
+                    // Remover clase activa de todos los CDP
+                    document.querySelectorAll('.cdp-clickable').forEach(cdp => {
+                        cdp.classList.remove('cdp-active');
+                    });
+
+                    // Agregar clase activa al CDP clickeado
+                    this.classList.add('cdp-active');
+
+                    // Renderizar gráfica individual en el modal
+                    renderCdpIndividualChart(rowData);
+                });
+            });
+
+            return data;
+        } catch (err) {
+            console.error('Error cargando detalles:', err);
+            if (window.Swal) Swal.fire('Error', 'No fue posible cargar los detalles.', 'error');
+            return [];
+        }
+    };
 
     // ============================
     // GRÁFICAS GLOBALES (PANEL PRINCIPAL)
